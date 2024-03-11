@@ -1,0 +1,5 @@
+# Para compilar: iverilog -c comp.txt
+
+
+unidade_controle.v
+fluxo_dados.v
