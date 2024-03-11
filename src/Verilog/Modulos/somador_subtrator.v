@@ -4,16 +4,10 @@
 module somador_subtrator  ( input [3:0] a,
                             input [3:0]  b,
                             input select,
-                            output reg [4:0] resul
+                            output [4:0] resul
                     );
 
-    always @ (*)
-        if (select) begin
-          resul = a + b;
-        end
-        else begin
-          resul = a - b;
-        end
- 
+  assign resul = select ? a + b : a - b;
+
 
 endmodule

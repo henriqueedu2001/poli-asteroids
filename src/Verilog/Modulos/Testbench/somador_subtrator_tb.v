@@ -17,9 +17,10 @@ task Check(
             input [9:0] esperado
             );
         if (esperado[9:5] != esperado[4:0]) begin
-            $display("Resultado %d \nEsperava %d", esperado[7:4], esperado[3:0]);
+            $display("Resultado %d \nEsperava %d\n", esperado[9:5], esperado[4:0]);
             errors = errors + 1;
         end
+        else $display("passou!");
   endtask
 
 somador_subtrator DUT (
@@ -43,41 +44,47 @@ initial begin
   a_in = 4'b1;
   b_in = 4'b0;
   select_in = 1'b1; // 1 + 0
-  Check({5'd1, resul_out});
+  #10
+  Check({resul_out, 5'd1});
   #10
 
 
   a_in = 4'b1;
   b_in = 4'd2;
   select_in = 1'b1; // 1 + 2
+  #10
   Check({5'd3, resul_out});
   #10
 
   a_in = 4'd3;
   b_in = 4'b1;
   select_in = 1'b1; // 3 + 1
+  #10
   Check({5'd4, resul_out});
   #10
 
   a_in = 4'd3;
   b_in = 4'b1;
   select_in = 1'b0; // 3 - 1
+  #10
   Check({5'd2, resul_out});
   #10
 
-  // a_in = 4'b1;
-  // b_in = 4'b1;
-  // select_in = 1'b0; // 1 - 1
-  // Check({5'd0, resul_out});
-  // #10
+  a_in = 4'b1;
+  b_in = 4'b1;
+  select_in = 1'b0; // 1 - 1
+    #10
+  Check({5'd0, resul_out});
+  #10
 
-  // a_in = 4'd4;
-  // b_in = 4'b1;
-  // select_in = 1'b0; // 1 - 1
-  // Check({5'd0, resul_out});
-  // #10
+  a_in = 4'd4;
+  b_in = 4'b1;
+  select_in = 1'b0; // 1 - 1
+    #10
+  Check({5'd3, resul_out});
+  #10
 
-  $display("Terminou a simulação e tem %d", errors);
+  $display("Terminou a simulacao e tem %d", errors);
   #10
   $stop;
 end
