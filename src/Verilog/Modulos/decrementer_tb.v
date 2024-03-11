@@ -1,6 +1,4 @@
 `timescale 1ns/1ns
-`include "decrementer.v"
-// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
 
 module decrementer_tb;
 
