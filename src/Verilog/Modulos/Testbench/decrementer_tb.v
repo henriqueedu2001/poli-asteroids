@@ -1,3 +1,4 @@
+`include "decrementer.v"
 `timescale 1ns/1ns
 
 module decrementer_tb;
@@ -38,7 +39,7 @@ always #((clockPeriod / 2)) clock_in = ~clock_in;
             input [7:0] esperado
             );
         if (esperado[7:4] != esperado[3:0]) begin
-            $display("Resultado %d \nEsperava %d", esperado[7:4], esperado[3:0]);
+            $display("AAResultado %d \nEsperava %d", esperado[7:4], esperado[3:0]);
             errors = errors + 1;
         end
   endtask
@@ -76,14 +77,14 @@ initial begin
   enp_in = 1'b1;
   D_in = 4'd0;
   #(4*clockPeriod)
-  // Check ({Q_out, 4'b0});
-  // Check ({rco_out, 1'b1});
+  Check ({Q_out, 4'b0});
+  Check ({3'b0, rco_out, 3'b0, 1'b1});
 
   // Espera
   caso = 99;
   #(5*clockPeriod)
-  // Check ({Q_out, 4'b0});
-  // Check ({rco_out, 1'b1});
+  Check ({Q_out, 4'b0});
+  Check ({3'b0, rco_out, 3'b0, 1'b1});
 
   $display("Fim da simulacao e tem %d erros", errors);
   $stop;

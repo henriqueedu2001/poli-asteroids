@@ -1,29 +1,11 @@
-
-/*---------------Laboratorio Digital-------------------------------------
- * Arquivo   : contador_m.v
- * Projeto   : Experiencia 5 - Desenvolvimento de Projeto de 
- *                             Circuitos Digitais em FPGA
- *-----------------------------------------------------------------------
- * Descricao : contador binario, modulo m, com parametros 
- *             M (modulo do contador) e N (numero de bits),
- *             sinais para clear assincrono (zera_as) e sincrono (zera_s)
- *             e saidas de fim e meio de contagem
- *             
- *-----------------------------------------------------------------------
- * Revisoes  :
- *     Data        Versao  Autor             Descricao
- *     30/01/2024  1.0     Edson Midorikawa  criacao
- *-----------------------------------------------------------------------
- */
-
 module contador_m #(parameter M=16, N=4)
   (
-   input  wire          clock  ,
+   input  wire          clock,
    input  wire          zera_as,
-   input  wire          zera_s ,
-   input  wire          conta  ,
-   output reg  [N-1:0]  Q      ,
-   output reg           fim    ,
+   input  wire          zera_s,
+   input  wire          conta,
+   output reg  [N-1:0]  Q,
+   output reg           fim,
    output reg           meio
   );
 

@@ -1,5 +1,5 @@
 `timescale 1ns/1ns
-`include "somador_subtrator.v"
+`include "../somador_subtrator.v"
 module somador_subtrator_tb;
 
 //entradas
@@ -23,7 +23,7 @@ task Check(
         else $display("passou!");
   endtask
 
-somador_subtrator DUT (
+somador_subtrator #(4) DUT (
   .a      (a_in)     ,
   .b      (b_in)     ,
   .select (select_in),

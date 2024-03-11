@@ -1,0 +1,13 @@
+*.*
+!*.v
+!*.qar
+!comp.txt
+!*.pdf
+!*.zip
+!.gitignore
+work/*
+_info
+_vmake
+transcript
+db/*
+!*.dig

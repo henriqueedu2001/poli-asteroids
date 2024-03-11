@@ -1,0 +1,755 @@
+<?xml version="1.0" encoding="utf-8"?>
+<circuit>
+  <version>2</version>
+  <attributes/>
+  <visualElements>
+    <visualElement>
+      <elementName>External</elementName>
+      <elementAttributes>
+        <entry>
+          <string>applicationType</string>
+          <appType>IVERILOG</appType>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>astro_genius</string>
+        </entry>
+        <entry>
+          <string>externalInputs</string>
+          <string>clock,iniciar,reset,jogada:6</string>
+        </entry>
+        <entry>
+          <string>Width</string>
+          <int>8</int>
+        </entry>
+        <entry>
+          <string>Code</string>
+          <string>module astro_genius(
+    input clock,
+    input iniciar,
+    input reset,
+    input [5:0] jogada,
+
+    output tiro,
+    output colisao,
+    output acertou,
+    output vidas,
+    output db_up,
+    output db_down,
+    output db_right,
+    output db_left,
+    output db_special,
+    output db_shot,
+    output [3:0]db_num_vidas
+);
+
+wire clear_reg_asteroide;
+wire enable_reg_asteroide_x;
+wire enable_reg_asteroide_y;
+wire select_mux_coor;
+wire select_mux_incremento;
+wire select_sum_sub;
+wire clear_decrementer;
+wire load_decrementer;
+wire ent_decrementer;
+
+wire wire_colisao;
+
+assign colisao = wire_colisao;
+
+
+
+fluxo_dados fd (
+    // inputs
+    .clock                  (clock),
+    .jogada                 (jogada),
+
+    // implementa o movimento dos astros
+    .clear_reg_asteroide    (clear_reg_asteroide),
+    .enable_reg_asteroide_x (enable_reg_asteroide_x),
+    .enable_reg_asteroide_y (enable_reg_asteroide_y),
+    .select_mux_coor        (select_mux_coor),
+    .select_mux_incremento  (select_mux_incremento),
+    .select_sum_sub         (select_sum_sub),
+
+    // implementa o decremento de vidas
+    .clear_decrementer      (clear_decrementer),
+    .load_decrementer       (load_decrementer),
+    .ent_decrementer        (ent_decrementer),
+
+    // outputs
+    .tiro                   (tiro),
+    .colisao                (wire_colisao),
+    .acertou                (acertou),
+    .vidas                  (vidas),
+    .db_up                  (db_up),
+    .db_down                (db_down),
+    .db_right               (db_right),
+    .db_left                (db_left),
+    .db_special             (db_special),
+    .db_shot                (db_shot),
+    .db_num_vidas           (db_num_vidas)
+);
+
+unidade_controle uc (
+            //inputs
+            .clock(clock),
+            .reset(reset),
+            
+            .iniciar(iniciar),
+            .tiro(1&apos;b0),
+            .colisao(wire_colisao),
+            .acertou(1&apos;b0),
+            .vidas(vidas),
+            .clear_reg_asteroide(clear_reg_asteroide),
+            .enable_reg_asteroide_x(enable_reg_asteroide_x),
+            .clear_decrementer(clear_decrementer),
+            .ent_decrementer(ent_decrementer),
+            .select_mux_coor(select_mux_coor),
+            .select_mux_incremento(select_mux_incremento),
+            .select_sum_sub(select_sum_sub),
+
+            //db
+            .db_estado(db_estado)
+        );
+
+endmodule
+
+module fluxo_dados(
+    input clock,
+    input [5:0] jogada, 
+    
+
+    // implementa o movimento dos astros
+    input clear_reg_asteroide,
+    input enable_reg_asteroide_x,
+    input enable_reg_asteroide_y,
+    input select_mux_coor,
+    input select_mux_incremento,
+    input select_sum_sub,
+
+    // implementa o decremento de vidas
+    input clear_decrementer,
+    input load_decrementer,
+    input ent_decrementer,
+    
+
+    output tiro, //
+    output colisao, 
+    output acertou, //
+    output vidas,
+    
+    //depuração
+    output db_up,
+    output db_down,
+    output db_right,
+    output db_left,
+    output db_special,
+    output db_shot,
+
+    output [3:0] db_num_vidas
+    
+
+
+
+);
+         
+
+wire [3:0] mux_incremento_out; 
+
+wire [3:0] asteroide_coor_x, asteroide_coor_y;
+
+wire [3:0] demux_coor_out;
+wire [4:0] sum_sub_out;
+
+wire [3:0] nave_coor_x, nave_coor_y;
+
+wire [3:0] mux_coordenada_out;
+
+wire wire_x_aste_igual_x_nave, wire_y_aste_igual_y_nave;
+
+wire [3:0] num_vidas;
+
+wire rco_decrementer;
+
+wire [5:0] out_reg_jogada;
+
+
+assign db_num_vidas = num_vidas;
+or (vidas, num_vidas[3], num_vidas[2], num_vidas[1], num_vidas[0]);
+
+// define a posição da nave
+assign nave_coor_x = 4&apos;b0001;
+assign nave_coor_y = 4&apos;b0000;
+
+assign db_up = out_reg_jogada[5];
+assign db_down = out_reg_jogada[4];
+assign db_right = out_reg_jogada[3];
+assign db_left = out_reg_jogada[2];
+assign db_special = out_reg_jogada[1];
+assign db_shot = out_reg_jogada[0];
+
+// assign num_vidas = db_num_vidas
+
+
+assign colisao = (wire_x_aste_igual_x_nave &amp;&amp; wire_y_aste_igual_y_nave) ? 1&apos;b1 : 1&apos;b0;
+
+
+registrador_n #(6) reg_jogada (
+    .clock  (clock),
+    .clear  (clear_reg_jogada),
+    .enable (enable_reg_jogada),
+    .D      (jogada),
+    .Q      (out_reg_jogada)
+);
+
+
+registrador_n #(4) reg_x_asteroide (
+    .clock  (clock),
+    .clear  (clear_reg_asteroide),
+    .enable (enable_reg_asteroide_x),
+    .D      ({sum_sub_out[3:0]}),
+    .Q      (asteroide_coor_x)
+);
+
+registrador_n #(4) reg_y_asteroide (
+    .clock  (clock),
+    .clear  (clear_reg_asteroide),
+    .enable (enable_reg_asteroide_y),
+    .D      ({sum_sub_out[3:0]}),
+    .Q      (asteroide_coor_y)
+);
+
+//mux que seleciona a coordenada a ser incrementada/decrementada
+assign mux_coordenada_out = select_mux_coor ? asteroide_coor_x : asteroide_coor_y;
+
+//mux que seleciona o incremento/decremento da coordenada
+assign mux_incremento_out = select_mux_incremento ? 4&apos;d2 : 4&apos;d1;
+
+somador_subtrator #(4) somador_subtrator(
+                    .a      (mux_coordenada_out),
+                    .b      (mux_incremento_out),
+                    .select (select_sum_sub),
+                    .resul  (sum_sub_out)
+                    );
+
+comparador_85 #(4) comparador_x (
+                    .A    (asteroide_coor_x),
+                    .B    (nave_coor_x),
+                    .ALBi (),
+                    .AGBi (),
+                    .AEBi (1&apos;b1),
+                    .ALBo (),
+                    .AGBo (),
+                    .AEBo (wire_x_aste_igual_x_nave)
+                    );
+
+comparador_85 #(4) comparador_y (
+                    .A    (asteroide_coor_y),
+                    .B    (nave_coor_y),
+                    .ALBi (),
+                    .AGBi (),
+                    .AEBi (1&apos;b1),
+                    .ALBo (),
+                    .AGBo (),
+                    .AEBo (wire_y_aste_igual_y_nave)
+                    );
+
+
+decrementer #(4) decrementer (
+                .clock(clock), 
+                .clr  (clear_decrementer), 
+                .ld   (load_decrementer), 
+                .ent  (ent_decrementer), 
+                .enp  (1&apos;b1 &amp;&amp; ~rco_decrementer), 
+                .D    (4&apos;d3), 
+                .Q    (num_vidas), 
+                .rco  (rco_decrementer)
+                );
+
+endmodule
+
+
+module unidade_controle (
+    input clock,
+    input reset,
+    
+    input iniciar,
+    input tiro,
+    input colisao,
+    input acertou,
+    input vidas,
+    output reg clear_reg_asteroide,
+    output reg enable_reg_asteroide_x,
+    output reg clear_decrementer,
+    output reg ent_decrementer,
+    output reg select_mux_coor,
+    output reg select_mux_incremento,
+    output reg select_sum_sub,
+
+    //db
+    output reg db_estado
+);
+    
+    /* declaração dos estados dessa UC */
+    parameter inicio                = 6&apos;b000000; // 0
+    parameter inicializa_elementos  = 6&apos;b000001; // 1
+    parameter gera_asteroide        = 6&apos;b000010; // 2
+    parameter espera_jogada         = 6&apos;b000011; // 3
+    parameter registra_jogada       = 6&apos;b000100; // 4
+    parameter compara_jogada        = 6&apos;b000101; // 5
+    parameter destroi_asteroide     = 6&apos;b000110; // 6
+    parameter proxima_jogada        = 6&apos;b000111; // 7
+    parameter perde_vida            = 6&apos;b001000; // 8
+    parameter compara_vidas         = 6&apos;b001001; // 9
+    parameter fim_do_jogo           = 6&apos;b001010; // 10
+
+
+    // Variáveis de estado
+    reg [3:0] estado_atual, proximo_estado;
+
+    // Memória de estado
+    always @(posedge clock or posedge reset) begin
+        if (reset)
+            estado_atual &lt;= inicio;
+        else
+            estado_atual &lt;= proximo_estado;
+    end
+
+    always @* begin
+        case (estado_atual)
+            inicio:               proximo_estado = iniciar ? inicializa_elementos : inicio;
+            inicializa_elementos: proximo_estado = gera_asteroide; 
+            gera_asteroide:       proximo_estado = espera_jogada;
+            espera_jogada:        proximo_estado = tiro ? registra_jogada : colisao ? perde_vida : espera_jogada;
+            registra_jogada:      proximo_estado = compara_jogada;
+            compara_jogada:       proximo_estado = acertou ? destroi_asteroide : proxima_jogada;
+            destroi_asteroide:    proximo_estado = gera_asteroide;
+            proxima_jogada:       proximo_estado = espera_jogada;
+            perde_vida:		      proximo_estado = compara_vidas; 
+            compara_vidas:		  proximo_estado = vidas ? gera_asteroide : fim_do_jogo;
+            fim_do_jogo:          proximo_estado = iniciar ? inicializa_elementos : fim_do_jogo;
+            default:              proximo_estado = inicio;
+        endcase
+    end
+
+    // Lógica de saída (maquina Moore)
+    always @* begin
+	 
+		
+        clear_reg_asteroide    =   (estado_atual == inicio               ||
+                                    estado_atual == inicializa_elementos ||
+                                    estado_atual == perde_vida           ) ? 1&apos;b1 : 1&apos;b0;
+
+        enable_reg_asteroide_x =   (estado_atual == gera_asteroide       ||
+                                    estado_atual == espera_jogada        ||
+                                    estado_atual == registra_jogada      ) ? 1&apos;b1 : 1&apos;b0;
+
+        clear_decrementer      =   (estado_atual == inicio               ||
+                                    estado_atual == inicializa_elementos ) ? 1&apos;b1 : 1&apos;b0;
+        
+        ent_decrementer        =   (estado_atual == perde_vida           ) ? 1&apos;b1 : 1&apos;b0;
+
+        select_mux_coor        =   (estado_atual == inicio               ||
+                                    estado_atual == inicializa_elementos ||
+                                    estado_atual == gera_asteroide       ||
+                                    estado_atual == espera_jogada        ||
+                                    estado_atual == registra_jogada      ) ? 1&apos;b0 : 1&apos;b1;
+        
+        select_mux_incremento  =   (estado_atual == inicio               ||
+                                    estado_atual == inicializa_elementos ||
+                                    estado_atual == gera_asteroide       ||
+                                    estado_atual == espera_jogada        ||
+                                    estado_atual == registra_jogada      ) ? 1&apos;b0 : 1&apos;b1;
+
+        select_sum_sub         =   (estado_atual == inicio               ||
+                                    estado_atual == inicializa_elementos ||
+                                    estado_atual == gera_asteroide       ||
+                                    estado_atual == espera_jogada        ||
+                                    estado_atual == registra_jogada      ) ? 1&apos;b0 : 1&apos;b1;
+
+        // Saída de depuração (estado)
+        case (estado_atual)
+
+            inicio:                db_estado = 6&apos;b000000; // 0
+            inicializa_elementos:  db_estado = 6&apos;b000001; // 1
+            gera_asteroide:        db_estado = 6&apos;b000010; // 2
+            espera_jogada:         db_estado = 6&apos;b000011; // 3
+            registra_jogada:       db_estado = 6&apos;b000100; // 4
+            compara_jogada:        db_estado = 6&apos;b000101; // 5
+            destroi_asteroide:     db_estado = 6&apos;b000110; // 6
+            proxima_jogada:        db_estado = 6&apos;b000111; // 7
+            perde_vida:            db_estado = 6&apos;b001000; // 8
+			compara_vidas:         db_estado = 6&apos;b001001; // 9
+            fim_do_jogo:           db_estado = 6&apos;b001010; // 10
+            default:               db_estado = 6&apos;b000000; 
+        endcase
+    end
+
+endmodule
+
+
+// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
+
+module decrementer #(parameter N=4) ( 
+                      input clock       , 
+                      input clr         , 
+                      input ld          , 
+                      input ent         , 
+                      input enp         , 
+                      input [N-1:0] D     , 
+                      output reg [N-1:0] Q , 
+                      output reg rco
+                    );
+
+	 initial begin
+		Q = 3;
+    end
+    
+
+    always @ (posedge clock)
+        if (clr)                           Q &lt;= 3;
+        else if (ld)                       Q &lt;= D;
+        else if (ent &amp;&amp; enp &amp;&amp;  Q != 0)    Q &lt;= Q - 1;
+        else                               Q &lt;= Q;
+ 
+    always @ (Q or ent)
+        if (ent &amp;&amp; (Q == 0))       rco = 1;
+        else                       rco = 0;
+
+endmodule
+
+
+//registrador_n #(N = 5)(
+
+// )
+module registrador_n #(parameter N = 4)(
+    input        clock ,
+    input        clear ,
+    input        enable,
+    input  [N-1:0] D     ,
+    output [N-1:0] Q
+);
+
+    reg [N-1:0] IQ;
+
+    always @(posedge clock or posedge clear) begin
+        if (clear)
+            IQ &lt;= 0;
+        else if (enable)
+            IQ &lt;= D;
+    end
+
+    assign Q = IQ;
+
+endmodule
+
+module comparador_85 #(parameter N = 4)(
+                input [N-1:0] A, 
+                input [N-1:0] B,
+                input       ALBi, 
+                input       AGBi, 
+                input       AEBi,  
+                output      ALBo, 
+                output      AGBo, 
+                output      AEBo
+                );
+
+    wire[N:0]  CSL, CSG;
+
+    assign CSL  = ~A + B + ALBi;
+    assign ALBo = ~CSL[N];
+    assign CSG  = A + ~B + AGBi;
+    assign AGBo = ~CSG[N];
+    assign AEBo = ((A == B) &amp;&amp; AEBi);
+
+endmodule 
+
+
+// modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
+// caso seja 0 então ocorre a subtração
+
+module somador_subtrator #(parameter N=4) ( 
+                          input [N-1:0] a,
+                          input [N-1:0] b,
+                          input select,
+                          output [N:0] resul
+                    );
+
+  reg [N:0] res;
+
+
+  always@(*) begin
+    if(~select) res = a + b;
+    else res = a-b;
+  end
+
+  assign resul = res;
+
+
+  // assign resul = select ? a + b : a - b;
+
+endmodule</string>
+        </entry>
+        <entry>
+          <string>externalOutputs</string>
+          <string>tiro,colisao,acertou,vidas,db_up,db_down,db_right,db_left,db_special,db_shot,db_num_vidas:4</string>
+        </entry>
+      </elementAttributes>
+      <pos x="580" y="360"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Clock</elementName>
+      <elementAttributes>
+        <entry>
+          <string>runRealTime</string>
+          <boolean>true</boolean>
+        </entry>
+      </elementAttributes>
+      <pos x="480" y="360"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="480" y="400"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Button</elementName>
+      <elementAttributes/>
+      <pos x="480" y="440"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>6</int>
+        </entry>
+      </elementAttributes>
+      <pos x="480" y="480"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="320"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="360"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="400"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="440"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="480"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="520"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="560"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="600"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="640"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes/>
+      <pos x="900" y="680"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="900" y="720"/>
+    </visualElement>
+  </visualElements>
+  <wires>
+    <wire>
+      <p1 x="480" y="480"/>
+      <p2 x="540" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="480"/>
+      <p2 x="900" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="480"/>
+      <p2 x="820" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="320"/>
+      <p2 x="900" y="320"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="640"/>
+      <p2 x="900" y="640"/>
+    </wire>
+    <wire>
+      <p1 x="540" y="420"/>
+      <p2 x="580" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="420"/>
+      <p2 x="880" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="360"/>
+      <p2 x="580" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="360"/>
+      <p2 x="760" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="360"/>
+      <p2 x="900" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="840" y="520"/>
+      <p2 x="900" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="520"/>
+      <p2 x="780" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="680"/>
+      <p2 x="900" y="680"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="460"/>
+      <p2 x="840" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="400"/>
+      <p2 x="500" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="400"/>
+      <p2 x="580" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="400"/>
+      <p2 x="900" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="820" y="560"/>
+      <p2 x="900" y="560"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="720"/>
+      <p2 x="900" y="720"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="500"/>
+      <p2 x="800" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="440"/>
+      <p2 x="520" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="440"/>
+      <p2 x="900" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="440"/>
+      <p2 x="860" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="800" y="600"/>
+      <p2 x="900" y="600"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="380"/>
+      <p2 x="580" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="380"/>
+      <p2 x="780" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="540"/>
+      <p2 x="760" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="880" y="420"/>
+      <p2 x="880" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="800" y="500"/>
+      <p2 x="800" y="600"/>
+    </wire>
+    <wire>
+      <p1 x="500" y="380"/>
+      <p2 x="500" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="820" y="480"/>
+      <p2 x="820" y="560"/>
+    </wire>
+    <wire>
+      <p1 x="740" y="560"/>
+      <p2 x="740" y="720"/>
+    </wire>
+    <wire>
+      <p1 x="520" y="400"/>
+      <p2 x="520" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="320"/>
+      <p2 x="760" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="760" y="540"/>
+      <p2 x="760" y="680"/>
+    </wire>
+    <wire>
+      <p1 x="840" y="460"/>
+      <p2 x="840" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="540" y="420"/>
+      <p2 x="540" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="360"/>
+      <p2 x="780" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="780" y="520"/>
+      <p2 x="780" y="640"/>
+    </wire>
+    <wire>
+      <p1 x="860" y="440"/>
+      <p2 x="860" y="480"/>
+    </wire>
+  </wires>
+  <measurementOrdering/>
+</circuit>

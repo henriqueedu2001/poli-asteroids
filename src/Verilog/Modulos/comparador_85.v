@@ -1,14 +1,20 @@
-module comparador_85 (ALBi, AGBi, AEBi, A, B, ALBo, AGBo, AEBo);
+module comparador_85 #(parameter N = 4)(
+                input [N-1:0] A, 
+                input [N-1:0] B,
+                input       ALBi, 
+                input       AGBi, 
+                input       AEBi,  
+                output      ALBo, 
+                output      AGBo, 
+                output      AEBo
+                );
 
-    input[3:0] A, B;
-    input      ALBi, AGBi, AEBi;
-    output     ALBo, AGBo, AEBo;
-    wire[4:0]  CSL, CSG;
+    wire[N:0]  CSL, CSG;
 
     assign CSL  = ~A + B + ALBi;
-    assign ALBo = ~CSL[4];
+    assign ALBo = ~CSL[N];
     assign CSG  = A + ~B + AGBi;
-    assign AGBo = ~CSG[4];
+    assign AGBo = ~CSG[N];
     assign AEBo = ((A == B) && AEBi);
 
-endmodule /* comparador_85 */
+endmodule 

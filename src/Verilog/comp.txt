@@ -1,5 +1,13 @@
 # Para compilar: iverilog -c comp.txt
 
-
+Modulos/comparador_85.v
+Modulos/contador_163.v
+Modulos/contador_m.v
+Modulos/decrementer.v
+Modulos/registrador_n.v
+Modulos/somador_subtrator.v
+astro_genius.v
 unidade_controle.v
 fluxo_dados.v
+fluxo_dados_tb.v
+
