@@ -6,22 +6,22 @@ module decrementer  ( input clock       ,
                       input ent         , 
                       input enp         , 
                       input [3:0] D     , 
-                      output reg [15:0]Q, 
+                      output reg [3:0]Q , 
                       output reg rco
                     );
 
 	 initial begin
-		Q = 16'd3;
+		Q = 4'd3;
     end
 
     always @ (posedge clock)
-        if (clr)                Q <= 16'd0;
+        if (clr)                Q <= 4'd3;
         else if (ld)            Q <= D;
-        else if (ent && enp)    Q <= Q + 1;
+        else if (ent && enp && Q != 4'b0)    Q <= Q - 1;
         else                    Q <= Q;
  
     always @ (Q or ent)
-        if (ent && (Q == 16'd0))      rco = 1;
+        if (ent && (Q == 4'd0))       rco = 1;
         else                          rco = 0;
 
 endmodule
