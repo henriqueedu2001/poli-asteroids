@@ -8,7 +8,9 @@ Modulos/registrador_n.v
 Modulos/somador_subtrator.v
 Modulos/hexa7seg.v
 astro_genius.v
-astro_genius_tb.v
+#astro_genius_caso1_tb.v
+astro_genius_caso2_tb.v
+
 unidade_controle.v
 fluxo_dados.v
 

@@ -1,6 +1,7 @@
 module fluxo_dados(
     input clock,
     input [5:0] jogada, 
+    input clear_asteroide,
     
 
     // implementa o movimento dos astros
@@ -52,7 +53,7 @@ wire [5:0] out_reg_jogada;
 or (vidas, num_vidas[3], num_vidas[2], num_vidas[1], num_vidas[0]);
 
 // define a posição da nave
-assign nave_coor_x = 4'b0011;
+assign nave_coor_x = 4'b0100;
 assign nave_coor_y = 4'b0000;
 
 assign db_up = out_reg_jogada[5];
@@ -77,7 +78,7 @@ registrador_n #(6) reg_jogada (
 
 registrador_n #(4) reg_x_asteroide (
     .clock  (clock),
-    .clear  (clear_reg_asteroide),
+    .clear  (clear_reg_asteroide | clear_asteroide),
     .enable (enable_reg_asteroide_x),
     .D      ({sum_sub_out[3:0]}),
     .Q      (asteroide_coor_x)

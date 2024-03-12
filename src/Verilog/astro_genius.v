@@ -4,6 +4,8 @@ module astro_genius(
     input reset,
     input [5:0] jogada, // 4 primeiros para up, down, left, right, 2 últimos para ataque
 
+    input clear_asteroide,
+
     output tiro,
     output colisao,
     output acertou,
@@ -46,7 +48,7 @@ fluxo_dados fd (
     // inputs
     .clock                  (clock),
     .jogada                 (jogada),
-
+    .clear_asteroide        (clear_asteroide),
     // implementa o movimento dos astros
     .clear_reg_asteroide    (clear_reg_asteroide),
     .enable_reg_asteroide_x (enable_reg_asteroide_x),

@@ -31,7 +31,7 @@ module unidade_controle (
     parameter espera_jogada         = 6'b000011; // 3
     parameter registra_jogada       = 6'b000100; // 4
     parameter compara_jogada        = 6'b000101; // 5
-    // parameter destroi_asteroide     = 6'b000110; // 6
+    // parameter destroi_asteroide     = 6'b000110; 
     parameter proxima_jogada        = 6'b000111; // 7
     parameter perde_vida            = 6'b001000; // 8
     parameter compara_vidas         = 6'b001001; // 9
