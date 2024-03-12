@@ -81,26 +81,32 @@ initial begin
     // up, down, right, left, attack, special
 
     // special
-    #(clockPeriod)
     jogada_in = 6'b000001;
+    #(6*clockPeriod)
 
 
     // attack
-    #(clockPeriod)
     jogada_in = 6'b000010;
+    #(6*clockPeriod)
+
 
     // left
-    #(clockPeriod)
     jogada_in = 6'b000100;
+    #(6*clockPeriod)
 
     // down
-    #(clockPeriod)
+    jogada_in = 6'b001000;
+    #(3*clockPeriod)
+
+    // down
     jogada_in = 6'b010000;
+    #(6*clockPeriod)
+
 
     // up
-    #(clockPeriod)
     jogada_in = 6'b100000;
-    #(2*clockPeriod)
+    #(3*clockPeriod)
+
 
     $finish;
 end
