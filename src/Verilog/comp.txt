@@ -6,8 +6,10 @@ Modulos/contador_m.v
 Modulos/decrementer.v
 Modulos/registrador_n.v
 Modulos/somador_subtrator.v
+Modulos/hexa7seg.v
 astro_genius.v
+astro_genius_tb.v
 unidade_controle.v
 fluxo_dados.v
-fluxo_dados_tb.v
+
 
