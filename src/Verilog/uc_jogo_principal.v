@@ -1,4 +1,4 @@
-module unidade_controle (
+module uc_jogo_principal (
     input clock,
     input reset,
     input iniciar,
