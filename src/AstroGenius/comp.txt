@@ -1,0 +1,29 @@
+# Para compilar: iverilog -c comp.txt
+
+Modulos/comparador_85.v
+Modulos/contador_163.v
+Modulos/contador_m.v
+Modulos/memoria_aster.v
+Modulos/memoria_load.v
+Modulos/mux_coor.v
+Modulos/mux_pos.v
+Modulos/registrador_n.v
+Modulos/somador_subtrator.v
+asteroide.v
+#Modulos/Testbenchs/asteroide_tb.v
+tiro.v
+#Modulos/Testbenchs/tiro_tb.v
+
+# Modulos/mux_reg_jogada.v
+
+registra_tiro.v
+UC/uc_registra_tiro.v
+# registra_tiro_tb.v
+
+UC/uc_move_tiros.v
+move_tiros.v
+
+move_tiros_tb.v
+
+
+
