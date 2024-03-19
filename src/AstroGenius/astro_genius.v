@@ -42,8 +42,8 @@ uc_jogo_principal uc_jogo_principal(
     .ocorreu_tiro(wire_ocorreu_tiro), 
     .ocorreu_jogada(wire_ocorreu_jogada), //saida do edge detector
     /* outputs */
-    .enable_reg_jogada(wire_reset_reg_jogada),
-    .reset_reg_jogada(wire_enable_reg_jogada), 
+    .enable_reg_jogada(wire_enable_reg_jogada),
+    .reset_reg_jogada(wire_reset_reg_jogada), 
     .inicia_registra_tiros(wire_inicia_registra_tiros),
     .inicia_movimentacao_asteroides_e_tiros(wire_inicia_movimentacao_asteroides_e_tiros), 
     .reset_contador_asteroides(wire_reset_contador_asteroides_uc_principal),
@@ -318,8 +318,9 @@ asteroide asteroide(
     .enable_mem_aste(wire_enable_mem_aste_uc_move_asteroides),
     .enable_load_aste(wire_enable_load_asteroide_uc_compara_tiros_e_asteroides |
                       wire_enable_load_asteroides_uc_compara_asteroides_com_nave_e_tiros),
-    .new_load_aste(wire_new_loaded_asteroide_uc_compara_tiros_e_asteroides | 
-                   wire_new_loaded_asteroide_uc_compara_asteroides_com_nave_e_tiros),
+    // .new_load_aste(wire_new_loaded_asteroide_uc_compara_tiros_e_asteroides | 
+    //                wire_new_loaded_asteroide_uc_compara_asteroides_com_nave_e_tiros),
+    .new_load_aste(1'b0),
     .new_destruido_aste(wire_new_destruido_asteroide_uc_compara_tiros_e_asteroides |
                         wire_new_destruido_asteroide_uc_compara_asteroides_com_nave_e_tiros),
     /* outputs */
@@ -328,11 +329,13 @@ asteroide asteroide(
     .opcode_aste(wire_opcode_aste),
     .destruido_aste(),
     .loaded_aste(wire_aste_renderizado),
-    .aste_coor_x(),
-    .aste_coor_y(),
+    .aste_coor_x(wire_aste_coor_x),
+    .aste_coor_y(wire_aste_coor_y),
     .db_contador_aste(),
     .db_wire_saida_som_sub_aste()
 );
+wire [3:0] wire_aste_coor_x;
+wire [3:0] wire_aste_coor_y;
 
 tiro tiro (
     /* inputs */
@@ -355,11 +358,12 @@ tiro tiro (
     .enable_load_tiro(wire_enable_load_tiro_uc_compara_tiros_e_asteroides |
                       wire_enable_load_tiro_uc_move_tiros |
                       wire_enable_load_tiro_uc_registra_tiro),
-    .aste_coor_x(),
-    .aste_coor_y(),
-    .new_load_tiro(wire_new_loaded_tiro_uc_compara_tiros_e_asteroides |
-                   wire_new_loaded_tiro_uc_move_tiros |
-                   wire_new_loaded_tiro_uc_registra_tiro),
+    .aste_coor_x(wire_aste_coor_x),
+    .aste_coor_y(wire_aste_coor_y),
+    // .new_load_tiro(wire_new_loaded_tiro_uc_compara_tiros_e_asteroides |
+    //                wire_new_loaded_tiro_uc_move_tiros |
+    //                wire_new_loaded_tiro_uc_registra_tiro),
+    .new_load_tiro(1'b0),
     .opcode_registra_tiro(wire_opcode_mux_out),
     /* outputs */
     .x_borda_min_tiro(wire_x_borda_min_tiro),
