@@ -53,7 +53,7 @@ uc_compara_asteroides_com_nave_e_tiros uc1 (
     .enable_decrementador(wire_enable_decrementador),
     .new_loaded_asteroide(wire_new_loaded_asteroide),
     .new_destruido_asteroide(wire_new_destruido_asteroide),
-    .enable_mem_destruido(wire_enable_mem_destruido),
+    .enable_load_asteroide(wire_enable_mem_destruido),
     .conta_contador_asteroides(wire_conta_contador_asteroides1),
     .fim_compara_asteroides_com_tiros_e_nave(sinal_fim_comparacao),
     .sinal_compara_tiros_e_asteroide(wire_sinal_compara_tiros_e_asteroides),
