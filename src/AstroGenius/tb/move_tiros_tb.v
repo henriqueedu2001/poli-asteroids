@@ -42,7 +42,8 @@ initial begin
 
     reset = 1'b0;
     iniciar = 1'b1;
-
+    #(2*clockPeriod)
+    iniciar = 1'b0;
     #(60*clockPeriod)
     $finish;
 

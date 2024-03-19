@@ -1,27 +1,30 @@
 module asteroide(
     input clock,
-    input conta_contador,
-    input reset_cont,
-    input [1:0] select_mux_pos,
-    input select_mux_coor,
-    input select_soma_sub,
+    input conta_contador_aste,
+    input reset_contador_aste,
+    input [1:0] select_mux_pos_aste,
+    input select_mux_coor_aste,
+    input select_soma_sub_aste,
     input enable_reg_nave,
     input reset_reg_nave,
     input enable_mem_aste,
-    input enable_mem_load,
+    input enable_load_aste,
 
-    input new_load,
-    input new_destruido,
+    input new_load_aste,
+    input new_destruido_aste,
 
-    output colisao,
-    output rco_contador,
-    output [1:0] opcode,
-    output destruido,
-    output loaded,
+    output colisao_aste_com_nave,
+    output rco_contador_aste,
+    output [1:0] opcode_aste,
+    output destruido_aste,
+    output loaded_aste,
+
+    output [3:0] aste_coor_x,
+    output [3:0] aste_coor_y,
 
     //saidas que podem ser retiradas
-    output [3:0] db_contador,
-    output [4:0] db_wire_saida_som_sub
+    output [3:0] db_contador_aste,
+    output [4:0] db_wire_saida_som_sub_aste
 );
          
     wire [3:0] wire_saida_contador;
@@ -34,32 +37,34 @@ module asteroide(
     wire wire_saida_comparador_y;
     wire [9:0] wire_saida_reg_nave;
     wire [1:0] memoria_loaded;
-    wire wire_rco_contador;
+    wire wire_rco_contador_aste;
 
-    assign db_contador = wire_saida_contador;
-    assign db_wire_saida_som_sub = wire_saida_som_sub;
+    assign db_contador_aste = wire_saida_contador;
+    assign db_wire_saida_som_sub_aste = wire_saida_som_sub;
 
-    assign loaded = memoria_loaded[1];
-    assign destruido = memoria_loaded[0];
-    assign opcode = wire_saida_memoria_aste[1:0];
-    assign rco_contador = wire_rco_contador;
-    assign wire_select_som_sub = select_soma_sub;
+    assign loaded_aste = memoria_loaded[1];
+    assign destruido_aste = memoria_loaded[0];
+    assign opcode_aste = wire_saida_memoria_aste[1:0];
+    assign aste_coor_x = wire_saida_memoria_aste[9:6];
+    assign aste_coor_y = wire_saida_memoria_aste[5:2];
+    assign rco_contador_aste = wire_rco_contador_aste;
+    assign wire_select_som_sub = select_soma_sub_aste;
 
 contador_m #(16, 4) contador(
     /* inputs */
     .clock   (clock),
-    .zera_as (reset_cont),
+    .zera_as (reset_contador_aste),
     .zera_s  (),
-    .conta   (conta_contador),
+    .conta   (conta_contador_aste),
    /* outputs */
     .Q       (wire_saida_contador),
-    .fim     (wire_rco_contador),
+    .fim     (wire_rco_contador_aste),
     .meio    ()
 );
 
 mux_pos #(4) mux_pos (
     /* inputs */
-    .select_mux_pos (select_mux_pos),
+    .select_mux_pos (select_mux_pos_aste),
     .resul_soma      (wire_saida_som_sub[3:0]),
     .mem_coor_x      (wire_saida_memoria_aste[9:6]),
     .mem_coor_y      (wire_saida_memoria_aste[5:2]),
@@ -82,7 +87,7 @@ memoria_aster memoria_aster (
 );
 
 mux_coor #(4) mux_coor(
-    .select_mux_coor (select_mux_coor),
+    .select_mux_coor (select_mux_coor_aste),
     .mem_coor_x      (wire_saida_memoria_aste[9:6]),
     .mem_coor_y      (wire_saida_memoria_aste[5:2]),
     /* output */
@@ -124,7 +129,7 @@ comparador_85 #(4) comparador_y (
     .AEBo (wire_saida_comparador_y)
 );
 
-and (colisao, wire_saida_comparador_x, wire_saida_comparador_y);
+and (colisao_aste_com_nave, wire_saida_comparador_x, wire_saida_comparador_y);
 
 registrador_n #(10) reg_nave (
     /* inputs */
@@ -136,11 +141,11 @@ registrador_n #(10) reg_nave (
     .Q      (wire_saida_reg_nave)
 );
 
-memoria_load memoria_load (
+memoria_load_aste memoria_load_aste (
     /* inputs */
     .clk  (clock),
-    .we   (enable_mem_load),
-    .data ({new_load, new_destruido}),
+    .we   (enable_load_aste),
+    .data ({new_load_aste, new_destruido_aste}),
     .addr (wire_saida_contador),
     /* output */
     .q    (memoria_loaded) 

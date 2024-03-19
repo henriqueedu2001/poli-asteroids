@@ -10,10 +10,8 @@ module uc_compara_asteroides_com_nave_e_tiros (
         output reg enable_decrementador,
         output reg new_loaded_asteroide,
         output reg new_destruido_asteroide,
-        output reg new_loaded_tiro,
         output reg fim_compara_asteroides_com_tiros_e_nave,
-        output reg enable_mem_tiro,
-        output reg enable_mem_destruido,
+        output reg enable_load_asteroide,
         output reg conta_contador_asteroides,
         output reg sinal_compara_tiros_e_asteroide,
         output reg reset_contador_asteroides,
@@ -32,6 +30,7 @@ module uc_compara_asteroides_com_nave_e_tiros (
     parameter espera_compara_tiros_e_asteroides  = 5'b01000; // 8
     parameter incrementa_contador_de_asteroides  = 5'b01001; // 9
     parameter fim_comparacao                     = 5'b01010; // 10
+    parameter aux                                = 5'b01011; // 11
     parameter erro                               = 5'b01111; // F
 
 
@@ -53,13 +52,15 @@ module uc_compara_asteroides_com_nave_e_tiros (
             inicio:                              proximo_estado = espera;
             espera:                              proximo_estado = iniciar_comparacao_tiros_nave_asteroides ? reset_contador : espera;
             reset_contador:                      proximo_estado = compara;
-            compara:                             proximo_estado = posicao_asteroide_igual_nave ? decrementa_vida : incrementa_contador_de_asteroides;
+            compara:                             proximo_estado = posicao_asteroide_igual_nave ? decrementa_vida : 
+                                                                  rco_contador_asteroides ? compara_tiros_e_asteroides : incrementa_contador_de_asteroides;
             decrementa_vida:                     proximo_estado = ha_vidas ? destroi_asteroide : fim_comparacao;
             destroi_asteroide:                   proximo_estado = salva_destruicao;
             salva_destruicao:                    proximo_estado = rco_contador_asteroides ? compara_tiros_e_asteroides : incrementa_contador_de_asteroides;
             compara_tiros_e_asteroides:          proximo_estado = espera_compara_tiros_e_asteroides;
             espera_compara_tiros_e_asteroides:   proximo_estado = fim_compara_tiros_e_asteroides ? fim_comparacao : espera_compara_tiros_e_asteroides;
-            incrementa_contador_de_asteroides:   proximo_estado = compara;
+            incrementa_contador_de_asteroides:   proximo_estado = aux;
+            aux:                                 proximo_estado = compara;
             fim_comparacao:                      proximo_estado = espera;
             default:                             proximo_estado = inicio;
         endcase
@@ -74,10 +75,7 @@ module uc_compara_asteroides_com_nave_e_tiros (
                                      estado_atual == salva_destruicao)       ? 1'b0 : 1'b1;
         new_destruido_asteroide   = (estado_atual == destroi_asteroide ||
                                      estado_atual == salva_destruicao)       ? 1'b1 : 1'b0;
-        new_loaded_tiro           = (estado_atual == destroi_asteroide ||
-                                     estado_atual == salva_destruicao)       ? 1'b0 : 1'b1;
-        enable_mem_tiro           = (estado_atual == salva_destruicao)       ? 1'b1 : 1'b0;
-        enable_mem_destruido      = (estado_atual == salva_destruicao)       ? 1'b1 : 1'b0;
+        enable_load_asteroide      = (estado_atual == salva_destruicao)       ? 1'b1 : 1'b0;
         fim_compara_asteroides_com_tiros_e_nave = (estado_atual == fim_comparacao)                        ? 1'b1 : 1'b0;
         conta_contador_asteroides               = (estado_atual == incrementa_contador_de_asteroides)     ? 1'b1 : 1'b0;
         sinal_compara_tiros_e_asteroide         = (estado_atual == compara_tiros_e_asteroides)            ? 1'b1 : 1'b0;
@@ -94,7 +92,8 @@ module uc_compara_asteroides_com_nave_e_tiros (
             compara_tiros_e_asteroides:         db_estado_compara_asteroides_com_nave_e_tiros = 5'b00111; // 7
             espera_compara_tiros_e_asteroides:  db_estado_compara_asteroides_com_nave_e_tiros = 5'b01000; // 8
             incrementa_contador_de_asteroides:  db_estado_compara_asteroides_com_nave_e_tiros = 5'b01001; // 9
-            fim_comparacao:                     db_estado_compara_asteroides_com_nave_e_tiros = 5'b01010; // 8
+            fim_comparacao:                     db_estado_compara_asteroides_com_nave_e_tiros = 5'b01010; // 10
+            aux:                                db_estado_compara_asteroides_com_nave_e_tiros = 5'b01011; // 11
             erro:                               db_estado_compara_asteroides_com_nave_e_tiros = 5'b01111; // F  
             default:                            db_estado_compara_asteroides_com_nave_e_tiros = 5'b00000; 
 

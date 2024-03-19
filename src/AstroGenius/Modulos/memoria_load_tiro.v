@@ -1,4 +1,4 @@
-module memoria_load(
+module memoria_load_tiro(
     input        clk,
     input        we,
     input  [1:0] data,

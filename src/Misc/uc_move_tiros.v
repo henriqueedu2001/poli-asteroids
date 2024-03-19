@@ -68,7 +68,7 @@ module uc_move_tiros (
                 verifica_saiu_tela:    proximo_estado = (opcode_tiro == 2'b00 && x_borda_max_tiro  ||
                                                          opcode_tiro == 2'b01 && x_borda_min_tiro  ||
                                                          opcode_tiro == 2'b10 && y_borda_max_tiro  ||
-                                                         opcode_tiro == 2'b11 && y_borda_min_tiro  )? altera_loaded : verifica_opcode;
+                                                         opcode_tiro == 2'b01 && y_borda_min_tiro  )? altera_loaded : verifica_opcode;
                 altera_loaded:          proximo_estado = salva_loaded;
                 salva_loaded:           proximo_estado = rco_contador_tiro ? sinaliza : incrementa_contador;
                 verifica_opcode:        proximo_estado = opcode_tiro == 2'b00 ? horizontal_crescente : 
