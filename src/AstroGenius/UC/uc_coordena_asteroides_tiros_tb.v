@@ -74,6 +74,7 @@ module uc_coordena_asteroides_tiros_tb();
         move_tiro_e_asteroides = 1'b1;
         #(5*clockPeriod)
 
+        move_tiro_e_asteroides = 1'b0;
         fim_comparacao_tiros_e_asteroides = 1'b1;
         #(5*clockPeriod)
 
@@ -86,7 +87,6 @@ module uc_coordena_asteroides_tiros_tb();
 
         fim_move_asteroides = 1'b1;
         rco_contador_asteroides = 1'b1;
-        move_tiro_e_asteroides = 1'b0;
         #(10*clockPeriod)
 
         $finish;

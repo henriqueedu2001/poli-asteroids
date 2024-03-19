@@ -41,7 +41,8 @@ module uc_compara_asteroides_com_nave_e_tiros_tb;
         .enable_mem_destruido(enable_mem_destruido),
         .conta_contador_asteroides(conta_contador_asteroides),
         .sinal_compara_tiros_e_asteroide(sinal_compara_tiros_e_asteroide),
-        .db_estado_compara_asteroides_com_nave_e_tiros(db_estado_compara_asteroides_com_nave_e_tiros)
+        .db_estado_compara_asteroides_com_nave_e_tiros(db_estado_compara_asteroides_com_nave_e_tiros),
+        .reset_contador_asteroides(reset_contador_asteroides)
     );
 
     parameter clockPeriod = 2; // in ns, f=1KHz
@@ -67,7 +68,7 @@ module uc_compara_asteroides_com_nave_e_tiros_tb;
 
         iniciar_comparacao_tiros_nave_asteroides = 1'b1;
         posicao_asteroide_igual_nave = 1'b0;
-        #(2*clockPeriod)
+        #(3*clockPeriod)
 
         iniciar_comparacao_tiros_nave_asteroides = 1'b0;
         posicao_asteroide_igual_nave = 1'b1;
