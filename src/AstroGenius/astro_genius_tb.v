@@ -32,7 +32,7 @@ module astro_genius_tb;
         .db_estado_registra_tiro(db_estado_registra_tiro)
     );
 
-   parameter clockPeriod = 2; // in ns, f=1KHz
+   parameter clockPeriod = 20; // in ns, f=50MHz
 
     // Gerador de clock
     always #((clockPeriod / 2)) clock = ~clock;

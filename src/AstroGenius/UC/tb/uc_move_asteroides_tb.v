@@ -38,7 +38,7 @@ module uc_move_asteroides_tb;
         .db_estado_move_aste(db_estado_move_aste)
     );
 
-    parameter clockPeriod = 2; // in ns, f=1KHz
+    parameter clockPeriod = 2; // in ns, f=50MHz
 
     // Gerador de clock
     always #((clockPeriod / 2)) clock = ~clock;
