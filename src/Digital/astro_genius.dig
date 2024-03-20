@@ -36,7 +36,11 @@
         output [4:0] db_estado_compara_asteroides_com_nave_e_tiros,
         output [4:0] db_estado_move_asteroides,
         output [3:0] db_estado_registra_tiro,
-        output [3:0] db_vidas
+        output [3:0] db_vidas,
+        output [3:0] db_asteroide_x,
+        output [3:0] db_asteroide_y,
+        output [3:0] db_tiro_x,
+        output [3:0] db_tiro_y
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -61,6 +65,12 @@ wire [3:0] wire_aste_coor_x;
 wire [3:0] wire_aste_coor_y;
 
 wire [1:0] wire_opcode_mux_out;
+
+assign db_asteroide_x = wire_aste_renderizado ? wire_aste_coor_x : 4&apos;b0000;
+assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4&apos;b0000;
+
+assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4&apos;b0000;
+assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4&apos;b0000;
 
 uc_jogo_principal uc_jogo_principal(
     /* inputs */
@@ -368,6 +378,8 @@ asteroide asteroide(
     .db_wire_saida_som_sub_aste()
 );
 
+wire [3:0] wire_tiro_coor_x;
+wire [3:0] wire_tiro_coor_y;
 
 
 tiro tiro (
@@ -409,7 +421,9 @@ tiro tiro (
     .opcode_tiro(wire_opcode_tiro),
     .loaded_tiro(wire_tiro_renderizado),
     .db_contador_tiro(),
-    .db_wire_saida_som_sub_tiro()
+    .db_wire_saida_som_sub_tiro(),
+    .db_tiro_pos_x(wire_tiro_coor_x),
+    .db_tiro_pos_y(wire_tiro_coor_y)
 );
 
 wire [3:0] wire_quantidade_vidas;
@@ -464,9 +478,14 @@ wire [5:0] wire_saida_reg_jogada;
 );
 
 
-wire jogada_wire;
+wire jogada_up;
+wire jogada_down;
+wire jogada_right;
+wire jogada_left;
+wire jogada_especial;
+wire jogada_tiro;
 
-or (jogada_wire, chaves[0], chaves[1], chaves[2], chaves[3], chaves[4], chaves[5]);
+or (wire_ocorreu_jogada, jogada_up, jogada_down, jogada_right, jogada_left, jogada_especial, jogada_tiro);
 
 mux_reg_jogada mux_jogada(
     .select_mux_jogada (wire_saida_reg_jogada[5:2]),
@@ -475,12 +494,46 @@ mux_reg_jogada mux_jogada(
 );
 
 
-
-edge_detector edge_detector_jogada(
+edge_detector edge_detector_jogada_up(
     .clock(clock),
     .reset(1&apos;b0),
-    .sinal(jogada_wire),
-    .pulso(wire_ocorreu_jogada)
+    .sinal(chaves[0]),
+    .pulso(jogada_up)
+);
+
+edge_detector edge_detector_jogada_down(
+    .clock(clock),
+    .reset(1&apos;b0),
+    .sinal(chaves[1]),
+    .pulso(jogada_down)
+);
+
+edge_detector edge_detector_jogada_right(
+    .clock(clock),
+    .reset(1&apos;b0),
+    .sinal(chaves[2]),
+    .pulso(jogada_right)
+);
+
+edge_detector edge_detector_jogada_left(
+    .clock(clock),
+    .reset(1&apos;b0),
+    .sinal(chaves[3]),
+    .pulso(jogada_left)
+);
+
+edge_detector edge_detector_jogada_especial(
+    .clock(clock),
+    .reset(1&apos;b0),
+    .sinal(chaves[4]),
+    .pulso(jogada_especial)
+);
+
+edge_detector edge_detector_jogada_tiro(
+    .clock(clock),
+    .reset(1&apos;b0),
+    .sinal(chaves[5]),
+    .pulso(jogada_tiro)
 );
 
 edge_detector edge_detector_tiro(
@@ -676,8 +729,9 @@ module tiro(
     output loaded_tiro,
     //saidas que podem ser retiradas
     output [3:0] db_contador_tiro,
-    output [4:0] db_wire_saida_som_sub_tiro
-
+    output [4:0] db_wire_saida_som_sub_tiro,
+    output [3:0] db_tiro_pos_x,
+    output [3:0] db_tiro_pos_y
 );
          
     wire [3:0] wire_saida_contador;
@@ -700,6 +754,9 @@ module tiro(
     assign opcode_tiro = wire_saida_memoria_tiro[1:0];
     assign rco_contador_tiro = wire_rco_contador_tiro;
     assign wire_select_som_sub = select_soma_sub_tiro;
+
+    assign db_tiro_pos_x = wire_saida_memoria_tiro[9:6];
+    assign db_tiro_pos_y = wire_saida_memoria_tiro[5:2];
 
 contador_m #(16, 4) contador(
     /* inputs */
@@ -1291,7 +1348,8 @@ module uc_jogo_principal (
                                      estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
         reset_contador_tiro       = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
-        reset_maquinas            = (estado_atual == inicializa_elementos ||
+        reset_maquinas            = (estado_atual == inicial               ||
+                                     estado_atual == inicializa_elementos  ||
                                      estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
         reset_contador_vidas      = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
@@ -2096,7 +2154,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>externalOutputs</string>
-          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_vidas:4</string>
+          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_vidas:4,db_asteroide_x:4,db_asteroide_y:4,db_tiro_x:4,db_tiro_y:4</string>
         </entry>
         <entry>
           <string>Width</string>
@@ -2113,8 +2171,12 @@ endmodule</string>
           <boolean>true</boolean>
         </entry>
         <entry>
+          <string>Label</string>
+          <string>2</string>
+        </entry>
+        <entry>
           <string>Frequency</string>
-          <int>1000</int>
+          <int>2</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="260"/>
@@ -2127,31 +2189,15 @@ endmodule</string>
           <boolean>true</boolean>
         </entry>
         <entry>
+          <string>Label</string>
+          <string>1000 Hz</string>
+        </entry>
+        <entry>
           <string>Frequency</string>
-          <int>2</int>
+          <int>1000</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="300"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>2Hz</string>
-        </entry>
-      </elementAttributes>
-      <pos x="320" y="280"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>1KHz</string>
-        </entry>
-      </elementAttributes>
-      <pos x="300" y="240"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
@@ -2179,16 +2225,6 @@ endmodule</string>
       <pos x="400" y="400"/>
     </visualElement>
     <visualElement>
-      <elementName>Button</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-      </elementAttributes>
-      <pos x="520" y="500"/>
-    </visualElement>
-    <visualElement>
       <elementName>Text</elementName>
       <elementAttributes>
         <entry>
@@ -2207,16 +2243,6 @@ endmodule</string>
         </entry>
       </elementAttributes>
       <pos x="280" y="420"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Button</elementName>
-      <elementAttributes>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-      </elementAttributes>
-      <pos x="480" y="500"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
@@ -2307,7 +2333,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="240"/>
+      <pos x="1240" y="240"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2331,7 +2357,7 @@ endmodule</string>
           <string>Jogo Principal</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="220"/>
+      <pos x="1280" y="220"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2341,7 +2367,7 @@ endmodule</string>
           <string>Coordena</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="280"/>
+      <pos x="1280" y="280"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2351,7 +2377,7 @@ endmodule</string>
           <string>Compara Tiros e Asteroides</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="340"/>
+      <pos x="1280" y="340"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2361,7 +2387,7 @@ endmodule</string>
           <string>Move Tiros</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="400"/>
+      <pos x="1280" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2371,7 +2397,7 @@ endmodule</string>
           <string>Compara Asteroides, Nave e Tiros</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="460"/>
+      <pos x="1280" y="460"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2381,7 +2407,7 @@ endmodule</string>
           <string>Move Asteroides</string>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="520"/>
+      <pos x="1280" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2391,7 +2417,7 @@ endmodule</string>
           <string>Registra Tiros</string>
         </entry>
       </elementAttributes>
-      <pos x="1240" y="580"/>
+      <pos x="1300" y="580"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2401,7 +2427,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="300"/>
+      <pos x="1240" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2411,7 +2437,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="360"/>
+      <pos x="1240" y="360"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2421,7 +2447,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="420"/>
+      <pos x="1240" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2431,7 +2457,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="480"/>
+      <pos x="1240" y="480"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2441,7 +2467,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="540"/>
+      <pos x="1240" y="540"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2451,7 +2477,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1180" y="600"/>
+      <pos x="1240" y="600"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2465,21 +2491,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1060" y="540"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Vidas</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="3"/>
-        </entry>
-      </elementAttributes>
-      <pos x="1040" y="520"/>
+      <pos x="1120" y="560"/>
     </visualElement>
     <visualElement>
       <elementName>Clock</elementName>
@@ -2503,7 +2515,7 @@ endmodule</string>
           <string>100KHz</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="200"/>
+      <pos x="280" y="200"/>
     </visualElement>
     <visualElement>
       <elementName>Switch</elementName>
@@ -2618,15 +2630,95 @@ endmodule</string>
       </elementAttributes>
       <pos x="430" y="572"/>
     </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1400" y="660"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1460" y="820"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1500" y="660"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1560" y="820"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1180" y="660"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1240" y="820"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1280" y="660"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1340" y="820"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Tiros</string>
+        </entry>
+      </elementAttributes>
+      <pos x="1180" y="620"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>Asteroide</string>
+        </entry>
+      </elementAttributes>
+      <pos x="1440" y="620"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="1"/>
+        </entry>
+      </elementAttributes>
+      <pos x="480" y="500"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="1"/>
+        </entry>
+      </elementAttributes>
+      <pos x="520" y="500"/>
+    </visualElement>
   </visualElements>
   <wires>
     <wire>
-      <p1 x="1140" y="480"/>
-      <p2 x="1180" y="480"/>
+      <p1 x="1200" y="480"/>
+      <p2 x="1240" y="480"/>
     </wire>
     <wire>
       <p1 x="1040" y="480"/>
-      <p2 x="1100" y="480"/>
+      <p2 x="1160" y="480"/>
     </wire>
     <wire>
       <p1 x="440" y="260"/>
@@ -2634,7 +2726,7 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="420"/>
-      <p2 x="1180" y="420"/>
+      <p2 x="1240" y="420"/>
     </wire>
     <wire>
       <p1 x="440" y="360"/>
@@ -2642,23 +2734,31 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="360"/>
-      <p2 x="1100" y="360"/>
+      <p2 x="1160" y="360"/>
     </wire>
     <wire>
-      <p1 x="1140" y="360"/>
-      <p2 x="1180" y="360"/>
+      <p1 x="1200" y="360"/>
+      <p2 x="1240" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="520"/>
+      <p2 x="1100" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="1100" y="840"/>
+      <p2 x="1440" y="840"/>
     </wire>
     <wire>
       <p1 x="440" y="300"/>
       <p2 x="480" y="300"/>
     </wire>
     <wire>
-      <p1 x="1120" y="300"/>
-      <p2 x="1180" y="300"/>
+      <p1 x="1180" y="300"/>
+      <p2 x="1240" y="300"/>
     </wire>
     <wire>
       <p1 x="1040" y="460"/>
-      <p2 x="1120" y="460"/>
+      <p2 x="1180" y="460"/>
     </wire>
     <wire>
       <p1 x="400" y="400"/>
@@ -2670,11 +2770,19 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="400"/>
-      <p2 x="1140" y="400"/>
+      <p2 x="1200" y="400"/>
     </wire>
     <wire>
-      <p1 x="1100" y="240"/>
-      <p2 x="1180" y="240"/>
+      <p1 x="1160" y="240"/>
+      <p2 x="1240" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="560"/>
+      <p2 x="1060" y="560"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="880"/>
+      <p2 x="1320" y="880"/>
     </wire>
     <wire>
       <p1 x="440" y="340"/>
@@ -2690,7 +2798,11 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="500"/>
-      <p2 x="1060" y="500"/>
+      <p2 x="1120" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="820"/>
+      <p2 x="1220" y="820"/>
     </wire>
     <wire>
       <p1 x="400" y="440"/>
@@ -2698,11 +2810,11 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="440"/>
-      <p2 x="1140" y="440"/>
+      <p2 x="1200" y="440"/>
     </wire>
     <wire>
-      <p1 x="1100" y="600"/>
-      <p2 x="1180" y="600"/>
+      <p1 x="1160" y="600"/>
+      <p2 x="1240" y="600"/>
     </wire>
     <wire>
       <p1 x="460" y="380"/>
@@ -2710,15 +2822,23 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="380"/>
-      <p2 x="1120" y="380"/>
+      <p2 x="1180" y="380"/>
     </wire>
     <wire>
-      <p1 x="1120" y="540"/>
-      <p2 x="1180" y="540"/>
+      <p1 x="1180" y="540"/>
+      <p2 x="1240" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="540"/>
+      <p2 x="1080" y="540"/>
     </wire>
     <wire>
       <p1 x="440" y="220"/>
       <p2 x="480" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="860"/>
+      <p2 x="1540" y="860"/>
     </wire>
     <wire>
       <p1 x="480" y="480"/>
@@ -2741,32 +2861,28 @@ endmodule</string>
       <p2 x="320" y="500"/>
     </wire>
     <wire>
-      <p1 x="1120" y="300"/>
-      <p2 x="1120" y="380"/>
+      <p1 x="1120" y="500"/>
+      <p2 x="1120" y="560"/>
     </wire>
     <wire>
-      <p1 x="1120" y="460"/>
-      <p2 x="1120" y="540"/>
-    </wire>
-    <wire>
-      <p1 x="400" y="480"/>
-      <p2 x="400" y="500"/>
+      <p1 x="1440" y="800"/>
+      <p2 x="1440" y="840"/>
     </wire>
     <wire>
       <p1 x="1060" y="300"/>
       <p2 x="1060" y="340"/>
     </wire>
     <wire>
-      <p1 x="1060" y="500"/>
-      <p2 x="1060" y="540"/>
+      <p1 x="1060" y="560"/>
+      <p2 x="1060" y="820"/>
     </wire>
     <wire>
-      <p1 x="1140" y="360"/>
-      <p2 x="1140" y="400"/>
+      <p1 x="1540" y="800"/>
+      <p2 x="1540" y="860"/>
     </wire>
     <wire>
-      <p1 x="1140" y="440"/>
-      <p2 x="1140" y="480"/>
+      <p1 x="1220" y="800"/>
+      <p2 x="1220" y="820"/>
     </wire>
     <wire>
       <p1 x="520" y="480"/>
@@ -2781,6 +2897,54 @@ endmodule</string>
       <p2 x="360" y="500"/>
     </wire>
     <wire>
+      <p1 x="1160" y="240"/>
+      <p2 x="1160" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="1160" y="480"/>
+      <p2 x="1160" y="600"/>
+    </wire>
+    <wire>
+      <p1 x="1320" y="800"/>
+      <p2 x="1320" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="460" y="380"/>
+      <p2 x="460" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="1100" y="520"/>
+      <p2 x="1100" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="400" y="480"/>
+      <p2 x="400" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="1200" y="360"/>
+      <p2 x="1200" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="1200" y="440"/>
+      <p2 x="1200" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="580"/>
+      <p2 x="1040" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="1460" y="800"/>
+      <p2 x="1460" y="820"/>
+    </wire>
+    <wire>
+      <p1 x="1240" y="800"/>
+      <p2 x="1240" y="820"/>
+    </wire>
+    <wire>
+      <p1 x="1560" y="800"/>
+      <p2 x="1560" y="820"/>
+    </wire>
+    <wire>
       <p1 x="440" y="360"/>
       <p2 x="440" y="400"/>
     </wire>
@@ -2789,16 +2953,20 @@ endmodule</string>
       <p2 x="440" y="500"/>
     </wire>
     <wire>
-      <p1 x="460" y="380"/>
-      <p2 x="460" y="440"/>
+      <p1 x="1080" y="540"/>
+      <p2 x="1080" y="860"/>
     </wire>
     <wire>
-      <p1 x="1100" y="240"/>
-      <p2 x="1100" y="360"/>
+      <p1 x="1340" y="800"/>
+      <p2 x="1340" y="820"/>
     </wire>
     <wire>
-      <p1 x="1100" y="480"/>
-      <p2 x="1100" y="600"/>
+      <p1 x="1180" y="300"/>
+      <p2 x="1180" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="1180" y="460"/>
+      <p2 x="1180" y="540"/>
     </wire>
   </wires>
   <measurementOrdering/>

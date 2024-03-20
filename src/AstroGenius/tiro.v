@@ -24,8 +24,9 @@ module tiro(
     output loaded_tiro,
     //saidas que podem ser retiradas
     output [3:0] db_contador_tiro,
-    output [4:0] db_wire_saida_som_sub_tiro
-
+    output [4:0] db_wire_saida_som_sub_tiro,
+    output [3:0] db_tiro_pos_x,
+    output [3:0] db_tiro_pos_y
 );
          
     wire [3:0] wire_saida_contador;
@@ -48,6 +49,9 @@ module tiro(
     assign opcode_tiro = wire_saida_memoria_tiro[1:0];
     assign rco_contador_tiro = wire_rco_contador_tiro;
     assign wire_select_som_sub = select_soma_sub_tiro;
+
+    assign db_tiro_pos_x = wire_saida_memoria_tiro[9:6];
+    assign db_tiro_pos_y = wire_saida_memoria_tiro[5:2];
 
 contador_m #(16, 4) contador(
     /* inputs */

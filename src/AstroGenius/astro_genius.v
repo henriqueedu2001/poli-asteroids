@@ -14,7 +14,11 @@ module astro_genius (
         output [4:0] db_estado_compara_asteroides_com_nave_e_tiros,
         output [4:0] db_estado_move_asteroides,
         output [3:0] db_estado_registra_tiro,
-        output [3:0] db_vidas
+        output [3:0] db_vidas,
+        output [3:0] db_asteroide_x,
+        output [3:0] db_asteroide_y,
+        output [3:0] db_tiro_x,
+        output [3:0] db_tiro_y
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -39,6 +43,12 @@ wire [3:0] wire_aste_coor_x;
 wire [3:0] wire_aste_coor_y;
 
 wire [1:0] wire_opcode_mux_out;
+
+assign db_asteroide_x = wire_aste_renderizado ? wire_aste_coor_x : 4'b0000;
+assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
+
+assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4'b0000;
+assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4'b0000;
 
 uc_jogo_principal uc_jogo_principal(
     /* inputs */
@@ -346,6 +356,8 @@ asteroide asteroide(
     .db_wire_saida_som_sub_aste()
 );
 
+wire [3:0] wire_tiro_coor_x;
+wire [3:0] wire_tiro_coor_y;
 
 
 tiro tiro (
@@ -387,7 +399,9 @@ tiro tiro (
     .opcode_tiro(wire_opcode_tiro),
     .loaded_tiro(wire_tiro_renderizado),
     .db_contador_tiro(),
-    .db_wire_saida_som_sub_tiro()
+    .db_wire_saida_som_sub_tiro(),
+    .db_tiro_pos_x(wire_tiro_coor_x),
+    .db_tiro_pos_y(wire_tiro_coor_y)
 );
 
 wire [3:0] wire_quantidade_vidas;
@@ -442,9 +456,14 @@ wire [5:0] wire_saida_reg_jogada;
 );
 
 
-wire jogada_wire;
+wire jogada_up;
+wire jogada_down;
+wire jogada_right;
+wire jogada_left;
+wire jogada_especial;
+wire jogada_tiro;
 
-or (jogada_wire, chaves[0], chaves[1], chaves[2], chaves[3], chaves[4], chaves[5]);
+or (wire_ocorreu_jogada, jogada_up, jogada_down, jogada_right, jogada_left, jogada_especial, jogada_tiro);
 
 mux_reg_jogada mux_jogada(
     .select_mux_jogada (wire_saida_reg_jogada[5:2]),
@@ -453,12 +472,46 @@ mux_reg_jogada mux_jogada(
 );
 
 
-
-edge_detector edge_detector_jogada(
+edge_detector edge_detector_jogada_up(
     .clock(clock),
     .reset(1'b0),
-    .sinal(jogada_wire),
-    .pulso(wire_ocorreu_jogada)
+    .sinal(chaves[0]),
+    .pulso(jogada_up)
+);
+
+edge_detector edge_detector_jogada_down(
+    .clock(clock),
+    .reset(1'b0),
+    .sinal(chaves[1]),
+    .pulso(jogada_down)
+);
+
+edge_detector edge_detector_jogada_right(
+    .clock(clock),
+    .reset(1'b0),
+    .sinal(chaves[2]),
+    .pulso(jogada_right)
+);
+
+edge_detector edge_detector_jogada_left(
+    .clock(clock),
+    .reset(1'b0),
+    .sinal(chaves[3]),
+    .pulso(jogada_left)
+);
+
+edge_detector edge_detector_jogada_especial(
+    .clock(clock),
+    .reset(1'b0),
+    .sinal(chaves[4]),
+    .pulso(jogada_especial)
+);
+
+edge_detector edge_detector_jogada_tiro(
+    .clock(clock),
+    .reset(1'b0),
+    .sinal(chaves[5]),
+    .pulso(jogada_tiro)
 );
 
 edge_detector edge_detector_tiro(
