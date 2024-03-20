@@ -2190,11 +2190,11 @@ endmodule</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>1000 Hz</string>
+          <string>100 Hz</string>
         </entry>
         <entry>
           <string>Frequency</string>
-          <int>1000</int>
+          <int>100</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="300"/>
