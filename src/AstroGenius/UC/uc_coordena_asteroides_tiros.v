@@ -37,7 +37,7 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5'b01011; // 11
     parameter incrementa_contador_asteroides              = 5'b01100; // 12
     parameter fim_movimentacao                            = 5'b01101; // 13
-    parameter erro                                        = 5'b01111; // F
+    parameter erro                                        = 5'b00000; // F
 
 
     // Variáveis de estado

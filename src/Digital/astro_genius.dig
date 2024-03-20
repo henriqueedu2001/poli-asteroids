@@ -40,7 +40,9 @@
         output [3:0] db_asteroide_x,
         output [3:0] db_asteroide_y,
         output [3:0] db_tiro_x,
-        output [3:0] db_tiro_y
+        output [3:0] db_tiro_y,
+        output db_aste_renderizado,
+        output db_tiro_renderizado
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -66,6 +68,8 @@ wire [3:0] wire_aste_coor_y;
 
 wire [1:0] wire_opcode_mux_out;
 
+assign db_aste_renderizado = wire_aste_renderizado;
+assign db_tiro_renderizado = wire_tiro_renderizado;
 assign db_asteroide_x = wire_aste_renderizado ? wire_aste_coor_x : 4&apos;b0000;
 assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4&apos;b0000;
 
@@ -1179,7 +1183,7 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5&apos;b01011; // 11
     parameter incrementa_contador_asteroides              = 5&apos;b01100; // 12
     parameter fim_movimentacao                            = 5&apos;b01101; // 13
-    parameter erro                                        = 5&apos;b01111; // F
+    parameter erro                                        = 5&apos;b00000; // F
 
 
     // Variáveis de estado
@@ -1298,9 +1302,7 @@ module uc_jogo_principal (
         parameter fim_jogo                                = 5&apos;b00110; // 6 
         parameter inicia_state_registra_tiros             = 5&apos;b00111; // 7
         parameter espera_salvamento                       = 5&apos;b01000; // 8
-        parameter espera_salvamento2                       = 5&apos;b01001; // 9
-
-
+        parameter espera_salvamento2                      = 5&apos;b01001; // 9
         parameter erro                                    = 5&apos;b01111; // F
 
 // Variáveis de estado
@@ -2154,7 +2156,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>externalOutputs</string>
-          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_vidas:4,db_asteroide_x:4,db_asteroide_y:4,db_tiro_x:4,db_tiro_y:4</string>
+          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_vidas:4,db_asteroide_x:4,db_asteroide_y:4,db_tiro_x:4,db_tiro_y:4,db_aste_renderizado,db_tiro_renderizado</string>
         </entry>
         <entry>
           <string>Width</string>
@@ -2172,7 +2174,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>2</string>
+          <string>2 Hz</string>
         </entry>
         <entry>
           <string>Frequency</string>
@@ -2221,28 +2223,13 @@ endmodule</string>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
-      <elementAttributes/>
-      <pos x="400" y="400"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
       <elementAttributes>
         <entry>
-          <string>Description</string>
+          <string>Label</string>
           <string>Reset</string>
         </entry>
       </elementAttributes>
-      <pos x="280" y="380"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Iniciar</string>
-        </entry>
-      </elementAttributes>
-      <pos x="280" y="420"/>
+      <pos x="400" y="400"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
@@ -2250,6 +2237,10 @@ endmodule</string>
         <entry>
           <string>rotation</string>
           <rotation rotation="1"/>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>left</string>
         </entry>
       </elementAttributes>
       <pos x="440" y="500"/>
@@ -2261,6 +2252,10 @@ endmodule</string>
           <string>rotation</string>
           <rotation rotation="1"/>
         </entry>
+        <entry>
+          <string>Label</string>
+          <string>right</string>
+        </entry>
       </elementAttributes>
       <pos x="400" y="500"/>
     </visualElement>
@@ -2271,6 +2266,10 @@ endmodule</string>
           <string>rotation</string>
           <rotation rotation="1"/>
         </entry>
+        <entry>
+          <string>Label</string>
+          <string>down</string>
+        </entry>
       </elementAttributes>
       <pos x="360" y="500"/>
     </visualElement>
@@ -2280,6 +2279,10 @@ endmodule</string>
         <entry>
           <string>rotation</string>
           <rotation rotation="1"/>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>up</string>
         </entry>
       </elementAttributes>
       <pos x="320" y="500"/>
@@ -2312,7 +2315,12 @@ endmodule</string>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
-      <elementAttributes/>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Iniciar</string>
+        </entry>
+      </elementAttributes>
       <pos x="400" y="440"/>
     </visualElement>
     <visualElement>
@@ -2322,6 +2330,10 @@ endmodule</string>
           <string>rotation</string>
           <rotation rotation="1"/>
         </entry>
+        <entry>
+          <string>Label</string>
+          <string>Pronto</string>
+        </entry>
       </elementAttributes>
       <pos x="1060" y="300"/>
     </visualElement>
@@ -2329,155 +2341,99 @@ endmodule</string>
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
+          <string>Label</string>
+          <string>Jogo principal</string>
+        </entry>
+        <entry>
           <string>Bits</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1240" y="240"/>
+      <pos x="1300" y="240"/>
     </visualElement>
     <visualElement>
-      <elementName>Text</elementName>
+      <elementName>Out</elementName>
       <elementAttributes>
         <entry>
-          <string>Description</string>
-          <string>Pronto</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="3"/>
-        </entry>
-      </elementAttributes>
-      <pos x="1040" y="240"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Jogo Principal</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1280" y="220"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
+          <string>Label</string>
           <string>Coordena</string>
         </entry>
-      </elementAttributes>
-      <pos x="1280" y="280"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Compara Tiros e Asteroides</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1280" y="340"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Move Tiros</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1280" y="400"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Compara Asteroides, Nave e Tiros</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1280" y="460"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Move Asteroides</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1280" y="520"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Registra Tiros</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1300" y="580"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
         <entry>
           <string>Bits</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1240" y="300"/>
+      <pos x="1300" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
-          <string>Bits</string>
-          <int>5</int>
+          <string>Label</string>
+          <string>Compara tiros e asteroides</string>
         </entry>
-      </elementAttributes>
-      <pos x="1240" y="360"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
         <entry>
           <string>Bits</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1240" y="420"/>
+      <pos x="1300" y="360"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
         <entry>
-          <string>Bits</string>
-          <int>5</int>
+          <string>Label</string>
+          <string>Move tiros</string>
         </entry>
-      </elementAttributes>
-      <pos x="1240" y="480"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Out</elementName>
-      <elementAttributes>
         <entry>
           <string>Bits</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1240" y="540"/>
+      <pos x="1300" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
       <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Compara asteroides, nave e tiros</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>5</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1300" y="480"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Move asteroides</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>5</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1300" y="540"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>Registra tiros</string>
+        </entry>
         <entry>
           <string>Bits</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1240" y="600"/>
+      <pos x="1300" y="600"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2487,11 +2443,15 @@ endmodule</string>
           <rotation rotation="3"/>
         </entry>
         <entry>
+          <string>Label</string>
+          <string>Vidas</string>
+        </entry>
+        <entry>
           <string>Bits</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1120" y="560"/>
+      <pos x="1200" y="560"/>
     </visualElement>
     <visualElement>
       <elementName>Clock</elementName>
@@ -2501,21 +2461,15 @@ endmodule</string>
           <boolean>true</boolean>
         </entry>
         <entry>
+          <string>Label</string>
+          <string>10 KHz</string>
+        </entry>
+        <entry>
           <string>Frequency</string>
-          <int>100000</int>
+          <int>10000</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="220"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>100KHz</string>
-        </entry>
-      </elementAttributes>
-      <pos x="280" y="200"/>
     </visualElement>
     <visualElement>
       <elementName>Switch</elementName>
@@ -2523,179 +2477,15 @@ endmodule</string>
       <pos x="400" y="220"/>
     </visualElement>
     <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>tiro</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-        <entry>
-          <string>snapToGrid</string>
-          <boolean>false</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="508" y="581"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>especial</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-        <entry>
-          <string>snapToGrid</string>
-          <boolean>false</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="467" y="633"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>up</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-        <entry>
-          <string>snapToGrid</string>
-          <boolean>false</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="306" y="568"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>down</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-        <entry>
-          <string>snapToGrid</string>
-          <boolean>false</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="349" y="594"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>right</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-        <entry>
-          <string>snapToGrid</string>
-          <boolean>false</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="388" y="587"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>left</string>
-        </entry>
-        <entry>
-          <string>rotation</string>
-          <rotation rotation="1"/>
-        </entry>
-        <entry>
-          <string>snapToGrid</string>
-          <boolean>false</boolean>
-        </entry>
-      </elementAttributes>
-      <pos x="430" y="572"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Seven-Seg-Hex</elementName>
-      <elementAttributes/>
-      <pos x="1400" y="660"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Ground</elementName>
-      <elementAttributes/>
-      <pos x="1460" y="820"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Seven-Seg-Hex</elementName>
-      <elementAttributes/>
-      <pos x="1500" y="660"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Ground</elementName>
-      <elementAttributes/>
-      <pos x="1560" y="820"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Seven-Seg-Hex</elementName>
-      <elementAttributes/>
-      <pos x="1180" y="660"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Ground</elementName>
-      <elementAttributes/>
-      <pos x="1240" y="820"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Seven-Seg-Hex</elementName>
-      <elementAttributes/>
-      <pos x="1280" y="660"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Ground</elementName>
-      <elementAttributes/>
-      <pos x="1340" y="820"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Tiros</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1180" y="620"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Text</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Description</string>
-          <string>Asteroide</string>
-        </entry>
-      </elementAttributes>
-      <pos x="1440" y="620"/>
-    </visualElement>
-    <visualElement>
       <elementName>In</elementName>
       <elementAttributes>
         <entry>
           <string>rotation</string>
           <rotation rotation="1"/>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>especial</string>
         </entry>
       </elementAttributes>
       <pos x="480" y="500"/>
@@ -2707,58 +2497,150 @@ endmodule</string>
           <string>rotation</string>
           <rotation rotation="1"/>
         </entry>
+        <entry>
+          <string>Label</string>
+          <string>tiro</string>
+        </entry>
       </elementAttributes>
       <pos x="520" y="500"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1400" y="680"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1460" y="840"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1500" y="680"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1560" y="840"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1620" y="680"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1680" y="840"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1720" y="680"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1780" y="840"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>asteroide</string>
+        </entry>
+      </elementAttributes>
+      <pos x="1380" y="640"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>tiros</string>
+        </entry>
+      </elementAttributes>
+      <pos x="1620" y="640"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Register</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1220" y="780"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Register</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1220" y="700"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Register</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1220" y="940"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Register</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1220" y="860"/>
     </visualElement>
   </visualElements>
   <wires>
     <wire>
-      <p1 x="1200" y="480"/>
-      <p2 x="1240" y="480"/>
+      <p1 x="1040" y="960"/>
+      <p2 x="1220" y="960"/>
     </wire>
     <wire>
-      <p1 x="1040" y="480"/>
-      <p2 x="1160" y="480"/>
+      <p1 x="1280" y="960"/>
+      <p2 x="1760" y="960"/>
     </wire>
     <wire>
       <p1 x="440" y="260"/>
       <p2 x="480" y="260"/>
     </wire>
     <wire>
-      <p1 x="1040" y="420"/>
-      <p2 x="1240" y="420"/>
+      <p1 x="1040" y="580"/>
+      <p2 x="1100" y="580"/>
     </wire>
     <wire>
-      <p1 x="440" y="360"/>
-      <p2 x="540" y="360"/>
-    </wire>
-    <wire>
-      <p1 x="1040" y="360"/>
-      <p2 x="1160" y="360"/>
-    </wire>
-    <wire>
-      <p1 x="1200" y="360"/>
-      <p2 x="1240" y="360"/>
+      <p1 x="1060" y="900"/>
+      <p2 x="1220" y="900"/>
     </wire>
     <wire>
       <p1 x="1040" y="520"/>
-      <p2 x="1100" y="520"/>
+      <p2 x="1160" y="520"/>
     </wire>
     <wire>
-      <p1 x="1100" y="840"/>
+      <p1 x="1360" y="840"/>
       <p2 x="1440" y="840"/>
     </wire>
     <wire>
-      <p1 x="440" y="300"/>
-      <p2 x="480" y="300"/>
-    </wire>
-    <wire>
-      <p1 x="1180" y="300"/>
-      <p2 x="1240" y="300"/>
-    </wire>
-    <wire>
       <p1 x="1040" y="460"/>
-      <p2 x="1180" y="460"/>
+      <p2 x="1240" y="460"/>
+    </wire>
+    <wire>
+      <p1 x="1140" y="780"/>
+      <p2 x="1220" y="780"/>
     </wire>
     <wire>
       <p1 x="400" y="400"/>
@@ -2770,39 +2652,143 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="400"/>
-      <p2 x="1200" y="400"/>
+      <p2 x="1260" y="400"/>
     </wire>
     <wire>
-      <p1 x="1160" y="240"/>
-      <p2 x="1240" y="240"/>
+      <p1 x="240" y="720"/>
+      <p2 x="1040" y="720"/>
     </wire>
     <wire>
-      <p1 x="1040" y="560"/>
-      <p2 x="1060" y="560"/>
+      <p1 x="1280" y="720"/>
+      <p2 x="1360" y="720"/>
     </wire>
     <wire>
-      <p1 x="1040" y="880"/>
-      <p2 x="1320" y="880"/>
+      <p1 x="1040" y="720"/>
+      <p2 x="1220" y="720"/>
     </wire>
     <wire>
-      <p1 x="440" y="340"/>
-      <p2 x="480" y="340"/>
+      <p1 x="1060" y="980"/>
+      <p2 x="1220" y="980"/>
     </wire>
     <wire>
       <p1 x="1040" y="340"/>
       <p2 x="1060" y="340"/>
     </wire>
     <wire>
+      <p1 x="440" y="340"/>
+      <p2 x="480" y="340"/>
+    </wire>
+    <wire>
       <p1 x="480" y="340"/>
       <p2 x="540" y="340"/>
     </wire>
     <wire>
-      <p1 x="1040" y="500"/>
-      <p2 x="1120" y="500"/>
+      <p1 x="1220" y="600"/>
+      <p2 x="1300" y="600"/>
     </wire>
     <wire>
-      <p1 x="1060" y="820"/>
+      <p1 x="1040" y="600"/>
+      <p2 x="1080" y="600"/>
+    </wire>
+    <wire>
+      <p1 x="1120" y="860"/>
+      <p2 x="1220" y="860"/>
+    </wire>
+    <wire>
+      <p1 x="1340" y="860"/>
+      <p2 x="1540" y="860"/>
+    </wire>
+    <wire>
+      <p1 x="1240" y="540"/>
+      <p2 x="1300" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="540"/>
+      <p2 x="1140" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="220"/>
+      <p2 x="480" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="800"/>
+      <p2 x="1220" y="800"/>
+    </wire>
+    <wire>
+      <p1 x="1280" y="800"/>
+      <p2 x="1340" y="800"/>
+    </wire>
+    <wire>
+      <p1 x="1260" y="480"/>
+      <p2 x="1300" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="480"/>
+      <p2 x="1220" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="740"/>
+      <p2 x="1220" y="740"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="420"/>
+      <p2 x="1300" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="360"/>
+      <p2 x="540" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="360"/>
+      <p2 x="1220" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="1260" y="360"/>
+      <p2 x="1300" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="1100" y="940"/>
+      <p2 x="1220" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="440" y="300"/>
+      <p2 x="480" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="1240" y="300"/>
+      <p2 x="1300" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="620"/>
+      <p2 x="1060" y="620"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="880"/>
+      <p2 x="1220" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="1280" y="880"/>
+      <p2 x="1660" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="1220" y="240"/>
+      <p2 x="1300" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="560"/>
+      <p2 x="1120" y="560"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="820"/>
       <p2 x="1220" y="820"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="500"/>
+      <p2 x="1200" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="240" y="180"/>
+      <p2 x="480" y="180"/>
     </wire>
     <wire>
       <p1 x="400" y="440"/>
@@ -2810,11 +2796,11 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="440"/>
-      <p2 x="1200" y="440"/>
+      <p2 x="1260" y="440"/>
     </wire>
     <wire>
-      <p1 x="1160" y="600"/>
-      <p2 x="1240" y="600"/>
+      <p1 x="1160" y="700"/>
+      <p2 x="1220" y="700"/>
     </wire>
     <wire>
       <p1 x="460" y="380"/>
@@ -2822,67 +2808,27 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="380"/>
-      <p2 x="1180" y="380"/>
-    </wire>
-    <wire>
-      <p1 x="1180" y="540"/>
-      <p2 x="1240" y="540"/>
-    </wire>
-    <wire>
-      <p1 x="1040" y="540"/>
-      <p2 x="1080" y="540"/>
-    </wire>
-    <wire>
-      <p1 x="440" y="220"/>
-      <p2 x="480" y="220"/>
-    </wire>
-    <wire>
-      <p1 x="1080" y="860"/>
-      <p2 x="1540" y="860"/>
-    </wire>
-    <wire>
-      <p1 x="480" y="480"/>
-      <p2 x="480" y="500"/>
-    </wire>
-    <wire>
-      <p1 x="480" y="220"/>
-      <p2 x="480" y="260"/>
-    </wire>
-    <wire>
-      <p1 x="480" y="260"/>
-      <p2 x="480" y="300"/>
-    </wire>
-    <wire>
-      <p1 x="480" y="300"/>
-      <p2 x="480" y="340"/>
+      <p2 x="1240" y="380"/>
     </wire>
     <wire>
       <p1 x="320" y="480"/>
       <p2 x="320" y="500"/>
     </wire>
     <wire>
-      <p1 x="1120" y="500"/>
-      <p2 x="1120" y="560"/>
+      <p1 x="1220" y="240"/>
+      <p2 x="1220" y="360"/>
     </wire>
     <wire>
-      <p1 x="1440" y="800"/>
-      <p2 x="1440" y="840"/>
+      <p1 x="1220" y="480"/>
+      <p2 x="1220" y="600"/>
     </wire>
     <wire>
-      <p1 x="1060" y="300"/>
-      <p2 x="1060" y="340"/>
-    </wire>
-    <wire>
-      <p1 x="1060" y="560"/>
-      <p2 x="1060" y="820"/>
-    </wire>
-    <wire>
-      <p1 x="1540" y="800"/>
+      <p1 x="1540" y="820"/>
       <p2 x="1540" y="860"/>
     </wire>
     <wire>
-      <p1 x="1220" y="800"/>
-      <p2 x="1220" y="820"/>
+      <p1 x="1160" y="520"/>
+      <p2 x="1160" y="700"/>
     </wire>
     <wire>
       <p1 x="520" y="480"/>
@@ -2893,56 +2839,124 @@ endmodule</string>
       <p2 x="520" y="460"/>
     </wire>
     <wire>
-      <p1 x="360" y="480"/>
-      <p2 x="360" y="500"/>
-    </wire>
-    <wire>
-      <p1 x="1160" y="240"/>
-      <p2 x="1160" y="360"/>
-    </wire>
-    <wire>
-      <p1 x="1160" y="480"/>
-      <p2 x="1160" y="600"/>
-    </wire>
-    <wire>
-      <p1 x="1320" y="800"/>
-      <p2 x="1320" y="880"/>
+      <p1 x="1100" y="580"/>
+      <p2 x="1100" y="940"/>
     </wire>
     <wire>
       <p1 x="460" y="380"/>
       <p2 x="460" y="440"/>
     </wire>
     <wire>
-      <p1 x="1100" y="520"/>
-      <p2 x="1100" y="840"/>
+      <p1 x="1680" y="820"/>
+      <p2 x="1680" y="840"/>
     </wire>
     <wire>
       <p1 x="400" y="480"/>
       <p2 x="400" y="500"/>
     </wire>
     <wire>
-      <p1 x="1200" y="360"/>
-      <p2 x="1200" y="400"/>
+      <p1 x="1040" y="720"/>
+      <p2 x="1040" y="800"/>
     </wire>
     <wire>
-      <p1 x="1200" y="440"/>
-      <p2 x="1200" y="480"/>
-    </wire>
-    <wire>
-      <p1 x="1040" y="580"/>
+      <p1 x="1040" y="800"/>
       <p2 x="1040" y="880"/>
     </wire>
     <wire>
-      <p1 x="1460" y="800"/>
-      <p2 x="1460" y="820"/>
+      <p1 x="1040" y="880"/>
+      <p2 x="1040" y="960"/>
     </wire>
     <wire>
-      <p1 x="1240" y="800"/>
-      <p2 x="1240" y="820"/>
+      <p1 x="1360" y="720"/>
+      <p2 x="1360" y="840"/>
     </wire>
     <wire>
-      <p1 x="1560" y="800"/>
-      <p2 x="1560" y="820"/>
+      <p1 x="1560" y="820"/>
+      <p2 x="1560" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="1240" y="300"/>
+      <p2 x="1240" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="1240" y="460"/>
+      <p2 x="1240" y="540"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="480"/>
+      <p2 x="480" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="180"/>
+      <p2 x="480" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="260"/>
+      <p2 x="480" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="300"/>
+      <p2 x="480" y="340"/>
+    </wire>
+    <wire>
+      <p1 x="480" y="220"/>
+      <p2 x="480" y="260"/>
+    </wire>
+    <wire>
+      <p1 x="1120" y="560"/>
+      <p2 x="1120" y="860"/>
+    </wire>
+    <wire>
+      <p1 x="1440" y="820"/>
+      <p2 x="1440" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="1760" y="820"/>
+      <p2 x="1760" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="300"/>
+      <p2 x="1060" y="340"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="620"/>
+      <p2 x="1060" y="900"/>
+    </wire>
+    <wire>
+      <p1 x="1060" y="900"/>
+      <p2 x="1060" y="980"/>
+    </wire>
+    <wire>
+      <p1 x="360" y="480"/>
+      <p2 x="360" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="1260" y="360"/>
+      <p2 x="1260" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="1260" y="440"/>
+      <p2 x="1260" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1200" y="500"/>
+      <p2 x="1200" y="560"/>
+    </wire>
+    <wire>
+      <p1 x="240" y="180"/>
+      <p2 x="240" y="720"/>
+    </wire>
+    <wire>
+      <p1 x="1780" y="820"/>
+      <p2 x="1780" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="1460" y="820"/>
+      <p2 x="1460" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="1140" y="540"/>
+      <p2 x="1140" y="780"/>
     </wire>
     <wire>
       <p1 x="440" y="360"/>
@@ -2953,20 +2967,20 @@ endmodule</string>
       <p2 x="440" y="500"/>
     </wire>
     <wire>
-      <p1 x="1080" y="540"/>
-      <p2 x="1080" y="860"/>
+      <p1 x="1080" y="600"/>
+      <p2 x="1080" y="740"/>
+    </wire>
+    <wire>
+      <p1 x="1080" y="740"/>
+      <p2 x="1080" y="820"/>
     </wire>
     <wire>
       <p1 x="1340" y="800"/>
-      <p2 x="1340" y="820"/>
+      <p2 x="1340" y="860"/>
     </wire>
     <wire>
-      <p1 x="1180" y="300"/>
-      <p2 x="1180" y="380"/>
-    </wire>
-    <wire>
-      <p1 x="1180" y="460"/>
-      <p2 x="1180" y="540"/>
+      <p1 x="1660" y="820"/>
+      <p2 x="1660" y="880"/>
     </wire>
   </wires>
   <measurementOrdering/>

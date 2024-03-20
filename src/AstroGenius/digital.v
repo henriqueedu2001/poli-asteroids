@@ -18,7 +18,9 @@ module astro_genius (
         output [3:0] db_asteroide_x,
         output [3:0] db_asteroide_y,
         output [3:0] db_tiro_x,
-        output [3:0] db_tiro_y
+        output [3:0] db_tiro_y,
+        output db_aste_renderizado,
+        output db_tiro_renderizado
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -44,6 +46,8 @@ wire [3:0] wire_aste_coor_y;
 
 wire [1:0] wire_opcode_mux_out;
 
+assign db_aste_renderizado = wire_aste_renderizado;
+assign db_tiro_renderizado = wire_tiro_renderizado;
 assign db_asteroide_x = wire_aste_renderizado ? wire_aste_coor_x : 4'b0000;
 assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
 
@@ -1157,7 +1161,7 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5'b01011; // 11
     parameter incrementa_contador_asteroides              = 5'b01100; // 12
     parameter fim_movimentacao                            = 5'b01101; // 13
-    parameter erro                                        = 5'b01111; // F
+    parameter erro                                        = 5'b00000; // F
 
 
     // Variáveis de estado
@@ -1276,9 +1280,7 @@ module uc_jogo_principal (
         parameter fim_jogo                                = 5'b00110; // 6 
         parameter inicia_state_registra_tiros             = 5'b00111; // 7
         parameter espera_salvamento                       = 5'b01000; // 8
-        parameter espera_salvamento2                       = 5'b01001; // 9
-
-
+        parameter espera_salvamento2                      = 5'b01001; // 9
         parameter erro                                    = 5'b01111; // F
 
 // Variáveis de estado

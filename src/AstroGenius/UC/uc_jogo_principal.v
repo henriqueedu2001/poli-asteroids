@@ -38,9 +38,7 @@ module uc_jogo_principal (
         parameter fim_jogo                                = 5'b00110; // 6 
         parameter inicia_state_registra_tiros             = 5'b00111; // 7
         parameter espera_salvamento                       = 5'b01000; // 8
-        parameter espera_salvamento2                       = 5'b01001; // 9
-
-
+        parameter espera_salvamento2                      = 5'b01001; // 9
         parameter erro                                    = 5'b01111; // F
 
 // Variáveis de estado

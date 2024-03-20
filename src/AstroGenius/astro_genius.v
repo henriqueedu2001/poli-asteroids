@@ -18,7 +18,9 @@ module astro_genius (
         output [3:0] db_asteroide_x,
         output [3:0] db_asteroide_y,
         output [3:0] db_tiro_x,
-        output [3:0] db_tiro_y
+        output [3:0] db_tiro_y,
+        output db_aste_renderizado,
+        output db_tiro_renderizado
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -44,6 +46,8 @@ wire [3:0] wire_aste_coor_y;
 
 wire [1:0] wire_opcode_mux_out;
 
+assign db_aste_renderizado = wire_aste_renderizado;
+assign db_tiro_renderizado = wire_tiro_renderizado;
 assign db_asteroide_x = wire_aste_renderizado ? wire_aste_coor_x : 4'b0000;
 assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
 
