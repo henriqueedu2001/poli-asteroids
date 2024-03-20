@@ -2141,7 +2141,7 @@ endmodule</string>
           <string>2Hz</string>
         </entry>
       </elementAttributes>
-      <pos x="300" y="280"/>
+      <pos x="320" y="280"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2490,7 +2490,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>Frequency</string>
-          <int>1000000</int>
+          <int>100000</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="220"/>
@@ -2500,7 +2500,7 @@ endmodule</string>
       <elementAttributes>
         <entry>
           <string>Description</string>
-          <string>1GHz</string>
+          <string>100KHz</string>
         </entry>
       </elementAttributes>
       <pos x="300" y="200"/>
