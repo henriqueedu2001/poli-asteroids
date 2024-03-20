@@ -13,7 +13,8 @@ module astro_genius (
         output [4:0] db_estado_move_tiros,
         output [4:0] db_estado_compara_asteroides_com_nave_e_tiros,
         output [4:0] db_estado_move_asteroides,
-        output [3:0] db_estado_registra_tiro
+        output [3:0] db_estado_registra_tiro,
+        output [3:0] db_vidas
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -32,6 +33,13 @@ wire wire_ocorreu_jogada;
 wire wire_reset_reg_jogada;
 wire wire_enable_reg_jogada;
 
+wire wire_destruido_aste;
+
+wire [3:0] wire_aste_coor_x;
+wire [3:0] wire_aste_coor_y;
+
+wire [1:0] wire_opcode_mux_out;
+
 uc_jogo_principal uc_jogo_principal(
     /* inputs */
     .clock(clock),
@@ -39,6 +47,7 @@ uc_jogo_principal uc_jogo_principal(
     .reset(reset),
     .vidas(~wire_vidas), //rco do decrementador
     .fim_movimentacao_asteroides_e_tiros(wire_fim_movimentacao_asteroides_e_tiros), 
+    .fim_registra_tiros(wire_tiro_registrado),
     .ocorreu_tiro(wire_ocorreu_tiro), 
     .ocorreu_jogada(wire_ocorreu_jogada), //saida do edge detector
     /* outputs */
@@ -81,7 +90,7 @@ wire wire_reset_contador_tiro_uc_coordena_asteroides_tiros;
 wire wire_reset_contador_asteroides_uc_coordena_asteroides_tiros;
 wire wire_conta_contador_asteroides_uc_coordena_asteroides_tiros;
 
-
+wire wire_sinal_compara_tiros_e_asteroide_uc_compara_asteroides_com_nave_e_tiros;
 
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
@@ -213,7 +222,7 @@ wire wire_enable_load_asteroides_uc_compara_asteroides_com_nave_e_tiros;
 wire wire_reset_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros;
 
 wire wire_conta_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros;
-wire wire_sinal_compara_tiros_e_asteroide_uc_compara_asteroides_com_nave_e_tiros;
+
 
 uc_compara_asteroides_com_nave_e_tiros uc_compara_asteroides_com_nave_e_tiros (
     /* inputs */
@@ -221,9 +230,11 @@ uc_compara_asteroides_com_nave_e_tiros uc_compara_asteroides_com_nave_e_tiros (
     .reset(wire_reset_maquinas),
     .iniciar_comparacao_tiros_nave_asteroides(wire_sinal_compara_asteroides_com_a_nave_e_tiro),
     .posicao_asteroide_igual_nave(wire_posicao_asteroide_igual_nave),
-    .ha_vidas(),
+    .ha_vidas(~wire_vidas),
     .rco_contador_asteroides(wire_rco_contador_asteroides),
     .fim_compara_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
+    .loaded_asteroide(wire_aste_renderizado),
+    .destruido_asteroide(wire_destruido_aste),
     /* outputs */
     .enable_decrementador(wire_enable_decrementador),
     .new_loaded_asteroide(wire_new_loaded_asteroide_uc_compara_asteroides_com_nave_e_tiros),
@@ -327,15 +338,15 @@ asteroide asteroide(
     .colisao_aste_com_nave(wire_posicao_asteroide_igual_nave),
     .rco_contador_aste(wire_rco_contador_asteroides),
     .opcode_aste(wire_opcode_aste),
-    .destruido_aste(),
+    .destruido_aste(wire_destruido_aste),
     .loaded_aste(wire_aste_renderizado),
     .aste_coor_x(wire_aste_coor_x),
     .aste_coor_y(wire_aste_coor_y),
     .db_contador_aste(),
     .db_wire_saida_som_sub_aste()
 );
-wire [3:0] wire_aste_coor_x;
-wire [3:0] wire_aste_coor_y;
+
+
 
 tiro tiro (
     /* inputs */
@@ -349,6 +360,7 @@ tiro tiro (
                          wire_reset_contador_tiro_uc_registra_tiro),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros |
                          wire_select_mux_pos_tiro_uc_registra_tiro),
+                         
     .select_mux_coor_tiro(wire_select_mux_coor_tiro_uc_move_tiros),
     .select_soma_sub_tiro(wire_select_soma_sub_uc_move_tiros),
     .enable_reg_nave(),
@@ -363,7 +375,7 @@ tiro tiro (
     // .new_load_tiro(wire_new_loaded_tiro_uc_compara_tiros_e_asteroides |
     //                wire_new_loaded_tiro_uc_move_tiros |
     //                wire_new_loaded_tiro_uc_registra_tiro),
-    .new_load_tiro(1'b0),
+    .new_load_tiro(wire_new_loaded_tiro_uc_registra_tiro),
     .opcode_registra_tiro(wire_opcode_mux_out),
     /* outputs */
     .x_borda_min_tiro(wire_x_borda_min_tiro),
@@ -379,6 +391,7 @@ tiro tiro (
 );
 
 wire [3:0] wire_quantidade_vidas;
+assign db_vidas = wire_quantidade_vidas;
 decrementador #(4) decrementador( 
     /* inputs */
     .clock(clock), 
@@ -393,7 +406,7 @@ decrementador #(4) decrementador(
 );
 
 
- contador_m #(3, 4) incrementacoes_tiro(
+ contador_m #(2, 4) incrementacoes_tiro(
    .clock(clock),
    .zera_as(wire_reset_contador_tiro_uc_coordena_asteroides_tiros),
    .zera_s(1'b0),
@@ -405,7 +418,7 @@ decrementador #(4) decrementador(
 
 
 
- contador_m #(3, 4) incrementacoes_asteroides(
+ contador_m #(2, 4) incrementacoes_asteroides(
    .clock(clock),
    .zera_as(wire_reset_contador_asteroides_uc_coordena_asteroides_tiros),
    .zera_s(1'b0),
@@ -439,7 +452,7 @@ mux_reg_jogada mux_jogada(
     .saida_mux       (wire_opcode_mux_out)
 );
 
-wire [1:0] wire_opcode_mux_out;
+
 
 edge_detector edge_detector_jogada(
     .clock(clock),

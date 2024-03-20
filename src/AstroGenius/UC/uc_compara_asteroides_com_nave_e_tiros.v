@@ -7,6 +7,9 @@ module uc_compara_asteroides_com_nave_e_tiros (
         input rco_contador_asteroides,
         input fim_compara_tiros_e_asteroides,
 
+        input loaded_asteroide,
+        input destruido_asteroide,
+
         output reg enable_decrementador,
         output reg new_loaded_asteroide,
         output reg new_destruido_asteroide,
@@ -52,8 +55,10 @@ module uc_compara_asteroides_com_nave_e_tiros (
             inicio:                              proximo_estado = espera;
             espera:                              proximo_estado = iniciar_comparacao_tiros_nave_asteroides ? reset_contador : espera;
             reset_contador:                      proximo_estado = compara;
-            compara:                             proximo_estado = posicao_asteroide_igual_nave ? decrementa_vida : 
+
+            compara:                             proximo_estado = (posicao_asteroide_igual_nave && loaded_asteroide && ~destruido_asteroide) ? decrementa_vida : 
                                                                   rco_contador_asteroides ? compara_tiros_e_asteroides : incrementa_contador_de_asteroides;
+            
             decrementa_vida:                     proximo_estado = ha_vidas ? destroi_asteroide : fim_comparacao;
             destroi_asteroide:                   proximo_estado = salva_destruicao;
             salva_destruicao:                    proximo_estado = rco_contador_asteroides ? compara_tiros_e_asteroides : incrementa_contador_de_asteroides;

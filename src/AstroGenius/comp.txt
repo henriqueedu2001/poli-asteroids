@@ -1,5 +1,9 @@
 # Para compilar: iverilog -c comp.txt
 
+astro_genius.v
+astro_genius_tb.v
+asteroide.v
+tiro.v
 Modulos/comparador_85.v
 Modulos/contador_163.v
 Modulos/contador_m.v
@@ -21,17 +25,9 @@ UC/uc_jogo_principal.v
 UC/uc_move_asteroides.v
 UC/uc_move_tiros.v
 UC/uc_registra_tiro.v
-asteroide.v
-astro_genius.v
-astro_genius_tb.v
-#move_tiros.v
-#tb/move_tiros_tb.v
-registra_jogada.v
-registra_tiro.v
-move_tiros.v
-tiro.v
-# tb/move_tiros_tb.v
-compara_asteroides_com_nave_e_tiros.v
+
+
+
 
 
 

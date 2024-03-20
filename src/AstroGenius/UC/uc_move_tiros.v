@@ -99,10 +99,12 @@ module uc_move_tiros (
         conta_contador_tiro         = (estado_atual == incrementa_contador) ? 1'b1 : 1'b0;
         select_soma_sub             = (estado_atual == horizontal_decrescente ||
                                        estado_atual == vertical_decrescente      )? 1'b1 : 1'b0;
+
         select_mux_pos_tiro         = (estado_atual == horizontal_crescente ||
                                        estado_atual == horizontal_decrescente) ? 2'b01 :  
                                       (estado_atual == vertical_crescente ||
                                        estado_atual == vertical_decrescente) ? 2'b10 : 2'b00;
+
         select_mux_coor_tiro        = (estado_atual == vertical_crescente ||
                                        estado_atual == vertical_decrescente) ? 1'b1 : 1'b0;
         movimentacao_concluida_tiro = (estado_atual == sinaliza) ? 1'b1 : 1'b0;

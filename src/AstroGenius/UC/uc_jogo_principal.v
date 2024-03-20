@@ -21,7 +21,6 @@ module uc_jogo_principal (
         output reg reset_contador_asteroides,
         output reg reset_contador_tiro,
         output reg reset_contador_vidas,
-
         // resets de outras máquinas de estados
         output reg reset_maquinas,
 
@@ -83,6 +82,7 @@ module uc_jogo_principal (
     // Lógica de saída (maquina Moore)
     always @* begin
         reset_reg_jogada          = (estado_atual == inicializa_elementos ||
+                                     estado_atual == espera_jogada        ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_contador_asteroides = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;

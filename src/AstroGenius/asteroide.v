@@ -135,7 +135,7 @@ registrador_n #(10) reg_nave (
     /* inputs */
     .clock  (clock)                 ,
     .clear  (reset_reg_nave)        ,
-    .enable (enable_reg_nave | 1'b1),
+    .enable (1'b1),
     .D      (10'b0111_0111_00)      ,
     /* output */
     .Q      (wire_saida_reg_nave)

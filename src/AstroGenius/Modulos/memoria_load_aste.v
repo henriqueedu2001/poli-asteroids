@@ -17,21 +17,21 @@ module memoria_load_aste(
     initial 
     begin : INICIA_RAM
         ram[4'b0] =  2'b10;
-        ram[4'd1] =  2'b10;
+        ram[4'd1] =  2'b00;
         ram[4'd2] =  2'b00;
         ram[4'd3] =  2'b00;
-        ram[4'd4] =  2'b10; 
-        ram[4'd5] =  2'b10;
-        ram[4'd6] =  2'b10;
+        ram[4'd4] =  2'b00; 
+        ram[4'd5] =  2'b00;
+        ram[4'd6] =  2'b00;
         ram[4'd7] =  2'b00;
         ram[4'd8] =  2'b00;
-        ram[4'd9] =  2'b10;
-        ram[4'd10] = 2'b10;
-        ram[4'd11] = 2'b10;
-        ram[4'd12] = 2'b10;
-        ram[4'd13] = 2'b10;
-        ram[4'd14] = 2'b10;
-        ram[4'd15] = 2'b10;
+        ram[4'd9] =  2'b00;
+        ram[4'd10] = 2'b00;
+        ram[4'd11] = 2'b00;
+        ram[4'd12] = 2'b00;
+        ram[4'd13] = 2'b00;
+        ram[4'd14] = 2'b00;
+        ram[4'd15] = 2'b00;
     end 
 
     always @ (posedge clk)

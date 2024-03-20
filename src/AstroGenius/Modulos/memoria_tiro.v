@@ -15,10 +15,10 @@ module memoria_tiro(
     // Especifica conteudo inicial da RAM
     // a partir da leitura de arquivo usando $readmemb
     initial begin
-        ram[4'b0] =  10'b0111_0000_00;
-        ram[4'd1] =  10'b0000_0000_10;
-        ram[4'd2] =  10'b0000_0000_01;
-        ram[4'd3] =  10'b0000_0000_11;
+        ram[4'b0] =  10'b0000_0000_00;
+        ram[4'd1] =  10'b0000_0000_00;
+        ram[4'd2] =  10'b0000_0000_00;
+        ram[4'd3] =  10'b0000_0000_00;
         ram[4'd4] =  10'b0000_0000_00;
         ram[4'd5] =  10'b0000_0000_00;
         ram[4'd6] =  10'b0000_0000_00;
@@ -27,7 +27,7 @@ module memoria_tiro(
         ram[4'd9] =  10'b0000_0000_00;
         ram[4'd10] = 10'b0000_0000_00;
         ram[4'd11] = 10'b0000_0000_00;
-        ram[4'd12] = 10'b0001_0111_00;
+        ram[4'd12] = 10'b0000_0000_00;
         ram[4'd13] = 10'b0000_0000_00;
         ram[4'd14] = 10'b0000_0000_00;
         ram[4'd15] = 10'b0000_0000_00;

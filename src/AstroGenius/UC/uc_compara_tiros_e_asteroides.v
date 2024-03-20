@@ -57,9 +57,10 @@ module uc_compara_tiros_e_asteroides (
             reseta_contador:       proximo_estado = verifica_renderizado;
             verifica_renderizado:  proximo_estado = (tiro_renderizado && aste_renderizado) ? compara : 
                                                     (~rco_contador_asteroides && ~aste_renderizado) ? incrementa_asteroides :
-                                                    (~tiro_renderizado && rco_contador_tiros) ? incrementa_tiros : 
-                                                    (rco_contador_asteroides && rco_contador_tiros) ? fim_comparacao : erro;
-            compara:               proximo_estado = posicao_tiro_igual_asteroide ? destroi_asteroide : 
+                                                    (~tiro_renderizado && ~rco_contador_tiros) ? incrementa_tiros : 
+                                                    (rco_contador_asteroides && rco_contador_tiros) ? fim_comparacao : 
+                                                    (rco_contador_asteroides && ~rco_contador_tiros) ?  incrementa_tiros : incrementa_asteroides; //adicionar no diagrama
+            compara:               proximo_estado = posicao_tiro_igual_asteroide? destroi_asteroide : 
                                                     (~posicao_tiro_igual_asteroide && ~rco_contador_asteroides) ? incrementa_asteroides :
                                                     (~posicao_tiro_igual_asteroide && rco_contador_asteroides && ~rco_contador_tiros) ? incrementa_tiros : 
                                                     (~posicao_tiro_igual_asteroide && rco_contador_asteroides && rco_contador_tiros) ? fim_comparacao : erro;
@@ -69,9 +70,9 @@ module uc_compara_tiros_e_asteroides (
                                                     (rco_contador_asteroides && rco_contador_tiros) ? fim_comparacao : erro;
             fim_comparacao:        proximo_estado = espera;
             incrementa_asteroides: proximo_estado = auxiliar_aste;
-            auxiliar_aste:         proximo_estado = compara;
+            auxiliar_aste:         proximo_estado = verifica_renderizado;
             incrementa_tiros:      proximo_estado = auxiliar_tiro;
-            auxiliar_tiro:         proximo_estado = compara;
+            auxiliar_tiro:         proximo_estado = verifica_renderizado;
             default:               proximo_estado = inicio;
         endcase
     end
