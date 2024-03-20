@@ -88,7 +88,8 @@ module uc_jogo_principal (
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_contador_tiro       = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
-        reset_maquinas            = (estado_atual == inicializa_elementos ||
+        reset_maquinas            = (estado_atual == inicial               ||
+                                     estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_contador_vidas      = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
