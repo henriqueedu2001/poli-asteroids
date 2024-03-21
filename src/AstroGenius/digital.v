@@ -20,7 +20,10 @@ module astro_genius (
         output [3:0] db_tiro_x,
         output [3:0] db_tiro_y,
         output db_aste_renderizado,
-        output db_tiro_renderizado
+        output db_tiro_renderizado,
+
+        output [14:0] saida_x,
+        output [3:0] saida_y
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -53,6 +56,19 @@ assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
 
 assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4'b0000;
 assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4'b0000;
+
+
+
+memoria_frame memoria_frame (
+            .coor_x(wire_aste_coor_x),
+            .coor_y(wire_aste_coor_y),
+            .clk(clock),
+            .clear(1'b0),
+            .we(1'b1),
+            .saida_x(saida_x),
+            .saida_y(saida_y)
+            );
+
 
 uc_jogo_principal uc_jogo_principal(
     /* inputs */
@@ -895,6 +911,481 @@ memoria_load_tiro memoria_load_tiro (
 
 
 endmodule
+module comparador_85 #(parameter N = 4)(
+                input [N-1:0] A, 
+                input [N-1:0] B,
+                input       ALBi, 
+                input       AGBi, 
+                input       AEBi,  
+                output      ALBo, 
+                output      AGBo, 
+                output      AEBo
+                );
+
+    wire[N:0]  CSL, CSG;
+
+    assign CSL  = ~A + B + ALBi;
+    assign ALBo = ~CSL[N];
+    assign CSG  = A + ~B + AGBi;
+    assign AGBo = ~CSG[N];
+    assign AEBo = ((A == B) && AEBi);
+
+endmodule 
+module contador_163 #(parameter N = 16, parameter tempo = 2000) ( 
+                        input clock, 
+                        input clr, 
+                        input ld, 
+                        input ent, 
+                        input enp, 
+                        input [N-1:0] D, 
+                        output reg [N-1:0] Q, 
+                        output reg rco
+                    );
+
+    initial begin
+        Q = 0;
+    end
+        
+    always @ (posedge clock)
+        if (clr)               Q <= 0;
+        else if (ld)           Q <= D;
+        else if (ent && enp)   Q <= Q + 1;
+        else                   Q <= Q;
+
+    always @ (Q or ent)
+        if (ent && (Q == tempo))   rco = 1;
+        else                       rco = 0;
+endmodule
+module contador_m #(parameter M=16, N=4)
+  (
+   input  wire          clock,
+   input  wire          zera_as,
+   input  wire          zera_s,
+   input  wire          conta,
+   output reg  [N-1:0]  Q,
+   output reg           fim,
+   output reg           meio
+  );
+
+  always @(posedge clock or posedge zera_as) begin
+    if (zera_as) begin
+      Q <= 0;
+    end else if (clock) begin
+      if (zera_s) begin
+        Q <= 0;
+      end else if (conta) begin
+        if (Q == M-1) begin
+          Q <= 0;
+        end else begin
+          Q <= Q + 1;
+        end
+      end
+    end
+  end
+
+  // Saidas
+  always @ (Q)
+      if (Q == M-1)   fim = 1;
+      else            fim = 0;
+
+  always @ (Q)
+      if (Q == M/2-1) meio = 1;
+      else            meio = 0;
+
+endmodule
+
+// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
+
+module decrementador #(parameter N=4) ( 
+                      input clock       , 
+                      input clr         , 
+                      input ld          , 
+                      input ent         , 
+                      input enp         , 
+                      input [N-1:0] D     , 
+                      output reg [N-1:0] Q , 
+                      output reg rco
+                    );
+
+	 initial begin
+		Q = 3;
+    end
+    
+
+    always @ (posedge clock)
+        if (clr)                           Q <= 3;
+        else if (ld)                       Q <= D;
+        else if (ent && enp &&  Q != 0)    Q <= Q - 1;
+        else                               Q <= Q;
+ 
+    always @ (Q or ent)
+        if (ent && (Q == 0))       rco = 1;
+        else                       rco = 0;
+
+endmodule
+
+ module edge_detector (
+    input  clock,
+    input  reset,
+    input  sinal,
+    output pulso
+);
+
+    reg reg0;
+    reg reg1;
+
+    always @(posedge clock or posedge reset) begin
+        if (reset) begin
+            reg0 <= 1'b0;
+            reg1 <= 1'b0;
+        end else if (clock) begin
+            reg0 <= sinal;
+            reg1 <= reg0;
+        end
+    end
+
+    assign pulso = ~reg1 & reg0;
+
+endmodule
+
+module memoria_aster(
+    input        clk,
+    input        we,
+    input  [9:0] data,
+    input  [3:0] addr,
+    output [9:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [9:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial begin
+        ram[4'b0]  =  10'b0111_1110_11; // (7,14)
+        ram[4'd1]  =  10'b0111_1110_11; // (7,14)
+        ram[4'd2]  =  10'b0111_1110_11; // (7,14)
+        ram[4'd3]  =  10'b0000_0111_00; // (0,7)
+        ram[4'd4]  =  10'b0111_0000_00; // (7,0)
+        ram[4'd5]  =  10'b1110_0111_01; // (14,7)
+        ram[4'd6]  =  10'b0111_1110_11; // (7,14)
+        ram[4'd7]  =  10'b1110_0111_01; // (14,7)
+        ram[4'd8]  =  10'b0111_1110_11; // (7,14)
+        ram[4'd9]  =  10'b0111_0111_00; // (7,7)
+        ram[4'd10] =  10'b0111_0000_10; // (7,0)
+        ram[4'd11] =  10'b0111_0000_10; // (7,0)
+        ram[4'd12] =  10'b0000_0111_00; // (0,7)
+        ram[4'd13] =  10'b0000_0111_00; // (0,7)
+        ram[4'd14] =  10'b0111_1110_11; // (7,14)
+        ram[4'd15] =  10'b0111_1110_11; // (7,14)
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] <= data;
+
+        addr_reg <= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_load_aste(
+    input        clk,
+    input        we,
+    input  [1:0] data,
+    input  [3:0] addr,
+    output [1:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [1:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial 
+    begin : INICIA_RAM
+        ram[4'b0] =  2'b10;
+        ram[4'd1] =  2'b00;
+        ram[4'd2] =  2'b00;
+        ram[4'd3] =  2'b00;
+        ram[4'd4] =  2'b00; 
+        ram[4'd5] =  2'b00;
+        ram[4'd6] =  2'b00;
+        ram[4'd7] =  2'b00;
+        ram[4'd8] =  2'b00;
+        ram[4'd9] =  2'b00;
+        ram[4'd10] = 2'b00;
+        ram[4'd11] = 2'b00;
+        ram[4'd12] = 2'b00;
+        ram[4'd13] = 2'b00;
+        ram[4'd14] = 2'b00;
+        ram[4'd15] = 2'b00;
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] <= data;
+
+        addr_reg <= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_tiro(
+    input        clk,
+    input        we,
+    input  [9:0] data,
+    input  [3:0] addr,
+    output [9:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [9:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial begin
+        ram[4'b0] =  10'b0000_0000_00;
+        ram[4'd1] =  10'b0000_0000_00;
+        ram[4'd2] =  10'b0000_0000_00;
+        ram[4'd3] =  10'b0000_0000_00;
+        ram[4'd4] =  10'b0000_0000_00;
+        ram[4'd5] =  10'b0000_0000_00;
+        ram[4'd6] =  10'b0000_0000_00;
+        ram[4'd7] =  10'b0000_0000_00;
+        ram[4'd8] =  10'b0000_0000_00;
+        ram[4'd9] =  10'b0000_0000_00;
+        ram[4'd10] = 10'b0000_0000_00;
+        ram[4'd11] = 10'b0000_0000_00;
+        ram[4'd12] = 10'b0000_0000_00;
+        ram[4'd13] = 10'b0000_0000_00;
+        ram[4'd14] = 10'b0000_0000_00;
+        ram[4'd15] = 10'b0000_0000_00;
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] <= data;
+
+        addr_reg <= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_load_tiro(
+    input        clk,
+    input        we,
+    input  [1:0] data,
+    input  [3:0] addr,
+    output [1:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [1:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial 
+    begin : INICIA_RAM
+        ram[4'b0] =  2'b00;
+        ram[4'd1] =  2'b00;
+        ram[4'd2] =  2'b00;
+        ram[4'd3] =  2'b00;
+        ram[4'd4] =  2'b00; 
+        ram[4'd5] =  2'b00;
+        ram[4'd6] =  2'b00;
+        ram[4'd7] =  2'b00;
+        ram[4'd8] =  2'b00;
+        ram[4'd9] =  2'b00;
+        ram[4'd10] = 2'b00;
+        ram[4'd11] = 2'b00;
+        ram[4'd12] = 2'b00;
+        ram[4'd13] = 2'b00;
+        ram[4'd14] = 2'b00;
+        ram[4'd15] = 2'b00;
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] <= data;
+
+        addr_reg <= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_frame (
+            input [3:0] coor_x,
+            input [3:0] coor_y,
+            input clk,
+            input clear,
+            input we,
+            output [14:0] saida_x,
+            output [3:0] saida_y
+            );
+
+    wire coor_x;
+    wire coor_y;
+
+    
+    reg [14:0] mem [3:0];
+
+    integer i = 0;
+
+    initial begin
+        for (i = 0; i < 15; i = i + 1) begin
+            mem[i] = 14'b00000000000000;
+        end
+
+
+    end
+
+
+    always @(posedge clk) begin
+        if(we && ~clear) begin
+            mem[coor_y][coor_x] <= 1'b1;
+        end
+        if(clear) begin
+            mem[coor_y] <= 14'b00000000000000;
+        end
+    end
+
+    assign saida_x = mem[coor_y];
+    assign saida_y = coor_y;
+
+
+endmodule
+
+
+module mux_coor #(parameter N = 4)(
+        input select_mux_coor,
+        input [N-1:0] mem_coor_x,
+        input [N-1:0] mem_coor_y,
+        output [N-1:0] saida_mux
+        );
+
+        parameter select_mem_coor_x = 1'b0;
+
+        assign saida_mux = select_mux_coor == select_mem_coor_x ? mem_coor_x : mem_coor_y;
+endmodule
+
+
+
+
+
+module mux_pos #(parameter N = 4)(
+        input [1:0] select_mux_pos,
+        input [N-1:0] resul_soma,
+        input [N-1:0] mem_coor_x,
+        input [N-1:0] mem_coor_y,
+        input [1:0]   mem_opcode,
+        input [N-1:0] random_x,
+        input [N-1:0] random_y,
+        input [1:0] random_opcode,
+        output [9:0] saida_mux
+        );
+
+        parameter posicao_op_random = 2'b00;
+        parameter resul_soma_coor_x = 2'b01;
+        parameter resul_soma_coor_y = 2'b10;
+
+        // 00 - seleciona a posição e opcode randomicos
+        // 01 - seleciona o resultado da soma na coordenada X e opcode da memoria (Y da memoria)
+        // 10 - seleciona o resultado da soma na coordenada Y e opcode da memoria (X da memoria)
+
+        assign saida_mux = select_mux_pos == posicao_op_random ? {random_x, random_y, random_opcode}  :
+                           select_mux_pos == resul_soma_coor_x ? {resul_soma, mem_coor_y, mem_opcode} :
+                           select_mux_pos == resul_soma_coor_y ? {mem_coor_x, resul_soma, mem_opcode} : {mem_coor_x, mem_coor_y, mem_opcode};
+endmodule
+module mux_reg_jogada (
+        input [3:0] select_mux_jogada,
+        output [1:0] saida_mux
+        );
+
+        assign saida_mux = select_mux_jogada == 4'b0001 ? 2'b00 : 
+                           select_mux_jogada == 4'b1000 ? 2'b10 :
+                           select_mux_jogada == 4'b0010 ? 2'b01 : 
+                           select_mux_jogada == 4'b0100 ? 2'b11 : 2'b11 ;
+endmodule
+
+
+
+
+
+//registrador_n #(N = 5)(
+
+// )
+module registrador_n #(parameter N = 4)(
+    input        clock ,
+    input        clear ,
+    input        enable,
+    input  [N-1:0] D     ,
+    output [N-1:0] Q
+);
+
+    reg [N-1:0] IQ;
+
+    always @(posedge clock or posedge clear) begin
+        if (clear)
+            IQ <= 0;
+        else if (enable)
+            IQ <= D;
+    end
+
+    assign Q = IQ;
+
+endmodule
+// modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
+// caso seja 0 então ocorre a subtração
+
+module somador_subtrator #(parameter N=4) ( 
+                          input [N-1:0] a,
+                          input [N-1:0] b,
+                          input select,
+                          output [N:0] resul
+                    );
+
+  reg [N:0] res;
+
+  always@(*) begin
+    if(~select) res = a + b;
+    else res = a-b;
+  end
+
+  assign resul = res;
+
+
+  // assign resul = select ? a + b : a - b;
+
+endmodule
 module uc_compara_asteroides_com_nave_e_tiros (
         input clock,
         input reset,
@@ -1699,435 +2190,3 @@ module uc_registra_tiro (
 
 endmodule
 
-module comparador_85 #(parameter N = 4)(
-                input [N-1:0] A, 
-                input [N-1:0] B,
-                input       ALBi, 
-                input       AGBi, 
-                input       AEBi,  
-                output      ALBo, 
-                output      AGBo, 
-                output      AEBo
-                );
-
-    wire[N:0]  CSL, CSG;
-
-    assign CSL  = ~A + B + ALBi;
-    assign ALBo = ~CSL[N];
-    assign CSG  = A + ~B + AGBi;
-    assign AGBo = ~CSG[N];
-    assign AEBo = ((A == B) && AEBi);
-
-endmodule 
-module contador_163 #(parameter N = 16, parameter tempo = 2000) ( 
-                        input clock, 
-                        input clr, 
-                        input ld, 
-                        input ent, 
-                        input enp, 
-                        input [N-1:0] D, 
-                        output reg [N-1:0] Q, 
-                        output reg rco
-                    );
-
-    initial begin
-        Q = 0;
-    end
-        
-    always @ (posedge clock)
-        if (clr)               Q <= 0;
-        else if (ld)           Q <= D;
-        else if (ent && enp)   Q <= Q + 1;
-        else                   Q <= Q;
-
-    always @ (Q or ent)
-        if (ent && (Q == tempo))   rco = 1;
-        else                       rco = 0;
-endmodule
-module contador_m #(parameter M=16, N=4)
-  (
-   input  wire          clock,
-   input  wire          zera_as,
-   input  wire          zera_s,
-   input  wire          conta,
-   output reg  [N-1:0]  Q,
-   output reg           fim,
-   output reg           meio
-  );
-
-  always @(posedge clock or posedge zera_as) begin
-    if (zera_as) begin
-      Q <= 0;
-    end else if (clock) begin
-      if (zera_s) begin
-        Q <= 0;
-      end else if (conta) begin
-        if (Q == M-1) begin
-          Q <= 0;
-        end else begin
-          Q <= Q + 1;
-        end
-      end
-    end
-  end
-
-  // Saidas
-  always @ (Q)
-      if (Q == M-1)   fim = 1;
-      else            fim = 0;
-
-  always @ (Q)
-      if (Q == M/2-1) meio = 1;
-      else            meio = 0;
-
-endmodule
-
-// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
-
-module decrementador #(parameter N=4) ( 
-                      input clock       , 
-                      input clr         , 
-                      input ld          , 
-                      input ent         , 
-                      input enp         , 
-                      input [N-1:0] D     , 
-                      output reg [N-1:0] Q , 
-                      output reg rco
-                    );
-
-	 initial begin
-		Q = 3;
-    end
-    
-
-    always @ (posedge clock)
-        if (clr)                           Q <= 3;
-        else if (ld)                       Q <= D;
-        else if (ent && enp &&  Q != 0)    Q <= Q - 1;
-        else                               Q <= Q;
- 
-    always @ (Q or ent)
-        if (ent && (Q == 0))       rco = 1;
-        else                       rco = 0;
-
-endmodule
-
- module edge_detector (
-    input  clock,
-    input  reset,
-    input  sinal,
-    output pulso
-);
-
-    reg reg0;
-    reg reg1;
-
-    always @(posedge clock or posedge reset) begin
-        if (reset) begin
-            reg0 <= 1'b0;
-            reg1 <= 1'b0;
-        end else if (clock) begin
-            reg0 <= sinal;
-            reg1 <= reg0;
-        end
-    end
-
-    assign pulso = ~reg1 & reg0;
-
-endmodule
-
-module memoria_aster(
-    input        clk,
-    input        we,
-    input  [9:0] data,
-    input  [3:0] addr,
-    output [9:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [9:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial begin
-        ram[4'b0]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd1]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd2]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd3]  =  10'b0000_0111_00; // (0,7)
-        ram[4'd4]  =  10'b0111_0000_00; // (7,0)
-        ram[4'd5]  =  10'b1110_0111_01; // (14,7)
-        ram[4'd6]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd7]  =  10'b1110_0111_01; // (14,7)
-        ram[4'd8]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd9]  =  10'b0111_0111_00; // (7,7)
-        ram[4'd10] =  10'b0111_0000_10; // (7,0)
-        ram[4'd11] =  10'b0111_0000_10; // (7,0)
-        ram[4'd12] =  10'b0000_0111_00; // (0,7)
-        ram[4'd13] =  10'b0000_0111_00; // (0,7)
-        ram[4'd14] =  10'b0111_1110_11; // (7,14)
-        ram[4'd15] =  10'b0111_1110_11; // (7,14)
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] <= data;
-
-        addr_reg <= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module memoria_load_aste(
-    input        clk,
-    input        we,
-    input  [1:0] data,
-    input  [3:0] addr,
-    output [1:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [1:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial 
-    begin : INICIA_RAM
-        ram[4'b0] =  2'b10;
-        ram[4'd1] =  2'b00;
-        ram[4'd2] =  2'b00;
-        ram[4'd3] =  2'b00;
-        ram[4'd4] =  2'b00; 
-        ram[4'd5] =  2'b00;
-        ram[4'd6] =  2'b00;
-        ram[4'd7] =  2'b00;
-        ram[4'd8] =  2'b00;
-        ram[4'd9] =  2'b00;
-        ram[4'd10] = 2'b00;
-        ram[4'd11] = 2'b00;
-        ram[4'd12] = 2'b00;
-        ram[4'd13] = 2'b00;
-        ram[4'd14] = 2'b00;
-        ram[4'd15] = 2'b00;
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] <= data;
-
-        addr_reg <= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module memoria_tiro(
-    input        clk,
-    input        we,
-    input  [9:0] data,
-    input  [3:0] addr,
-    output [9:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [9:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial begin
-        ram[4'b0] =  10'b0000_0000_00;
-        ram[4'd1] =  10'b0000_0000_00;
-        ram[4'd2] =  10'b0000_0000_00;
-        ram[4'd3] =  10'b0000_0000_00;
-        ram[4'd4] =  10'b0000_0000_00;
-        ram[4'd5] =  10'b0000_0000_00;
-        ram[4'd6] =  10'b0000_0000_00;
-        ram[4'd7] =  10'b0000_0000_00;
-        ram[4'd8] =  10'b0000_0000_00;
-        ram[4'd9] =  10'b0000_0000_00;
-        ram[4'd10] = 10'b0000_0000_00;
-        ram[4'd11] = 10'b0000_0000_00;
-        ram[4'd12] = 10'b0000_0000_00;
-        ram[4'd13] = 10'b0000_0000_00;
-        ram[4'd14] = 10'b0000_0000_00;
-        ram[4'd15] = 10'b0000_0000_00;
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] <= data;
-
-        addr_reg <= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module memoria_load_tiro(
-    input        clk,
-    input        we,
-    input  [1:0] data,
-    input  [3:0] addr,
-    output [1:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [1:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial 
-    begin : INICIA_RAM
-        ram[4'b0] =  2'b00;
-        ram[4'd1] =  2'b00;
-        ram[4'd2] =  2'b00;
-        ram[4'd3] =  2'b00;
-        ram[4'd4] =  2'b00; 
-        ram[4'd5] =  2'b00;
-        ram[4'd6] =  2'b00;
-        ram[4'd7] =  2'b00;
-        ram[4'd8] =  2'b00;
-        ram[4'd9] =  2'b00;
-        ram[4'd10] = 2'b00;
-        ram[4'd11] = 2'b00;
-        ram[4'd12] = 2'b00;
-        ram[4'd13] = 2'b00;
-        ram[4'd14] = 2'b00;
-        ram[4'd15] = 2'b00;
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] <= data;
-
-        addr_reg <= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module mux_coor #(parameter N = 4)(
-        input select_mux_coor,
-        input [N-1:0] mem_coor_x,
-        input [N-1:0] mem_coor_y,
-        output [N-1:0] saida_mux
-        );
-
-        parameter select_mem_coor_x = 1'b0;
-
-        assign saida_mux = select_mux_coor == select_mem_coor_x ? mem_coor_x : mem_coor_y;
-endmodule
-
-
-
-
-
-module mux_pos #(parameter N = 4)(
-        input [1:0] select_mux_pos,
-        input [N-1:0] resul_soma,
-        input [N-1:0] mem_coor_x,
-        input [N-1:0] mem_coor_y,
-        input [1:0]   mem_opcode,
-        input [N-1:0] random_x,
-        input [N-1:0] random_y,
-        input [1:0] random_opcode,
-        output [9:0] saida_mux
-        );
-
-        parameter posicao_op_random = 2'b00;
-        parameter resul_soma_coor_x = 2'b01;
-        parameter resul_soma_coor_y = 2'b10;
-
-        // 00 - seleciona a posição e opcode randomicos
-        // 01 - seleciona o resultado da soma na coordenada X e opcode da memoria (Y da memoria)
-        // 10 - seleciona o resultado da soma na coordenada Y e opcode da memoria (X da memoria)
-
-        assign saida_mux = select_mux_pos == posicao_op_random ? {random_x, random_y, random_opcode}  :
-                           select_mux_pos == resul_soma_coor_x ? {resul_soma, mem_coor_y, mem_opcode} :
-                           select_mux_pos == resul_soma_coor_y ? {mem_coor_x, resul_soma, mem_opcode} : {mem_coor_x, mem_coor_y, mem_opcode};
-endmodule
-module mux_reg_jogada (
-        input [3:0] select_mux_jogada,
-        output [1:0] saida_mux
-        );
-
-        assign saida_mux = select_mux_jogada == 4'b0001 ? 2'b00 : 
-                           select_mux_jogada == 4'b1000 ? 2'b10 :
-                           select_mux_jogada == 4'b0010 ? 2'b01 : 
-                           select_mux_jogada == 4'b0100 ? 2'b11 : 2'b11 ;
-endmodule
-
-
-
-
-
-//registrador_n #(N = 5)(
-
-// )
-module registrador_n #(parameter N = 4)(
-    input        clock ,
-    input        clear ,
-    input        enable,
-    input  [N-1:0] D     ,
-    output [N-1:0] Q
-);
-
-    reg [N-1:0] IQ;
-
-    always @(posedge clock or posedge clear) begin
-        if (clear)
-            IQ <= 0;
-        else if (enable)
-            IQ <= D;
-    end
-
-    assign Q = IQ;
-
-endmodule
-// modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
-// caso seja 0 então ocorre a subtração
-
-module somador_subtrator #(parameter N=4) ( 
-                          input [N-1:0] a,
-                          input [N-1:0] b,
-                          input select,
-                          output [N:0] resul
-                    );
-
-  reg [N:0] res;
-
-  always@(*) begin
-    if(~select) res = a + b;
-    else res = a-b;
-  end
-
-  assign resul = res;
-
-
-  // assign resul = select ? a + b : a - b;
-
-endmodule

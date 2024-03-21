@@ -1,7 +1,7 @@
 # Para compilar: iverilog -c comp.txt
+astro_genius_tb.v
 
 astro_genius.v
-astro_genius_tb.v
 asteroide.v
 tiro.v
 Modulos/comparador_85.v
@@ -13,6 +13,7 @@ Modulos/memoria_aster.v
 Modulos/memoria_load_aste.v
 Modulos/memoria_tiro.v
 Modulos/memoria_load_tiro.v
+Modulos/memoria_frame.v
 Modulos/mux_coor.v
 Modulos/mux_pos.v
 Modulos/mux_reg_jogada.v

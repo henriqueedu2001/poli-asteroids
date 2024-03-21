@@ -54,6 +54,7 @@ assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
 assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4'b0000;
 assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4'b0000;
 
+
 uc_jogo_principal uc_jogo_principal(
     /* inputs */
     .clock(clock),
