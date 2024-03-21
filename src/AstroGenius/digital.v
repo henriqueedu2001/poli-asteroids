@@ -20,10 +20,7 @@ module astro_genius (
         output [3:0] db_tiro_x,
         output [3:0] db_tiro_y,
         output db_aste_renderizado,
-        output db_tiro_renderizado,
-
-        output [14:0] saida_x,
-        output [3:0] saida_y
+        output db_tiro_renderizado
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -56,18 +53,6 @@ assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
 
 assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4'b0000;
 assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4'b0000;
-
-
-
-memoria_frame memoria_frame (
-            .coor_x(wire_aste_coor_x),
-            .coor_y(wire_aste_coor_y),
-            .clk(clock),
-            .clear(1'b0),
-            .we(1'b1),
-            .saida_x(saida_x),
-            .saida_y(saida_y)
-            );
 
 
 uc_jogo_principal uc_jogo_principal(
