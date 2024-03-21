@@ -2604,6 +2604,161 @@ endmodule</string>
       </elementAttributes>
       <pos x="1220" y="860"/>
     </visualElement>
+    <visualElement>
+      <elementName>LedMatrix</elementName>
+      <elementAttributes>
+        <entry>
+          <string>colAddrBits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>rowDataBits</string>
+          <int>15</int>
+        </entry>
+      </elementAttributes>
+      <pos x="3600" y="420"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Clock</elementName>
+      <elementAttributes>
+        <entry>
+          <string>runRealTime</string>
+          <boolean>true</boolean>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>100 Hz</string>
+        </entry>
+        <entry>
+          <string>Frequency</string>
+          <int>100</int>
+        </entry>
+      </elementAttributes>
+      <pos x="2460" y="400"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Switch</elementName>
+      <elementAttributes/>
+      <pos x="2460" y="400"/>
+    </visualElement>
+    <visualElement>
+      <elementName>External</elementName>
+      <elementAttributes>
+        <entry>
+          <string>applicationType</string>
+          <appType>IVERILOG</appType>
+        </entry>
+        <entry>
+          <string>Label</string>
+          <string>memoria_frame</string>
+        </entry>
+        <entry>
+          <string>externalInputs</string>
+          <string>coor_x:4,coor_y:4,clk,clear,we</string>
+        </entry>
+        <entry>
+          <string>Code</string>
+          <string>module memoria_frame (
+            input [3:0] coor_x,
+            input [3:0] coor_y,
+            input clk,
+            input clear,
+            input we,
+            output [14:0] saida_x,
+            output [3:0] saida_y
+            );
+
+    wire coor_x;
+    wire coor_y;
+
+    
+    reg [14:0] mem [3:0];
+
+    integer i = 0;
+
+    initial begin
+        for (i = 0; i &lt; 15; i = i + 1) begin
+            mem[i] = 14&apos;b00000000000000;
+        end
+
+
+    end
+
+
+    always @(posedge clk) begin
+        if(we &amp;&amp; ~clear) begin
+            mem[coor_y][coor_x] &lt;= 1&apos;b1;
+        end
+        if(clear) begin
+            mem[coor_y] &lt;= 14&apos;b00000000000000;
+        end
+    end
+
+    assign saida_x = mem[coor_y];
+    assign saida_y = coor_y;
+
+
+endmodule</string>
+        </entry>
+        <entry>
+          <string>externalOutputs</string>
+          <string>saida_x:15,saida_y:4</string>
+        </entry>
+        <entry>
+          <string>Width</string>
+          <int>25</int>
+        </entry>
+      </elementAttributes>
+      <pos x="2680" y="360"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>x</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="2440" y="260"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>y</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>4</int>
+        </entry>
+      </elementAttributes>
+      <pos x="2440" y="300"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>clear</string>
+        </entry>
+      </elementAttributes>
+      <pos x="2440" y="480"/>
+    </visualElement>
+    <visualElement>
+      <elementName>In</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>enable</string>
+        </entry>
+      </elementAttributes>
+      <pos x="2440" y="520"/>
+    </visualElement>
   </visualElements>
   <wires>
     <wire>
@@ -2619,6 +2774,10 @@ endmodule</string>
       <p2 x="480" y="260"/>
     </wire>
     <wire>
+      <p1 x="2440" y="260"/>
+      <p2 x="2620" y="260"/>
+    </wire>
+    <wire>
       <p1 x="1040" y="580"/>
       <p2 x="1100" y="580"/>
     </wire>
@@ -2629,6 +2788,10 @@ endmodule</string>
     <wire>
       <p1 x="1040" y="520"/>
       <p2 x="1160" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="2440" y="520"/>
+      <p2 x="2620" y="520"/>
     </wire>
     <wire>
       <p1 x="1360" y="840"/>
@@ -2653,6 +2816,10 @@ endmodule</string>
     <wire>
       <p1 x="1040" y="400"/>
       <p2 x="1260" y="400"/>
+    </wire>
+    <wire>
+      <p1 x="2500" y="400"/>
+      <p2 x="2680" y="400"/>
     </wire>
     <wire>
       <p1 x="240" y="720"/>
@@ -2727,12 +2894,28 @@ endmodule</string>
       <p2 x="1220" y="480"/>
     </wire>
     <wire>
+      <p1 x="2440" y="480"/>
+      <p2 x="2580" y="480"/>
+    </wire>
+    <wire>
       <p1 x="1080" y="740"/>
       <p2 x="1220" y="740"/>
     </wire>
     <wire>
       <p1 x="1040" y="420"/>
       <p2 x="1300" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="2580" y="420"/>
+      <p2 x="2680" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="3380" y="420"/>
+      <p2 x="3600" y="420"/>
+    </wire>
+    <wire>
+      <p1 x="3180" y="360"/>
+      <p2 x="3380" y="360"/>
     </wire>
     <wire>
       <p1 x="440" y="360"/>
@@ -2747,6 +2930,10 @@ endmodule</string>
       <p2 x="1300" y="360"/>
     </wire>
     <wire>
+      <p1 x="2620" y="360"/>
+      <p2 x="2680" y="360"/>
+    </wire>
+    <wire>
       <p1 x="1100" y="940"/>
       <p2 x="1220" y="940"/>
     </wire>
@@ -2757,6 +2944,10 @@ endmodule</string>
     <wire>
       <p1 x="1240" y="300"/>
       <p2 x="1300" y="300"/>
+    </wire>
+    <wire>
+      <p1 x="2440" y="300"/>
+      <p2 x="2580" y="300"/>
     </wire>
     <wire>
       <p1 x="1040" y="620"/>
@@ -2791,6 +2982,10 @@ endmodule</string>
       <p2 x="480" y="180"/>
     </wire>
     <wire>
+      <p1 x="3220" y="440"/>
+      <p2 x="3600" y="440"/>
+    </wire>
+    <wire>
       <p1 x="400" y="440"/>
       <p2 x="460" y="440"/>
     </wire>
@@ -2799,8 +2994,12 @@ endmodule</string>
       <p2 x="1260" y="440"/>
     </wire>
     <wire>
-      <p1 x="1160" y="700"/>
-      <p2 x="1220" y="700"/>
+      <p1 x="2620" y="440"/>
+      <p2 x="2680" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="3180" y="380"/>
+      <p2 x="3220" y="380"/>
     </wire>
     <wire>
       <p1 x="460" y="380"/>
@@ -2809,6 +3008,14 @@ endmodule</string>
     <wire>
       <p1 x="1040" y="380"/>
       <p2 x="1240" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="2580" y="380"/>
+      <p2 x="2680" y="380"/>
+    </wire>
+    <wire>
+      <p1 x="1160" y="700"/>
+      <p2 x="1220" y="700"/>
     </wire>
     <wire>
       <p1 x="320" y="480"/>
@@ -2869,6 +3076,18 @@ endmodule</string>
     <wire>
       <p1 x="1360" y="720"/>
       <p2 x="1360" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="3220" y="380"/>
+      <p2 x="3220" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="2580" y="420"/>
+      <p2 x="2580" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="2580" y="300"/>
+      <p2 x="2580" y="380"/>
     </wire>
     <wire>
       <p1 x="1560" y="820"/>
@@ -2947,6 +3166,10 @@ endmodule</string>
       <p2 x="240" y="720"/>
     </wire>
     <wire>
+      <p1 x="3380" y="360"/>
+      <p2 x="3380" y="420"/>
+    </wire>
+    <wire>
       <p1 x="1780" y="820"/>
       <p2 x="1780" y="840"/>
     </wire>
@@ -2981,6 +3204,14 @@ endmodule</string>
     <wire>
       <p1 x="1660" y="820"/>
       <p2 x="1660" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="2620" y="440"/>
+      <p2 x="2620" y="520"/>
+    </wire>
+    <wire>
+      <p1 x="2620" y="260"/>
+      <p2 x="2620" y="360"/>
     </wire>
   </wires>
   <measurementOrdering/>
