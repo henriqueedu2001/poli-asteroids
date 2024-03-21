@@ -68,14 +68,13 @@ module uc_registra_tiro (
 
     // Lógica de saída (maquina Moore)
     always @* begin
-        reset_contador_tiro = (estado_atual == reseta_contador) ? 1'b1 : 1'b0;
-        reset_contador_asteroide = (estado_atual == reseta_contador) ? 1'b1 : 1'b0;
-        clear_mem_frame = (estado_atual == verifica_loaded_asteroide) ? 1'b1 : 1'b0;
-        enable_mem_aste = (estado_atual == salva_aste) ? 1'b1 : 1'b0;
-        salva_tiro = (estado_atual == salva_tiro) ? 1'b1 : 1'b0;
-        conta_contador_tiro = (estado_atual == incrementa_tiro) ? 1'b1 : 1'b0;
-        conta_contador_aste = (estado_atual -- incrementa_asteroides) ? 1'b1 : 1'b0;
-        fim_gera_frame = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
+        reset_contador_tiro       = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
+        reset_contador_asteroide  = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
+        clear_mem_frame           = (estado_atual == verifica_loaded_asteroide) ? 1'b1 : 1'b0;
+        enable_mem_frame          = (estado_atual == salva_aste || estado_atual == salva_tiro)? 1'b1 : 1'b0;
+        conta_contador_tiro       = (estado_atual == incrementa_tiro)           ? 1'b1 : 1'b0;
+        conta_contador_asteroide  = (estado_atual == incrementa_asteroides)     ? 1'b1 : 1'b0;
+        fim_gera_frame            = (estado_atual == sinaliza)                  ? 1'b1 : 1'b0;
 
 
         // Saída de depuração (estado)
