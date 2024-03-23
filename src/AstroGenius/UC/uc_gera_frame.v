@@ -8,7 +8,6 @@ module uc_registra_tiro (
         input loaded_tiro,
         input loaded_asteroide,
 
-
         output reg conta_contador_asteroide,
         output reg conta_contador_tiro,
         output reg reset_contador_tiro,
@@ -70,12 +69,11 @@ module uc_registra_tiro (
     always @* begin
         reset_contador_tiro       = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
         reset_contador_asteroide  = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
-        clear_mem_frame           = (estado_atual == verifica_loaded_asteroide) ? 1'b1 : 1'b0;
+        clear_mem_frame           = (estado_atual == verifica_loaded_asteroide)   ? 1'b1 : 1'b0;
         enable_mem_frame          = (estado_atual == salva_aste || estado_atual == salva_tiro)? 1'b1 : 1'b0;
         conta_contador_tiro       = (estado_atual == incrementa_tiro)           ? 1'b1 : 1'b0;
         conta_contador_asteroide  = (estado_atual == incrementa_asteroides)     ? 1'b1 : 1'b0;
         fim_gera_frame            = (estado_atual == sinaliza)                  ? 1'b1 : 1'b0;
-
 
         // Saída de depuração (estado)
         case (estado_atual)

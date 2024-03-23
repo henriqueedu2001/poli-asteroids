@@ -12,7 +12,7 @@ module memoria_frame (
     wire coor_y;
 
     
-    reg [14:0] mem [3:0];
+    reg [14:0] mem [16:0];
 
     integer i = 0;
 
