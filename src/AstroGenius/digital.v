@@ -20,7 +20,11 @@ module astro_genius (
         output [3:0] db_tiro_x,
         output [3:0] db_tiro_y,
         output db_aste_renderizado,
-        output db_tiro_renderizado
+        output db_tiro_renderizado,
+        output [3:0] db_estado_uc_gera_frame,
+        output [14:0] matriz_x,
+        output [3:0] matriz_y,
+        output [3:0] db_estado_uc_renderiza
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -107,6 +111,10 @@ wire wire_conta_contador_asteroides_uc_coordena_asteroides_tiros;
 
 wire wire_sinal_compara_tiros_e_asteroide_uc_compara_asteroides_com_nave_e_tiros;
 
+wire wire_inicia_gera_frame_uc_coordena_asteroides_tiros;
+wire wire_fim_gera_frame_uc_gera_frame;
+wire wire_pausar_renderizacao;
+
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
     .clock(clock),
@@ -118,6 +126,8 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .fim_move_asteroides(wire_fim_move_asteroides),
     .fim_comparacao_asteroides_com_a_nave_e_tiros(wire_fim_comparacao_asteroides_com_a_nave_e_tiros),
     .fim_comparacao_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
+
+    .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
     /* outputs */
     .movimenta_tiro(wire_movimenta_tiro),
     .sinal_movimenta_asteroides(wire_sinal_movimenta_asteroides),
@@ -128,8 +138,117 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .reset_contador_asteroides(wire_reset_contador_asteroides_uc_coordena_asteroides_tiros),
     .conta_contador_asteroides(wire_conta_contador_asteroides_uc_coordena_asteroides_tiros),
     .fim_move_tiro_e_asteroides(wire_fim_movimentacao_asteroides_e_tiros),
-    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros)
+    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
+
+    .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
+    .pausar_renderizacao(wire_pausar_renderizacao)
 );
+
+
+wire wire_conta_contador_asteroides_uc_gera_frame;
+wire wire_conta_contador_tiro_uc_gera_frame;
+wire wire_reset_contador_tiro_uc_gera_frame;
+wire wire_reset_contador_asteroide_uc_gera_frame;
+wire wire_clear_mem_frame;
+wire wire_enable_mem_frame;
+wire [1:0] wire_select_mux_gera_frame;
+
+uc_gera_frame uc_gera_frame (
+        // entradas
+        .clock(clock),
+        .reset(reset_maquinas),
+        .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
+        .rco_contador_asteroides(wire_rco_contador_asteroides),
+        .rco_contador_tiro(wire_rco_contador_tiro),
+        .loaded_tiro(wire_tiro_renderizado),
+        .loaded_asteroide(wire_aste_renderizado),
+
+        //saidas
+        .conta_contador_asteroide(wire_conta_contador_asteroides_uc_gera_frame),
+        .conta_contador_tiro(wire_conta_contador_tiro_uc_gera_frame),
+        .reset_contador_tiro(wire_reset_contador_tiro_uc_gera_frame),
+        .reset_contador_asteroide(wire_reset_contador_asteroide_uc_gera_frame),
+        .clear_mem_frame(wire_clear_mem_frame),
+        .enable_mem_frame(wire_enable_mem_frame),
+        .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
+        .select_mux_gera_frame(wire_select_mux_gera_frame),
+        .db_estado_uc_gera_frame(db_estado_uc_gera_frame)
+);
+
+
+wire [3:0] wire_entrada_x_memoria_frame;
+wire [3:0] wire_entrada_y_memoria_frame;
+
+assign wire_entrada_x_memoria_frame = (wire_select_mux_gera_frame == 2'b00) ? wire_aste_coor_x : 
+                                      (wire_select_mux_gera_frame == 2'b01) ? wire_tiro_coor_x : 
+                                      (wire_select_mux_gera_frame == 2'b10) ? 4'b0111          : wire_saida_contador_frame ;
+ 
+assign wire_entrada_y_memoria_frame = (wire_select_mux_gera_frame == 2'b00) ? wire_aste_coor_y : 
+                                      (wire_select_mux_gera_frame == 2'b01) ? wire_tiro_coor_y :
+                                      (wire_select_mux_gera_frame == 2'b10) ? 4'b0111          : wire_saida_contador_frame;
+
+// assign wire_entrada_x_memoria_frame = wire_tiro_coor_x;
+ 
+// assign wire_entrada_y_memoria_frame = wire_tiro_coor_y;
+
+memoria_frame memoria_frame(
+            // input
+            .coor_x(wire_entrada_y_memoria_frame),
+            .coor_y(wire_entrada_x_memoria_frame),
+            .clk   (clock),
+            .clear(wire_clear_mem_frame),
+            .we   (wire_enable_mem_frame),
+            // output
+            .saida_x(matriz_x),
+            .saida_y(matriz_y)
+            );
+
+wire wire_rco_contador_frame;
+wire wire_conta_contador_frame;
+wire wire_reset_contador_frame;
+
+uc_renderiza uc_renderiza (
+        .clock(clock)                    ,
+        .reset(wire_reset_maquinas)                    ,
+        .pausar_renderizacao(wire_pausar_renderizacao)      ,
+        .rco_contador_frame(wire_rco_contador_frame)    ,
+
+        .reset_contador_frame(wire_reset_contador_frame) ,    
+        .conta_contador_frame(wire_conta_contador_frame) ,    
+        .db_estado_uc_renderiza(db_estado_uc_renderiza)
+);
+
+
+
+
+
+ contador_m #(15, 4) contador_renderiza(
+   .clock(clock),
+   .zera_as(wire_reset_contador_frame),
+   .zera_s(1'b0),
+   .conta(wire_conta_contador_frame),
+   .Q(wire_saida_contador_frame),
+   .fim(wire_rco_contador_frame),
+   .meio()
+  );
+wire [3:0] wire_saida_contador_frame; 
+
+wire [3:0] entrada_y_mem_frame;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -331,11 +450,13 @@ asteroide asteroide(
     .clock(clock),
     .conta_contador_aste(wire_conta_contador_asteroides_uc_compara_tiros_e_asteroides|
                          wire_conta_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
-                         wire_conta_contador_aste_uc_move_asteroides),
+                         wire_conta_contador_aste_uc_move_asteroides | 
+                         wire_conta_contador_asteroides_uc_gera_frame ),
     .reset_contador_aste(wire_reset_contador_asteroides_uc_principal | 
                          wire_reset_contador_asteroides_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
-                         wire_reset_contador_aste_uc_move_asteroides),
+                         wire_reset_contador_aste_uc_move_asteroides |
+                         wire_reset_contador_asteroide_uc_gera_frame),
     .select_mux_pos_aste(wire_select_mux_pos_aste_uc_move_asteroides),
     .select_mux_coor_aste(wire_select_mux_coor_aste_uc_move_asteroides),
     .select_soma_sub_aste(wire_select_soma_sub_uc_move_asteroides),
@@ -370,11 +491,13 @@ tiro tiro (
     .clock(clock),
     .conta_contador_tiro(wire_conta_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_conta_contador_tiro_uc_move_tiros |
-                         wire_conta_contador_tiro_uc_registra_tiro),
+                         wire_conta_contador_tiro_uc_registra_tiro |
+                         wire_conta_contador_tiro_uc_gera_frame),
     .reset_contador_tiro(wire_reset_contador_tiro_uc_principal |
                          wire_reset_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_tiro_uc_move_tiros |
-                         wire_reset_contador_tiro_uc_registra_tiro),
+                         wire_reset_contador_tiro_uc_registra_tiro |
+                         wire_reset_contador_tiro_uc_gera_frame),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros |
                          wire_select_mux_pos_tiro_uc_registra_tiro),
                          
@@ -1051,21 +1174,38 @@ module memoria_aster(
     // a partir da leitura de arquivo usando $readmemb
     initial begin
         ram[4'b0]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd1]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd2]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd3]  =  10'b0000_0111_00; // (0,7)
-        ram[4'd4]  =  10'b0111_0000_00; // (7,0)
-        ram[4'd5]  =  10'b1110_0111_01; // (14,7)
-        ram[4'd6]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd7]  =  10'b1110_0111_01; // (14,7)
-        ram[4'd8]  =  10'b0111_1110_11; // (7,14)
-        ram[4'd9]  =  10'b0111_0111_00; // (7,7)
-        ram[4'd10] =  10'b0111_0000_10; // (7,0)
-        ram[4'd11] =  10'b0111_0000_10; // (7,0)
-        ram[4'd12] =  10'b0000_0111_00; // (0,7)
-        ram[4'd13] =  10'b0000_0111_00; // (0,7)
-        ram[4'd14] =  10'b0111_1110_11; // (7,14)
-        ram[4'd15] =  10'b0111_1110_11; // (7,14)
+        ram[4'd1]  =  10'b0000_0000_00; // (7,14)
+        ram[4'd2]  =  10'b0000_0000_00; // (7,14)
+        ram[4'd3]  =  10'b0000_0000_00; // (0,7)
+        ram[4'd4]  =  10'b0000_0000_00; // (7,0)
+        ram[4'd5]  =  10'b0000_0000_00; // (14,7)
+        ram[4'd6]  =  10'b0000_0000_00; // (7,14)
+        ram[4'd7]  =  10'b0000_0000_00; // (14,7)
+        ram[4'd8]  =  10'b0000_0000_00; // (7,14)
+        ram[4'd9]  =  10'b0000_0000_00; // (7,7)
+        ram[4'd10] =  10'b0000_0000_00; // (7,0)
+        ram[4'd11] =  10'b0000_0000_00; // (7,0)
+        ram[4'd12] =  10'b0000_0000_00; // (0,7)
+        ram[4'd13] =  10'b0000_0000_00; // (0,7)
+        ram[4'd14] =  10'b0000_0000_00; // (7,14)
+        ram[4'd15] =  10'b0000_0000_00; // (7,14)
+
+        // ram[4'b0]  =  10'b0111_1110_11; // (7,14)
+        // ram[4'd1]  =  10'b0111_0000_10; // (7,14)
+        // ram[4'd2]  =  10'b0111_1110_11; // (7,14)
+        // ram[4'd3]  =  10'b0000_0111_00; // (0,7)
+        // ram[4'd4]  =  10'b0111_0000_00; // (7,0)
+        // ram[4'd5]  =  10'b1110_0111_01; // (14,7)
+        // ram[4'd6]  =  10'b0111_1110_11; // (7,14)
+        // ram[4'd7]  =  10'b1110_0111_01; // (14,7)
+        // ram[4'd8]  =  10'b0111_1110_11; // (7,14)
+        // ram[4'd9]  =  10'b0111_0111_00; // (7,7)
+        // ram[4'd10] =  10'b0111_0000_10; // (7,0)
+        // ram[4'd11] =  10'b0111_0000_10; // (7,0)
+        // ram[4'd12] =  10'b0000_0111_00; // (0,7)
+        // ram[4'd13] =  10'b0000_0111_00; // (0,7)
+        // ram[4'd14] =  10'b0111_1110_11; // (7,14)
+        // ram[4'd15] =  10'b0111_1110_11; // (7,14)
     end 
 
     always @ (posedge clk)
@@ -1239,27 +1379,27 @@ module memoria_frame (
 
     wire coor_x;
     wire coor_y;
-
-    
-    reg [14:0] mem [3:0];
-
+    // reg [numero de bits em cada linha] mem [numero de linhas] 
+    reg [14:0] mem [15:0];
+    reg [14:0] addreg;
     integer i = 0;
 
     initial begin
         for (i = 0; i < 15; i = i + 1) begin
-            mem[i] = 14'b00000000000000;
+            mem[i] = 15'd0;
         end
 
 
     end
 
-
     always @(posedge clk) begin
         if(we && ~clear) begin
-            mem[coor_y][coor_x] <= 1'b1;
+            mem[coor_y][4'd15 - coor_x] <= 1'b1;
         end
         if(clear) begin
-            mem[coor_y] <= 14'b00000000000000;
+            for (i = 0; i < 15; i = i + 1) begin
+                mem[i] <= 15'd0;
+            end 
         end
     end
 
@@ -1608,6 +1748,8 @@ module uc_coordena_asteroides_tiros (
         input fim_move_asteroides      , // entrada que indica o fim da movimentação dos asteroides
         input fim_comparacao_asteroides_com_a_nave_e_tiros, // entrada que indica o fim da comparação dos tiros tiros, nave e asteroide
         input fim_comparacao_tiros_e_asteroides           , // entrada que indica o fim da comparação dos tiros tiros e asteroides
+
+        input fim_gera_frame, // para a matriz de led 
         // saidas para outras máquinas de estados de hierarquia menor 
         output reg movimenta_tiro                       , // saída que inicia a movimentação dos tiros
         output reg sinal_movimenta_asteroides                 , // saída que inicia a movimentação dos asteroides
@@ -1620,7 +1762,12 @@ module uc_coordena_asteroides_tiros (
         output reg reset_contador_asteroides            , // reset do contador de quantas vezes o asteroide vai ser incrementado
         // saida para a máquina de estados principal
         output reg fim_move_tiro_e_asteroides,             // sinal que indica o fim da incrementação dos tiros e asteroides
-        output reg [4:0] db_estado_coordena_asteroides_tiros
+        output reg [4:0] db_estado_coordena_asteroides_tiros,
+
+        output reg gera_frame, // para a matriz de led
+        output reg pausar_renderizacao // sinal para a unidade de controle para ela pausar
+
+
 );
 
     parameter inicio                                      = 5'b00000; // 0
@@ -1637,7 +1784,9 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5'b01011; // 11
     parameter incrementa_contador_asteroides              = 5'b01100; // 12
     parameter fim_movimentacao                            = 5'b01101; // 13
-    parameter erro                                        = 5'b00000; // F
+    parameter inicia_gera_frame                           = 5'b01110; // 14
+    parameter espera_gera_frame                           = 5'b01111; // 15
+    parameter erro                                        = 5'b00000; // 0
 
 
     // Variáveis de estado
@@ -1663,7 +1812,12 @@ module uc_coordena_asteroides_tiros (
                                                                           (fim_comparacao_tiros_e_asteroides && ~rco_contador_tiro) ? move_tiros : espera_compara_tiros_e_asteroides;
             move_tiros:                                  proximo_estado = espera_move_tiros;
             espera_move_tiros:                           proximo_estado = fim_move_tiros ? incrementa_contador_tiros : espera_move_tiros;
-            incrementa_contador_tiros:                   proximo_estado = compara_tiros_e_asteroides;
+            
+            incrementa_contador_tiros:                   proximo_estado = inicia_gera_frame; //
+            inicia_gera_frame:                           proximo_estado = espera_gera_frame; //
+                
+            espera_gera_frame:                           proximo_estado = fim_gera_frame? compara_tiros_e_asteroides : espera_gera_frame; //
+
             compara_asteroides_com_a_nave_e_tiro:        proximo_estado = espera_compara_asteroides_com_a_nave_e_tiro;
             espera_compara_asteroides_com_a_nave_e_tiro: proximo_estado = (fim_comparacao_asteroides_com_a_nave_e_tiros && rco_contador_asteroides) ? fim_movimentacao :
                                                                           (fim_comparacao_asteroides_com_a_nave_e_tiros && ~rco_contador_asteroides) ? move_asteroides :
@@ -1672,6 +1826,7 @@ module uc_coordena_asteroides_tiros (
             espera_move_asteroides:                      proximo_estado = fim_move_asteroides ? incrementa_contador_asteroides : espera_move_asteroides;
             incrementa_contador_asteroides:              proximo_estado = compara_asteroides_com_a_nave_e_tiro;
             fim_movimentacao:                            proximo_estado = espera;
+
             default:                                     proximo_estado = inicio;
         endcase
     end
@@ -1686,7 +1841,9 @@ module uc_coordena_asteroides_tiros (
         sinal_movimenta_asteroides      =   (estado_atual == move_asteroides)                ? 1'b1 : 1'b0;
         conta_contador_asteroides       =   (estado_atual == incrementa_contador_asteroides) ? 1'b1 : 1'b0;
         fim_move_tiro_e_asteroides      =   (estado_atual == fim_movimentacao)               ? 1'b1 : 1'b0;
+        gera_frame                      =   (estado_atual == inicia_gera_frame)              ? 1'b1 : 1'b0;
         sinal_compara_asteroides_com_a_nave_e_tiro = (estado_atual == compara_asteroides_com_a_nave_e_tiro) ? 1'b1 : 1'b0;
+        pausar_renderizacao             =   (estado_atual == inicia_gera_frame || estado_atual == espera_gera_frame) ? 1'b1 : 1'b0;
 
 
         // Saída de depuração (estado)
@@ -1705,6 +1862,8 @@ module uc_coordena_asteroides_tiros (
             espera_move_asteroides:                      db_estado_coordena_asteroides_tiros = 5'b01011; // 11
             incrementa_contador_asteroides:              db_estado_coordena_asteroides_tiros = 5'b01100; // 12
             fim_movimentacao:                            db_estado_coordena_asteroides_tiros = 5'b01101; // 13
+            inicia_gera_frame:                           db_estado_coordena_asteroides_tiros = 5'b01110; // 14
+            espera_gera_frame:                           db_estado_coordena_asteroides_tiros = 5'b01111; // 15
             erro:                                        db_estado_coordena_asteroides_tiros = 5'b01111; // F  
             default:                                     db_estado_coordena_asteroides_tiros = 5'b00000; 
         endcase
@@ -1715,6 +1874,137 @@ endmodule
 
 
 
+
+
+module uc_gera_frame (
+        input clock,
+        input reset,
+        input gera_frame,
+        input rco_contador_asteroides,
+        input rco_contador_tiro,
+        input loaded_tiro,
+        input loaded_asteroide,
+
+        output reg conta_contador_asteroide,
+        output reg conta_contador_tiro,
+        output reg reset_contador_tiro,
+        output reg reset_contador_asteroide,
+        output reg clear_mem_frame,
+        output reg enable_mem_frame,
+        output reg fim_gera_frame,
+        output reg [1:0] select_mux_gera_frame,
+
+        output reg [3:0] db_estado_uc_gera_frame
+);
+
+        /* declaração dos estados dessa UC */
+        parameter inicial                    = 4'b0000; // 0
+        parameter espera                     = 4'b0001; // 1
+        parameter reseta_contadores          = 4'b0010; // 2
+        parameter verifica_loaded_asteroide  = 4'b0011; // 3
+        parameter salva_aste                 = 4'b0100; // 4
+        parameter verifica_rco_asteroide     = 4'b0101; // 5
+        parameter incrementa_asteroides      = 4'b0110; // 6
+        parameter verifica_loaded_tiro       = 4'b0111; // 7
+        parameter salva_tiro                 = 4'b1000; // 8
+        parameter verifica_rco_tiro          = 4'b1001; // 9
+        parameter incrementa_tiro            = 4'b1010; // A
+        parameter sinaliza                   = 4'b1011; // B
+        parameter espera_mem_aste            = 4'b1100; // C
+        parameter espera_mem_tiro            = 4'b1101; // D
+        parameter salva_nave                 = 4'b1110; // E
+
+
+
+        // Variáveis de estado
+        reg [3:0] estado_atual, proximo_estado;
+
+
+        // Memória de estado
+        always @(posedge clock or posedge reset) begin
+                if (reset)
+                        estado_atual <= inicial;
+                else
+                        estado_atual <= proximo_estado;
+        end
+
+        // mudança de estados
+        always @* begin
+        case (estado_atual)
+                inicial:                  proximo_estado = espera;
+                espera:                   proximo_estado = gera_frame ? reseta_contadores : espera;
+                reseta_contadores:        proximo_estado = verifica_loaded_asteroide;
+                verifica_loaded_asteroide: proximo_estado = loaded_asteroide ? salva_aste : verifica_rco_asteroide;
+                // verifica_rco_asteroide:   proximo_estado = rco_contador_asteroides ? salva_nave : incrementa_asteroides;
+                
+                verifica_rco_asteroide:   proximo_estado = rco_contador_asteroides ? verifica_loaded_tiro : incrementa_asteroides;
+
+                
+                salva_nave:               proximo_estado = sinaliza;
+
+                incrementa_asteroides:    proximo_estado = espera_mem_aste;
+                
+                espera_mem_aste:          proximo_estado = verifica_loaded_asteroide;
+
+
+                salva_aste:               proximo_estado = verifica_rco_asteroide;
+                incrementa_tiro:          proximo_estado = espera_mem_tiro;
+
+                espera_mem_tiro:          proximo_estado = verifica_loaded_tiro;
+                verifica_loaded_tiro:     proximo_estado = loaded_tiro ? salva_tiro : verifica_rco_tiro;
+                verifica_rco_tiro:        proximo_estado = rco_contador_tiro ? salva_nave : incrementa_tiro;
+
+                salva_tiro:               proximo_estado = verifica_rco_tiro;
+                sinaliza:                 proximo_estado = espera;
+                default:                  proximo_estado = inicial;
+        endcase 
+    end
+
+    // Lógica de saída (maquina Moore)
+    always @* begin
+        reset_contador_tiro       = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
+        reset_contador_asteroide  = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
+        // clear_mem_frame           = (estado_atual == verifica_loaded_asteroide)   ? 1'b1 : 1'b0;
+        clear_mem_frame           = (estado_atual == reseta_contadores)           ? 1'b1 : 1'b0;
+        enable_mem_frame          = (estado_atual == salva_aste || 
+                                     estado_atual == salva_tiro || 
+                                     estado_atual == salva_nave )? 1'b1 : 1'b0;
+        conta_contador_tiro       = (estado_atual == incrementa_tiro)           ? 1'b1 : 1'b0;
+        conta_contador_asteroide  = (estado_atual == incrementa_asteroides)     ? 1'b1 : 1'b0;
+        fim_gera_frame            = (estado_atual == sinaliza)                  ? 1'b1 : 1'b0;
+        select_mux_gera_frame     = (estado_atual == salva_aste)? 2'b00 : //asteroide
+                                    (estado_atual == salva_tiro)? 2'b01 : //tiro
+                                     (estado_atual == salva_nave)? 2'b10 : 2'b11; //nave e monta frame respectivamente
+        // Saída de depuração (estado)
+        case (estado_atual)
+                inicial:                    db_estado_uc_gera_frame= 4'b0000; // 0
+                espera:                     db_estado_uc_gera_frame= 4'b0001; // 1
+                reseta_contadores:          db_estado_uc_gera_frame= 4'b0010; // 2
+                verifica_loaded_asteroide:  db_estado_uc_gera_frame= 4'b0011; // 3
+                salva_aste:                 db_estado_uc_gera_frame= 4'b0100; // 4
+                verifica_rco_asteroide:     db_estado_uc_gera_frame= 4'b0101; // 5
+                incrementa_asteroides:      db_estado_uc_gera_frame= 4'b0110; // 6
+                verifica_loaded_tiro:       db_estado_uc_gera_frame= 4'b0111; // 7
+                salva_tiro:                 db_estado_uc_gera_frame= 4'b1000; // 8
+                verifica_rco_tiro:          db_estado_uc_gera_frame= 4'b1001; // 9
+                incrementa_tiro:            db_estado_uc_gera_frame= 4'b1010; // 10
+                sinaliza:                   db_estado_uc_gera_frame= 4'b1011; // 11
+                espera_mem_aste:            db_estado_uc_gera_frame= 4'b1100; // 12
+                espera_mem_tiro:            db_estado_uc_gera_frame= 4'b1101; // 13
+                salva_nave:                 db_estado_uc_gera_frame= 4'b1110; // 14
+
+                default:                    db_estado_uc_gera_frame = 4'b1111;
+        endcase
+    end
+
+
+
+
+
+
+
+
+endmodule
 
 module uc_jogo_principal (
 
@@ -2163,6 +2453,80 @@ module uc_registra_tiro (
             aux:                      db_estado_registra_tiro = 4'b0111; // 7
             erro:                     db_estado_registra_tiro = 4'b1111; // F
             default:                  db_estado_registra_tiro = 4'b0000;
+        endcase
+    end
+
+
+
+
+
+
+
+
+endmodule
+
+
+module uc_renderiza (
+        input clock                    ,
+        input reset                    ,
+        input pausar_renderizacao      ,
+        input rco_contador_frame       ,
+        output reg reset_contador_frame,    
+        output reg conta_contador_frame,    
+        output reg [3:0] db_estado_uc_renderiza
+);
+
+        /* declaração dos estados dessa UC */
+        parameter inicial                 = 4'b0000; // 0
+        parameter zera_contador           = 4'b0001; // 1
+        parameter conta_contador          = 4'b0010; // 2
+        parameter pausado                 = 4'b0011; // 3
+        // parameter incrementa_contador_tiro = 4'b0100; // 4
+        // parameter salva_tiro               = 4'b0101; // 5
+        // parameter sinaliza                 = 4'b0110; // 6
+        // parameter aux                      = 4'b0111; // 7
+        parameter erro                     = 4'b1111; // F
+
+
+        // Variáveis de estado
+        reg [3:0] estado_atual, proximo_estado;
+
+
+        // Memória de estado
+        always @(posedge clock or posedge reset) begin
+                if (reset)
+                        estado_atual <= inicial;
+                else
+                        estado_atual <= proximo_estado;
+        end
+
+        // mudança de estados
+        always @* begin
+        case (estado_atual)
+                inicial:                  proximo_estado = zera_contador;
+                zera_contador:            proximo_estado = pausar_renderizacao ? pausado : conta_contador;
+                conta_contador:           proximo_estado = pausar_renderizacao ? pausado : 
+                                                           (rco_contador_frame && ~pausar_renderizacao)? zera_contador : conta_contador;
+                pausado:                  proximo_estado = pausar_renderizacao ? pausado : zera_contador;
+
+                default:                  proximo_estado = erro;
+        endcase
+    end
+
+    // Lógica de saída (maquina Moore)
+    always @* begin
+
+        reset_contador_frame   = (estado_atual == zera_contador || estado_atual == inicial) ? 1'b1 : 1'b0;
+        conta_contador_frame   = (estado_atual == conta_contador) ? 1'b1 : 1'b0;
+
+        // Saída de depuração (estado)
+        case (estado_atual)
+                inicial:                 db_estado_uc_renderiza = 4'b0000; // 0
+                zera_contador:           db_estado_uc_renderiza = 4'b0001; // 1
+                conta_contador:          db_estado_uc_renderiza = 4'b0010; // 2
+                pausado:                 db_estado_uc_renderiza = 4'b0011; // 3
+                erro:                    db_estado_uc_renderiza = 4'b1111; // F
+                default:                 db_estado_uc_renderiza = 4'b0000;
         endcase
     end
 

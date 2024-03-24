@@ -10,27 +10,27 @@ module memoria_frame (
 
     wire coor_x;
     wire coor_y;
-
-    
-    reg [14:0] mem [16:0];
-
+    // reg [numero de bits em cada linha] mem [numero de linhas] 
+    reg [14:0] mem [15:0];
+    reg [14:0] addreg;
     integer i = 0;
 
     initial begin
         for (i = 0; i < 15; i = i + 1) begin
-            mem[i] = 14'b00000000000000;
+            mem[i] = 15'd0;
         end
 
 
     end
 
-
     always @(posedge clk) begin
         if(we && ~clear) begin
-            mem[coor_y][coor_x] <= 1'b1;
+            mem[coor_y][4'd15 - coor_x] <= 1'b1;
         end
         if(clear) begin
-            mem[coor_y] <= 14'b00000000000000;
+            for (i = 0; i < 15; i = i + 1) begin
+                mem[i] <= 15'd0;
+            end 
         end
     end
 

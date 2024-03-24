@@ -8,6 +8,8 @@ module uc_coordena_asteroides_tiros (
         input fim_move_asteroides      , // entrada que indica o fim da movimentação dos asteroides
         input fim_comparacao_asteroides_com_a_nave_e_tiros, // entrada que indica o fim da comparação dos tiros tiros, nave e asteroide
         input fim_comparacao_tiros_e_asteroides           , // entrada que indica o fim da comparação dos tiros tiros e asteroides
+
+        input fim_gera_frame, // para a matriz de led 
         // saidas para outras máquinas de estados de hierarquia menor 
         output reg movimenta_tiro                       , // saída que inicia a movimentação dos tiros
         output reg sinal_movimenta_asteroides                 , // saída que inicia a movimentação dos asteroides
@@ -20,7 +22,12 @@ module uc_coordena_asteroides_tiros (
         output reg reset_contador_asteroides            , // reset do contador de quantas vezes o asteroide vai ser incrementado
         // saida para a máquina de estados principal
         output reg fim_move_tiro_e_asteroides,             // sinal que indica o fim da incrementação dos tiros e asteroides
-        output reg [4:0] db_estado_coordena_asteroides_tiros
+        output reg [4:0] db_estado_coordena_asteroides_tiros,
+
+        output reg gera_frame, // para a matriz de led
+        output reg pausar_renderizacao // sinal para a unidade de controle para ela pausar
+
+
 );
 
     parameter inicio                                      = 5'b00000; // 0
@@ -37,7 +44,9 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5'b01011; // 11
     parameter incrementa_contador_asteroides              = 5'b01100; // 12
     parameter fim_movimentacao                            = 5'b01101; // 13
-    parameter erro                                        = 5'b00000; // F
+    parameter inicia_gera_frame                           = 5'b01110; // 14
+    parameter espera_gera_frame                           = 5'b01111; // 15
+    parameter erro                                        = 5'b00000; // 0
 
 
     // Variáveis de estado
@@ -63,7 +72,12 @@ module uc_coordena_asteroides_tiros (
                                                                           (fim_comparacao_tiros_e_asteroides && ~rco_contador_tiro) ? move_tiros : espera_compara_tiros_e_asteroides;
             move_tiros:                                  proximo_estado = espera_move_tiros;
             espera_move_tiros:                           proximo_estado = fim_move_tiros ? incrementa_contador_tiros : espera_move_tiros;
-            incrementa_contador_tiros:                   proximo_estado = compara_tiros_e_asteroides;
+            
+            incrementa_contador_tiros:                   proximo_estado = inicia_gera_frame; //
+            inicia_gera_frame:                           proximo_estado = espera_gera_frame; //
+                
+            espera_gera_frame:                           proximo_estado = fim_gera_frame? compara_tiros_e_asteroides : espera_gera_frame; //
+
             compara_asteroides_com_a_nave_e_tiro:        proximo_estado = espera_compara_asteroides_com_a_nave_e_tiro;
             espera_compara_asteroides_com_a_nave_e_tiro: proximo_estado = (fim_comparacao_asteroides_com_a_nave_e_tiros && rco_contador_asteroides) ? fim_movimentacao :
                                                                           (fim_comparacao_asteroides_com_a_nave_e_tiros && ~rco_contador_asteroides) ? move_asteroides :
@@ -72,6 +86,7 @@ module uc_coordena_asteroides_tiros (
             espera_move_asteroides:                      proximo_estado = fim_move_asteroides ? incrementa_contador_asteroides : espera_move_asteroides;
             incrementa_contador_asteroides:              proximo_estado = compara_asteroides_com_a_nave_e_tiro;
             fim_movimentacao:                            proximo_estado = espera;
+
             default:                                     proximo_estado = inicio;
         endcase
     end
@@ -86,7 +101,9 @@ module uc_coordena_asteroides_tiros (
         sinal_movimenta_asteroides      =   (estado_atual == move_asteroides)                ? 1'b1 : 1'b0;
         conta_contador_asteroides       =   (estado_atual == incrementa_contador_asteroides) ? 1'b1 : 1'b0;
         fim_move_tiro_e_asteroides      =   (estado_atual == fim_movimentacao)               ? 1'b1 : 1'b0;
+        gera_frame                      =   (estado_atual == inicia_gera_frame)              ? 1'b1 : 1'b0;
         sinal_compara_asteroides_com_a_nave_e_tiro = (estado_atual == compara_asteroides_com_a_nave_e_tiro) ? 1'b1 : 1'b0;
+        pausar_renderizacao             =   (estado_atual == inicia_gera_frame || estado_atual == espera_gera_frame) ? 1'b1 : 1'b0;
 
 
         // Saída de depuração (estado)
@@ -105,6 +122,8 @@ module uc_coordena_asteroides_tiros (
             espera_move_asteroides:                      db_estado_coordena_asteroides_tiros = 5'b01011; // 11
             incrementa_contador_asteroides:              db_estado_coordena_asteroides_tiros = 5'b01100; // 12
             fim_movimentacao:                            db_estado_coordena_asteroides_tiros = 5'b01101; // 13
+            inicia_gera_frame:                           db_estado_coordena_asteroides_tiros = 5'b01110; // 14
+            espera_gera_frame:                           db_estado_coordena_asteroides_tiros = 5'b01111; // 15
             erro:                                        db_estado_coordena_asteroides_tiros = 5'b01111; // F  
             default:                                     db_estado_coordena_asteroides_tiros = 5'b00000; 
         endcase

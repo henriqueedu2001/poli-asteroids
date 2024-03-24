@@ -20,7 +20,11 @@ module astro_genius (
         output [3:0] db_tiro_x,
         output [3:0] db_tiro_y,
         output db_aste_renderizado,
-        output db_tiro_renderizado
+        output db_tiro_renderizado,
+        output [3:0] db_estado_uc_gera_frame,
+        output [14:0] matriz_x,
+        output [3:0] matriz_y,
+        output [3:0] db_estado_uc_renderiza
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -107,6 +111,10 @@ wire wire_conta_contador_asteroides_uc_coordena_asteroides_tiros;
 
 wire wire_sinal_compara_tiros_e_asteroide_uc_compara_asteroides_com_nave_e_tiros;
 
+wire wire_inicia_gera_frame_uc_coordena_asteroides_tiros;
+wire wire_fim_gera_frame_uc_gera_frame;
+wire wire_pausar_renderizacao;
+
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
     .clock(clock),
@@ -118,6 +126,8 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .fim_move_asteroides(wire_fim_move_asteroides),
     .fim_comparacao_asteroides_com_a_nave_e_tiros(wire_fim_comparacao_asteroides_com_a_nave_e_tiros),
     .fim_comparacao_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
+
+    .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
     /* outputs */
     .movimenta_tiro(wire_movimenta_tiro),
     .sinal_movimenta_asteroides(wire_sinal_movimenta_asteroides),
@@ -128,8 +138,117 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .reset_contador_asteroides(wire_reset_contador_asteroides_uc_coordena_asteroides_tiros),
     .conta_contador_asteroides(wire_conta_contador_asteroides_uc_coordena_asteroides_tiros),
     .fim_move_tiro_e_asteroides(wire_fim_movimentacao_asteroides_e_tiros),
-    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros)
+    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
+
+    .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
+    .pausar_renderizacao(wire_pausar_renderizacao)
 );
+
+
+wire wire_conta_contador_asteroides_uc_gera_frame;
+wire wire_conta_contador_tiro_uc_gera_frame;
+wire wire_reset_contador_tiro_uc_gera_frame;
+wire wire_reset_contador_asteroide_uc_gera_frame;
+wire wire_clear_mem_frame;
+wire wire_enable_mem_frame;
+wire [1:0] wire_select_mux_gera_frame;
+
+uc_gera_frame uc_gera_frame (
+        // entradas
+        .clock(clock),
+        .reset(reset_maquinas),
+        .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
+        .rco_contador_asteroides(wire_rco_contador_asteroides),
+        .rco_contador_tiro(wire_rco_contador_tiro),
+        .loaded_tiro(wire_tiro_renderizado),
+        .loaded_asteroide(wire_aste_renderizado),
+
+        //saidas
+        .conta_contador_asteroide(wire_conta_contador_asteroides_uc_gera_frame),
+        .conta_contador_tiro(wire_conta_contador_tiro_uc_gera_frame),
+        .reset_contador_tiro(wire_reset_contador_tiro_uc_gera_frame),
+        .reset_contador_asteroide(wire_reset_contador_asteroide_uc_gera_frame),
+        .clear_mem_frame(wire_clear_mem_frame),
+        .enable_mem_frame(wire_enable_mem_frame),
+        .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
+        .select_mux_gera_frame(wire_select_mux_gera_frame),
+        .db_estado_uc_gera_frame(db_estado_uc_gera_frame)
+);
+
+
+wire [3:0] wire_entrada_x_memoria_frame;
+wire [3:0] wire_entrada_y_memoria_frame;
+
+assign wire_entrada_x_memoria_frame = (wire_select_mux_gera_frame == 2'b00) ? wire_aste_coor_x : 
+                                      (wire_select_mux_gera_frame == 2'b01) ? wire_tiro_coor_x : 
+                                      (wire_select_mux_gera_frame == 2'b10) ? 4'b0111          : wire_saida_contador_frame ;
+ 
+assign wire_entrada_y_memoria_frame = (wire_select_mux_gera_frame == 2'b00) ? wire_aste_coor_y : 
+                                      (wire_select_mux_gera_frame == 2'b01) ? wire_tiro_coor_y :
+                                      (wire_select_mux_gera_frame == 2'b10) ? 4'b0111          : wire_saida_contador_frame;
+
+// assign wire_entrada_x_memoria_frame = wire_tiro_coor_x;
+ 
+// assign wire_entrada_y_memoria_frame = wire_tiro_coor_y;
+
+memoria_frame memoria_frame(
+            // input
+            .coor_x(wire_entrada_y_memoria_frame),
+            .coor_y(wire_entrada_x_memoria_frame),
+            .clk   (clock),
+            .clear(wire_clear_mem_frame),
+            .we   (wire_enable_mem_frame),
+            // output
+            .saida_x(matriz_x),
+            .saida_y(matriz_y)
+            );
+
+wire wire_rco_contador_frame;
+wire wire_conta_contador_frame;
+wire wire_reset_contador_frame;
+
+uc_renderiza uc_renderiza (
+        .clock(clock)                    ,
+        .reset(wire_reset_maquinas)                    ,
+        .pausar_renderizacao(wire_pausar_renderizacao)      ,
+        .rco_contador_frame(wire_rco_contador_frame)    ,
+
+        .reset_contador_frame(wire_reset_contador_frame) ,    
+        .conta_contador_frame(wire_conta_contador_frame) ,    
+        .db_estado_uc_renderiza(db_estado_uc_renderiza)
+);
+
+
+
+
+
+ contador_m #(15, 4) contador_renderiza(
+   .clock(clock),
+   .zera_as(wire_reset_contador_frame),
+   .zera_s(1'b0),
+   .conta(wire_conta_contador_frame),
+   .Q(wire_saida_contador_frame),
+   .fim(wire_rco_contador_frame),
+   .meio()
+  );
+wire [3:0] wire_saida_contador_frame; 
+
+wire [3:0] entrada_y_mem_frame;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -331,11 +450,13 @@ asteroide asteroide(
     .clock(clock),
     .conta_contador_aste(wire_conta_contador_asteroides_uc_compara_tiros_e_asteroides|
                          wire_conta_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
-                         wire_conta_contador_aste_uc_move_asteroides),
+                         wire_conta_contador_aste_uc_move_asteroides | 
+                         wire_conta_contador_asteroides_uc_gera_frame ),
     .reset_contador_aste(wire_reset_contador_asteroides_uc_principal | 
                          wire_reset_contador_asteroides_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
-                         wire_reset_contador_aste_uc_move_asteroides),
+                         wire_reset_contador_aste_uc_move_asteroides |
+                         wire_reset_contador_asteroide_uc_gera_frame),
     .select_mux_pos_aste(wire_select_mux_pos_aste_uc_move_asteroides),
     .select_mux_coor_aste(wire_select_mux_coor_aste_uc_move_asteroides),
     .select_soma_sub_aste(wire_select_soma_sub_uc_move_asteroides),
@@ -370,11 +491,13 @@ tiro tiro (
     .clock(clock),
     .conta_contador_tiro(wire_conta_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_conta_contador_tiro_uc_move_tiros |
-                         wire_conta_contador_tiro_uc_registra_tiro),
+                         wire_conta_contador_tiro_uc_registra_tiro |
+                         wire_conta_contador_tiro_uc_gera_frame),
     .reset_contador_tiro(wire_reset_contador_tiro_uc_principal |
                          wire_reset_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_tiro_uc_move_tiros |
-                         wire_reset_contador_tiro_uc_registra_tiro),
+                         wire_reset_contador_tiro_uc_registra_tiro |
+                         wire_reset_contador_tiro_uc_gera_frame),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros |
                          wire_select_mux_pos_tiro_uc_registra_tiro),
                          
