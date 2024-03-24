@@ -8,8 +8,8 @@ module memoria_frame (
             output [3:0] saida_y
             );
 
-    wire coor_x;
-    wire coor_y;
+    // wire coor_x;
+    // wire coor_y;
     // reg [numero de bits em cada linha] mem [numero de linhas] 
     reg [14:0] mem [15:0];
     reg [14:0] addreg;

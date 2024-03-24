@@ -654,6 +654,7 @@ edge_detector edge_detector_tiro(
 
 endmodule
 
+
 module asteroide(
     input clock,
     input conta_contador_aste,
@@ -809,6 +810,7 @@ memoria_load_aste memoria_load_aste (
 
 
 endmodule
+
 module tiro(
     input clock,
     input conta_contador_tiro,
@@ -1019,6 +1021,7 @@ memoria_load_tiro memoria_load_tiro (
 
 
 endmodule
+
 module comparador_85 #(parameter N = 4)(
                 input [N-1:0] A, 
                 input [N-1:0] B,
@@ -1039,6 +1042,7 @@ module comparador_85 #(parameter N = 4)(
     assign AEBo = ((A == B) && AEBi);
 
 endmodule 
+
 module contador_163 #(parameter N = 16, parameter tempo = 2000) ( 
                         input clock, 
                         input clr, 
@@ -1064,6 +1068,7 @@ module contador_163 #(parameter N = 16, parameter tempo = 2000) (
         if (ent && (Q == tempo))   rco = 1;
         else                       rco = 0;
 endmodule
+
 module contador_m #(parameter M=16, N=4)
   (
    input  wire          clock,
@@ -1102,6 +1107,7 @@ module contador_m #(parameter M=16, N=4)
 
 endmodule
 
+
 // modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
 
 module decrementador #(parameter N=4) ( 
@@ -1132,6 +1138,7 @@ module decrementador #(parameter N=4) (
 
 endmodule
 
+
  module edge_detector (
     input  clock,
     input  reset,
@@ -1155,6 +1162,7 @@ endmodule
     assign pulso = ~reg1 & reg0;
 
 endmodule
+
 
 module memoria_aster(
     input        clk,
@@ -1221,6 +1229,7 @@ module memoria_aster(
     assign q = ram[addr_reg];
 
 endmodule
+
 module memoria_load_aste(
     input        clk,
     input        we,
@@ -1270,6 +1279,7 @@ module memoria_load_aste(
     assign q = ram[addr_reg];
 
 endmodule
+
 module memoria_tiro(
     input        clk,
     input        we,
@@ -1318,6 +1328,7 @@ module memoria_tiro(
     assign q = ram[addr_reg];
 
 endmodule
+
 module memoria_load_tiro(
     input        clk,
     input        we,
@@ -1367,6 +1378,7 @@ module memoria_load_tiro(
     assign q = ram[addr_reg];
 
 endmodule
+
 module memoria_frame (
             input [3:0] coor_x,
             input [3:0] coor_y,
@@ -1377,8 +1389,8 @@ module memoria_frame (
             output [3:0] saida_y
             );
 
-    wire coor_x;
-    wire coor_y;
+    // wire coor_x;
+    // wire coor_y;
     // reg [numero de bits em cada linha] mem [numero de linhas] 
     reg [14:0] mem [15:0];
     reg [14:0] addreg;
@@ -1410,6 +1422,7 @@ module memoria_frame (
 endmodule
 
 
+
 module mux_coor #(parameter N = 4)(
         input select_mux_coor,
         input [N-1:0] mem_coor_x,
@@ -1421,6 +1434,7 @@ module mux_coor #(parameter N = 4)(
 
         assign saida_mux = select_mux_coor == select_mem_coor_x ? mem_coor_x : mem_coor_y;
 endmodule
+
 
 
 
@@ -1450,6 +1464,7 @@ module mux_pos #(parameter N = 4)(
                            select_mux_pos == resul_soma_coor_x ? {resul_soma, mem_coor_y, mem_opcode} :
                            select_mux_pos == resul_soma_coor_y ? {mem_coor_x, resul_soma, mem_opcode} : {mem_coor_x, mem_coor_y, mem_opcode};
 endmodule
+
 module mux_reg_jogada (
         input [3:0] select_mux_jogada,
         output [1:0] saida_mux
@@ -1460,6 +1475,7 @@ module mux_reg_jogada (
                            select_mux_jogada == 4'b0010 ? 2'b01 : 
                            select_mux_jogada == 4'b0100 ? 2'b11 : 2'b11 ;
 endmodule
+
 
 
 
@@ -1488,6 +1504,7 @@ module registrador_n #(parameter N = 4)(
     assign Q = IQ;
 
 endmodule
+
 // modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
 // caso seja 0 então ocorre a subtração
 
@@ -1511,6 +1528,7 @@ module somador_subtrator #(parameter N=4) (
   // assign resul = select ? a + b : a - b;
 
 endmodule
+
 module uc_compara_asteroides_com_nave_e_tiros (
         input clock,
         input reset,
@@ -1618,6 +1636,7 @@ module uc_compara_asteroides_com_nave_e_tiros (
         endcase
     end
 endmodule
+
 
 
 module uc_compara_tiros_e_asteroides (
@@ -1736,6 +1755,7 @@ module uc_compara_tiros_e_asteroides (
         endcase
     end
 endmodule
+
 
 
 module uc_coordena_asteroides_tiros (
@@ -1876,6 +1896,7 @@ endmodule
 
 
 
+
 module uc_gera_frame (
         input clock,
         input reset,
@@ -2006,6 +2027,7 @@ module uc_gera_frame (
 
 endmodule
 
+
 module uc_jogo_principal (
 
         input clock,
@@ -2123,6 +2145,7 @@ module uc_jogo_principal (
 
 endmodule
 
+
 module uc_move_asteroides (
         input clock,
         input movimenta_aste,
@@ -2232,6 +2255,7 @@ module uc_move_asteroides (
         endcase
     end
 endmodule
+
 
 
 
@@ -2371,6 +2395,7 @@ endmodule
 
 
 
+
 module uc_registra_tiro (
         input clock                    ,
         input registra_tiro            , // entrada que inicia a máquina de estados
@@ -2466,6 +2491,7 @@ module uc_registra_tiro (
 endmodule
 
 
+
 module uc_renderiza (
         input clock                    ,
         input reset                    ,
@@ -2538,4 +2564,5 @@ module uc_renderiza (
 
 
 endmodule
+
 
