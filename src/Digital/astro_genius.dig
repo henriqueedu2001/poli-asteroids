@@ -42,7 +42,11 @@
         output [3:0] db_tiro_x,
         output [3:0] db_tiro_y,
         output db_aste_renderizado,
-        output db_tiro_renderizado
+        output db_tiro_renderizado,
+        output [3:0] db_estado_uc_gera_frame,
+        output [14:0] matriz_x,
+        output [3:0] matriz_y,
+        output [3:0] db_estado_uc_renderiza
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -75,6 +79,7 @@ assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4&apos;b0000;
 
 assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4&apos;b0000;
 assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4&apos;b0000;
+
 
 uc_jogo_principal uc_jogo_principal(
     /* inputs */
@@ -128,6 +133,10 @@ wire wire_conta_contador_asteroides_uc_coordena_asteroides_tiros;
 
 wire wire_sinal_compara_tiros_e_asteroide_uc_compara_asteroides_com_nave_e_tiros;
 
+wire wire_inicia_gera_frame_uc_coordena_asteroides_tiros;
+wire wire_fim_gera_frame_uc_gera_frame;
+wire wire_pausar_renderizacao;
+
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
     .clock(clock),
@@ -139,6 +148,8 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .fim_move_asteroides(wire_fim_move_asteroides),
     .fim_comparacao_asteroides_com_a_nave_e_tiros(wire_fim_comparacao_asteroides_com_a_nave_e_tiros),
     .fim_comparacao_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
+
+    .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
     /* outputs */
     .movimenta_tiro(wire_movimenta_tiro),
     .sinal_movimenta_asteroides(wire_sinal_movimenta_asteroides),
@@ -149,8 +160,117 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .reset_contador_asteroides(wire_reset_contador_asteroides_uc_coordena_asteroides_tiros),
     .conta_contador_asteroides(wire_conta_contador_asteroides_uc_coordena_asteroides_tiros),
     .fim_move_tiro_e_asteroides(wire_fim_movimentacao_asteroides_e_tiros),
-    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros)
+    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
+
+    .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
+    .pausar_renderizacao(wire_pausar_renderizacao)
 );
+
+
+wire wire_conta_contador_asteroides_uc_gera_frame;
+wire wire_conta_contador_tiro_uc_gera_frame;
+wire wire_reset_contador_tiro_uc_gera_frame;
+wire wire_reset_contador_asteroide_uc_gera_frame;
+wire wire_clear_mem_frame;
+wire wire_enable_mem_frame;
+wire [1:0] wire_select_mux_gera_frame;
+
+uc_gera_frame uc_gera_frame (
+        // entradas
+        .clock(clock),
+        .reset(reset_maquinas),
+        .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
+        .rco_contador_asteroides(wire_rco_contador_asteroides),
+        .rco_contador_tiro(wire_rco_contador_tiro),
+        .loaded_tiro(wire_tiro_renderizado),
+        .loaded_asteroide(wire_aste_renderizado),
+
+        //saidas
+        .conta_contador_asteroide(wire_conta_contador_asteroides_uc_gera_frame),
+        .conta_contador_tiro(wire_conta_contador_tiro_uc_gera_frame),
+        .reset_contador_tiro(wire_reset_contador_tiro_uc_gera_frame),
+        .reset_contador_asteroide(wire_reset_contador_asteroide_uc_gera_frame),
+        .clear_mem_frame(wire_clear_mem_frame),
+        .enable_mem_frame(wire_enable_mem_frame),
+        .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
+        .select_mux_gera_frame(wire_select_mux_gera_frame),
+        .db_estado_uc_gera_frame(db_estado_uc_gera_frame)
+);
+
+
+wire [3:0] wire_entrada_x_memoria_frame;
+wire [3:0] wire_entrada_y_memoria_frame;
+
+assign wire_entrada_x_memoria_frame = (wire_select_mux_gera_frame == 2&apos;b00) ? wire_aste_coor_x : 
+                                      (wire_select_mux_gera_frame == 2&apos;b01) ? wire_tiro_coor_x : 
+                                      (wire_select_mux_gera_frame == 2&apos;b10) ? 4&apos;b0111          : wire_saida_contador_frame ;
+ 
+assign wire_entrada_y_memoria_frame = (wire_select_mux_gera_frame == 2&apos;b00) ? wire_aste_coor_y : 
+                                      (wire_select_mux_gera_frame == 2&apos;b01) ? wire_tiro_coor_y :
+                                      (wire_select_mux_gera_frame == 2&apos;b10) ? 4&apos;b0111          : wire_saida_contador_frame;
+
+// assign wire_entrada_x_memoria_frame = wire_tiro_coor_x;
+ 
+// assign wire_entrada_y_memoria_frame = wire_tiro_coor_y;
+
+memoria_frame memoria_frame(
+            // input
+            .coor_x(wire_entrada_y_memoria_frame),
+            .coor_y(wire_entrada_x_memoria_frame),
+            .clk   (clock),
+            .clear(wire_clear_mem_frame),
+            .we   (wire_enable_mem_frame),
+            // output
+            .saida_x(matriz_x),
+            .saida_y(matriz_y)
+            );
+
+wire wire_rco_contador_frame;
+wire wire_conta_contador_frame;
+wire wire_reset_contador_frame;
+
+uc_renderiza uc_renderiza (
+        .clock(clock)                    ,
+        .reset(wire_reset_maquinas)                    ,
+        .pausar_renderizacao(wire_pausar_renderizacao)      ,
+        .rco_contador_frame(wire_rco_contador_frame)    ,
+
+        .reset_contador_frame(wire_reset_contador_frame) ,    
+        .conta_contador_frame(wire_conta_contador_frame) ,    
+        .db_estado_uc_renderiza(db_estado_uc_renderiza)
+);
+
+
+
+
+
+ contador_m #(15, 4) contador_renderiza(
+   .clock(clock),
+   .zera_as(wire_reset_contador_frame),
+   .zera_s(1&apos;b0),
+   .conta(wire_conta_contador_frame),
+   .Q(wire_saida_contador_frame),
+   .fim(wire_rco_contador_frame),
+   .meio()
+  );
+wire [3:0] wire_saida_contador_frame; 
+
+wire [3:0] entrada_y_mem_frame;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -352,11 +472,13 @@ asteroide asteroide(
     .clock(clock),
     .conta_contador_aste(wire_conta_contador_asteroides_uc_compara_tiros_e_asteroides|
                          wire_conta_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
-                         wire_conta_contador_aste_uc_move_asteroides),
+                         wire_conta_contador_aste_uc_move_asteroides | 
+                         wire_conta_contador_asteroides_uc_gera_frame ),
     .reset_contador_aste(wire_reset_contador_asteroides_uc_principal | 
                          wire_reset_contador_asteroides_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
-                         wire_reset_contador_aste_uc_move_asteroides),
+                         wire_reset_contador_aste_uc_move_asteroides |
+                         wire_reset_contador_asteroide_uc_gera_frame),
     .select_mux_pos_aste(wire_select_mux_pos_aste_uc_move_asteroides),
     .select_mux_coor_aste(wire_select_mux_coor_aste_uc_move_asteroides),
     .select_soma_sub_aste(wire_select_soma_sub_uc_move_asteroides),
@@ -391,11 +513,13 @@ tiro tiro (
     .clock(clock),
     .conta_contador_tiro(wire_conta_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_conta_contador_tiro_uc_move_tiros |
-                         wire_conta_contador_tiro_uc_registra_tiro),
+                         wire_conta_contador_tiro_uc_registra_tiro |
+                         wire_conta_contador_tiro_uc_gera_frame),
     .reset_contador_tiro(wire_reset_contador_tiro_uc_principal |
                          wire_reset_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_tiro_uc_move_tiros |
-                         wire_reset_contador_tiro_uc_registra_tiro),
+                         wire_reset_contador_tiro_uc_registra_tiro |
+                         wire_reset_contador_tiro_uc_gera_frame),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros |
                          wire_select_mux_pos_tiro_uc_registra_tiro),
                          
@@ -917,6 +1041,498 @@ memoria_load_tiro memoria_load_tiro (
 
 
 endmodule
+module comparador_85 #(parameter N = 4)(
+                input [N-1:0] A, 
+                input [N-1:0] B,
+                input       ALBi, 
+                input       AGBi, 
+                input       AEBi,  
+                output      ALBo, 
+                output      AGBo, 
+                output      AEBo
+                );
+
+    wire[N:0]  CSL, CSG;
+
+    assign CSL  = ~A + B + ALBi;
+    assign ALBo = ~CSL[N];
+    assign CSG  = A + ~B + AGBi;
+    assign AGBo = ~CSG[N];
+    assign AEBo = ((A == B) &amp;&amp; AEBi);
+
+endmodule 
+module contador_163 #(parameter N = 16, parameter tempo = 2000) ( 
+                        input clock, 
+                        input clr, 
+                        input ld, 
+                        input ent, 
+                        input enp, 
+                        input [N-1:0] D, 
+                        output reg [N-1:0] Q, 
+                        output reg rco
+                    );
+
+    initial begin
+        Q = 0;
+    end
+        
+    always @ (posedge clock)
+        if (clr)               Q &lt;= 0;
+        else if (ld)           Q &lt;= D;
+        else if (ent &amp;&amp; enp)   Q &lt;= Q + 1;
+        else                   Q &lt;= Q;
+
+    always @ (Q or ent)
+        if (ent &amp;&amp; (Q == tempo))   rco = 1;
+        else                       rco = 0;
+endmodule
+module contador_m #(parameter M=16, N=4)
+  (
+   input  wire          clock,
+   input  wire          zera_as,
+   input  wire          zera_s,
+   input  wire          conta,
+   output reg  [N-1:0]  Q,
+   output reg           fim,
+   output reg           meio
+  );
+
+  always @(posedge clock or posedge zera_as) begin
+    if (zera_as) begin
+      Q &lt;= 0;
+    end else if (clock) begin
+      if (zera_s) begin
+        Q &lt;= 0;
+      end else if (conta) begin
+        if (Q == M-1) begin
+          Q &lt;= 0;
+        end else begin
+          Q &lt;= Q + 1;
+        end
+      end
+    end
+  end
+
+  // Saidas
+  always @ (Q)
+      if (Q == M-1)   fim = 1;
+      else            fim = 0;
+
+  always @ (Q)
+      if (Q == M/2-1) meio = 1;
+      else            meio = 0;
+
+endmodule
+
+// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
+
+module decrementador #(parameter N=4) ( 
+                      input clock       , 
+                      input clr         , 
+                      input ld          , 
+                      input ent         , 
+                      input enp         , 
+                      input [N-1:0] D     , 
+                      output reg [N-1:0] Q , 
+                      output reg rco
+                    );
+
+	 initial begin
+		Q = 3;
+    end
+    
+
+    always @ (posedge clock)
+        if (clr)                           Q &lt;= 3;
+        else if (ld)                       Q &lt;= D;
+        else if (ent &amp;&amp; enp &amp;&amp;  Q != 0)    Q &lt;= Q - 1;
+        else                               Q &lt;= Q;
+ 
+    always @ (Q or ent)
+        if (ent &amp;&amp; (Q == 0))       rco = 1;
+        else                       rco = 0;
+
+endmodule
+
+ module edge_detector (
+    input  clock,
+    input  reset,
+    input  sinal,
+    output pulso
+);
+
+    reg reg0;
+    reg reg1;
+
+    always @(posedge clock or posedge reset) begin
+        if (reset) begin
+            reg0 &lt;= 1&apos;b0;
+            reg1 &lt;= 1&apos;b0;
+        end else if (clock) begin
+            reg0 &lt;= sinal;
+            reg1 &lt;= reg0;
+        end
+    end
+
+    assign pulso = ~reg1 &amp; reg0;
+
+endmodule
+
+module memoria_aster(
+    input        clk,
+    input        we,
+    input  [9:0] data,
+    input  [3:0] addr,
+    output [9:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [9:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial begin
+        ram[4&apos;b0]  =  10&apos;b0111_1110_11; // (7,14)
+        ram[4&apos;d1]  =  10&apos;b0000_0000_00; // (7,14)
+        ram[4&apos;d2]  =  10&apos;b0000_0000_00; // (7,14)
+        ram[4&apos;d3]  =  10&apos;b0000_0000_00; // (0,7)
+        ram[4&apos;d4]  =  10&apos;b0000_0000_00; // (7,0)
+        ram[4&apos;d5]  =  10&apos;b0000_0000_00; // (14,7)
+        ram[4&apos;d6]  =  10&apos;b0000_0000_00; // (7,14)
+        ram[4&apos;d7]  =  10&apos;b0000_0000_00; // (14,7)
+        ram[4&apos;d8]  =  10&apos;b0000_0000_00; // (7,14)
+        ram[4&apos;d9]  =  10&apos;b0000_0000_00; // (7,7)
+        ram[4&apos;d10] =  10&apos;b0000_0000_00; // (7,0)
+        ram[4&apos;d11] =  10&apos;b0000_0000_00; // (7,0)
+        ram[4&apos;d12] =  10&apos;b0000_0000_00; // (0,7)
+        ram[4&apos;d13] =  10&apos;b0000_0000_00; // (0,7)
+        ram[4&apos;d14] =  10&apos;b0000_0000_00; // (7,14)
+        ram[4&apos;d15] =  10&apos;b0000_0000_00; // (7,14)
+
+        // ram[4&apos;b0]  =  10&apos;b0111_1110_11; // (7,14)
+        // ram[4&apos;d1]  =  10&apos;b0111_0000_10; // (7,14)
+        // ram[4&apos;d2]  =  10&apos;b0111_1110_11; // (7,14)
+        // ram[4&apos;d3]  =  10&apos;b0000_0111_00; // (0,7)
+        // ram[4&apos;d4]  =  10&apos;b0111_0000_00; // (7,0)
+        // ram[4&apos;d5]  =  10&apos;b1110_0111_01; // (14,7)
+        // ram[4&apos;d6]  =  10&apos;b0111_1110_11; // (7,14)
+        // ram[4&apos;d7]  =  10&apos;b1110_0111_01; // (14,7)
+        // ram[4&apos;d8]  =  10&apos;b0111_1110_11; // (7,14)
+        // ram[4&apos;d9]  =  10&apos;b0111_0111_00; // (7,7)
+        // ram[4&apos;d10] =  10&apos;b0111_0000_10; // (7,0)
+        // ram[4&apos;d11] =  10&apos;b0111_0000_10; // (7,0)
+        // ram[4&apos;d12] =  10&apos;b0000_0111_00; // (0,7)
+        // ram[4&apos;d13] =  10&apos;b0000_0111_00; // (0,7)
+        // ram[4&apos;d14] =  10&apos;b0111_1110_11; // (7,14)
+        // ram[4&apos;d15] =  10&apos;b0111_1110_11; // (7,14)
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] &lt;= data;
+
+        addr_reg &lt;= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_load_aste(
+    input        clk,
+    input        we,
+    input  [1:0] data,
+    input  [3:0] addr,
+    output [1:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [1:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial 
+    begin : INICIA_RAM
+        ram[4&apos;b0] =  2&apos;b10;
+        ram[4&apos;d1] =  2&apos;b00;
+        ram[4&apos;d2] =  2&apos;b00;
+        ram[4&apos;d3] =  2&apos;b00;
+        ram[4&apos;d4] =  2&apos;b00; 
+        ram[4&apos;d5] =  2&apos;b00;
+        ram[4&apos;d6] =  2&apos;b00;
+        ram[4&apos;d7] =  2&apos;b00;
+        ram[4&apos;d8] =  2&apos;b00;
+        ram[4&apos;d9] =  2&apos;b00;
+        ram[4&apos;d10] = 2&apos;b00;
+        ram[4&apos;d11] = 2&apos;b00;
+        ram[4&apos;d12] = 2&apos;b00;
+        ram[4&apos;d13] = 2&apos;b00;
+        ram[4&apos;d14] = 2&apos;b00;
+        ram[4&apos;d15] = 2&apos;b00;
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] &lt;= data;
+
+        addr_reg &lt;= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_tiro(
+    input        clk,
+    input        we,
+    input  [9:0] data,
+    input  [3:0] addr,
+    output [9:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [9:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial begin
+        ram[4&apos;b0] =  10&apos;b0000_0000_00;
+        ram[4&apos;d1] =  10&apos;b0000_0000_00;
+        ram[4&apos;d2] =  10&apos;b0000_0000_00;
+        ram[4&apos;d3] =  10&apos;b0000_0000_00;
+        ram[4&apos;d4] =  10&apos;b0000_0000_00;
+        ram[4&apos;d5] =  10&apos;b0000_0000_00;
+        ram[4&apos;d6] =  10&apos;b0000_0000_00;
+        ram[4&apos;d7] =  10&apos;b0000_0000_00;
+        ram[4&apos;d8] =  10&apos;b0000_0000_00;
+        ram[4&apos;d9] =  10&apos;b0000_0000_00;
+        ram[4&apos;d10] = 10&apos;b0000_0000_00;
+        ram[4&apos;d11] = 10&apos;b0000_0000_00;
+        ram[4&apos;d12] = 10&apos;b0000_0000_00;
+        ram[4&apos;d13] = 10&apos;b0000_0000_00;
+        ram[4&apos;d14] = 10&apos;b0000_0000_00;
+        ram[4&apos;d15] = 10&apos;b0000_0000_00;
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] &lt;= data;
+
+        addr_reg &lt;= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_load_tiro(
+    input        clk,
+    input        we,
+    input  [1:0] data,
+    input  [3:0] addr,
+    output [1:0] q
+);
+
+    // Variavel RAM (armazena dados)
+    reg [1:0] ram[15:0];
+
+    // Registra endereco de acesso
+    reg [3:0] addr_reg;
+
+    // Especifica conteudo inicial da RAM
+    // a partir da leitura de arquivo usando $readmemb
+    initial 
+    begin : INICIA_RAM
+        ram[4&apos;b0] =  2&apos;b00;
+        ram[4&apos;d1] =  2&apos;b00;
+        ram[4&apos;d2] =  2&apos;b00;
+        ram[4&apos;d3] =  2&apos;b00;
+        ram[4&apos;d4] =  2&apos;b00; 
+        ram[4&apos;d5] =  2&apos;b00;
+        ram[4&apos;d6] =  2&apos;b00;
+        ram[4&apos;d7] =  2&apos;b00;
+        ram[4&apos;d8] =  2&apos;b00;
+        ram[4&apos;d9] =  2&apos;b00;
+        ram[4&apos;d10] = 2&apos;b00;
+        ram[4&apos;d11] = 2&apos;b00;
+        ram[4&apos;d12] = 2&apos;b00;
+        ram[4&apos;d13] = 2&apos;b00;
+        ram[4&apos;d14] = 2&apos;b00;
+        ram[4&apos;d15] = 2&apos;b00;
+    end 
+
+    always @ (posedge clk)
+    begin
+        // Escrita da memoria
+        if (we)
+            ram[addr] &lt;= data;
+
+        addr_reg &lt;= addr;
+    end
+
+    // Atribuicao continua retorna dado
+    assign q = ram[addr_reg];
+
+endmodule
+module memoria_frame (
+            input [3:0] coor_x,
+            input [3:0] coor_y,
+            input clk,
+            input clear,
+            input we,
+            output [14:0] saida_x,
+            output [3:0] saida_y
+            );
+
+    wire coor_x;
+    wire coor_y;
+    // reg [numero de bits em cada linha] mem [numero de linhas] 
+    reg [14:0] mem [15:0];
+    reg [14:0] addreg;
+    integer i = 0;
+
+    initial begin
+        for (i = 0; i &lt; 15; i = i + 1) begin
+            mem[i] = 15&apos;d0;
+        end
+
+
+    end
+
+    always @(posedge clk) begin
+        if(we &amp;&amp; ~clear) begin
+            mem[coor_y][4&apos;d15 - coor_x] &lt;= 1&apos;b1;
+        end
+        if(clear) begin
+            for (i = 0; i &lt; 15; i = i + 1) begin
+                mem[i] &lt;= 15&apos;d0;
+            end 
+        end
+    end
+
+    assign saida_x = mem[coor_y];
+    assign saida_y = coor_y;
+
+
+endmodule
+
+
+module mux_coor #(parameter N = 4)(
+        input select_mux_coor,
+        input [N-1:0] mem_coor_x,
+        input [N-1:0] mem_coor_y,
+        output [N-1:0] saida_mux
+        );
+
+        parameter select_mem_coor_x = 1&apos;b0;
+
+        assign saida_mux = select_mux_coor == select_mem_coor_x ? mem_coor_x : mem_coor_y;
+endmodule
+
+
+
+
+
+module mux_pos #(parameter N = 4)(
+        input [1:0] select_mux_pos,
+        input [N-1:0] resul_soma,
+        input [N-1:0] mem_coor_x,
+        input [N-1:0] mem_coor_y,
+        input [1:0]   mem_opcode,
+        input [N-1:0] random_x,
+        input [N-1:0] random_y,
+        input [1:0] random_opcode,
+        output [9:0] saida_mux
+        );
+
+        parameter posicao_op_random = 2&apos;b00;
+        parameter resul_soma_coor_x = 2&apos;b01;
+        parameter resul_soma_coor_y = 2&apos;b10;
+
+        // 00 - seleciona a posição e opcode randomicos
+        // 01 - seleciona o resultado da soma na coordenada X e opcode da memoria (Y da memoria)
+        // 10 - seleciona o resultado da soma na coordenada Y e opcode da memoria (X da memoria)
+
+        assign saida_mux = select_mux_pos == posicao_op_random ? {random_x, random_y, random_opcode}  :
+                           select_mux_pos == resul_soma_coor_x ? {resul_soma, mem_coor_y, mem_opcode} :
+                           select_mux_pos == resul_soma_coor_y ? {mem_coor_x, resul_soma, mem_opcode} : {mem_coor_x, mem_coor_y, mem_opcode};
+endmodule
+module mux_reg_jogada (
+        input [3:0] select_mux_jogada,
+        output [1:0] saida_mux
+        );
+
+        assign saida_mux = select_mux_jogada == 4&apos;b0001 ? 2&apos;b00 : 
+                           select_mux_jogada == 4&apos;b1000 ? 2&apos;b10 :
+                           select_mux_jogada == 4&apos;b0010 ? 2&apos;b01 : 
+                           select_mux_jogada == 4&apos;b0100 ? 2&apos;b11 : 2&apos;b11 ;
+endmodule
+
+
+
+
+
+//registrador_n #(N = 5)(
+
+// )
+module registrador_n #(parameter N = 4)(
+    input        clock ,
+    input        clear ,
+    input        enable,
+    input  [N-1:0] D     ,
+    output [N-1:0] Q
+);
+
+    reg [N-1:0] IQ;
+
+    always @(posedge clock or posedge clear) begin
+        if (clear)
+            IQ &lt;= 0;
+        else if (enable)
+            IQ &lt;= D;
+    end
+
+    assign Q = IQ;
+
+endmodule
+// modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
+// caso seja 0 então ocorre a subtração
+
+module somador_subtrator #(parameter N=4) ( 
+                          input [N-1:0] a,
+                          input [N-1:0] b,
+                          input select,
+                          output [N:0] resul
+                    );
+
+  reg [N:0] res;
+
+  always@(*) begin
+    if(~select) res = a + b;
+    else res = a-b;
+  end
+
+  assign resul = res;
+
+
+  // assign resul = select ? a + b : a - b;
+
+endmodule
 module uc_compara_asteroides_com_nave_e_tiros (
         input clock,
         input reset,
@@ -1154,6 +1770,8 @@ module uc_coordena_asteroides_tiros (
         input fim_move_asteroides      , // entrada que indica o fim da movimentação dos asteroides
         input fim_comparacao_asteroides_com_a_nave_e_tiros, // entrada que indica o fim da comparação dos tiros tiros, nave e asteroide
         input fim_comparacao_tiros_e_asteroides           , // entrada que indica o fim da comparação dos tiros tiros e asteroides
+
+        input fim_gera_frame, // para a matriz de led 
         // saidas para outras máquinas de estados de hierarquia menor 
         output reg movimenta_tiro                       , // saída que inicia a movimentação dos tiros
         output reg sinal_movimenta_asteroides                 , // saída que inicia a movimentação dos asteroides
@@ -1166,7 +1784,12 @@ module uc_coordena_asteroides_tiros (
         output reg reset_contador_asteroides            , // reset do contador de quantas vezes o asteroide vai ser incrementado
         // saida para a máquina de estados principal
         output reg fim_move_tiro_e_asteroides,             // sinal que indica o fim da incrementação dos tiros e asteroides
-        output reg [4:0] db_estado_coordena_asteroides_tiros
+        output reg [4:0] db_estado_coordena_asteroides_tiros,
+
+        output reg gera_frame, // para a matriz de led
+        output reg pausar_renderizacao // sinal para a unidade de controle para ela pausar
+
+
 );
 
     parameter inicio                                      = 5&apos;b00000; // 0
@@ -1183,7 +1806,9 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5&apos;b01011; // 11
     parameter incrementa_contador_asteroides              = 5&apos;b01100; // 12
     parameter fim_movimentacao                            = 5&apos;b01101; // 13
-    parameter erro                                        = 5&apos;b00000; // F
+    parameter inicia_gera_frame                           = 5&apos;b01110; // 14
+    parameter espera_gera_frame                           = 5&apos;b01111; // 15
+    parameter erro                                        = 5&apos;b00000; // 0
 
 
     // Variáveis de estado
@@ -1209,7 +1834,12 @@ module uc_coordena_asteroides_tiros (
                                                                           (fim_comparacao_tiros_e_asteroides &amp;&amp; ~rco_contador_tiro) ? move_tiros : espera_compara_tiros_e_asteroides;
             move_tiros:                                  proximo_estado = espera_move_tiros;
             espera_move_tiros:                           proximo_estado = fim_move_tiros ? incrementa_contador_tiros : espera_move_tiros;
-            incrementa_contador_tiros:                   proximo_estado = compara_tiros_e_asteroides;
+            
+            incrementa_contador_tiros:                   proximo_estado = inicia_gera_frame; //
+            inicia_gera_frame:                           proximo_estado = espera_gera_frame; //
+                
+            espera_gera_frame:                           proximo_estado = fim_gera_frame? compara_tiros_e_asteroides : espera_gera_frame; //
+
             compara_asteroides_com_a_nave_e_tiro:        proximo_estado = espera_compara_asteroides_com_a_nave_e_tiro;
             espera_compara_asteroides_com_a_nave_e_tiro: proximo_estado = (fim_comparacao_asteroides_com_a_nave_e_tiros &amp;&amp; rco_contador_asteroides) ? fim_movimentacao :
                                                                           (fim_comparacao_asteroides_com_a_nave_e_tiros &amp;&amp; ~rco_contador_asteroides) ? move_asteroides :
@@ -1218,6 +1848,7 @@ module uc_coordena_asteroides_tiros (
             espera_move_asteroides:                      proximo_estado = fim_move_asteroides ? incrementa_contador_asteroides : espera_move_asteroides;
             incrementa_contador_asteroides:              proximo_estado = compara_asteroides_com_a_nave_e_tiro;
             fim_movimentacao:                            proximo_estado = espera;
+
             default:                                     proximo_estado = inicio;
         endcase
     end
@@ -1232,7 +1863,9 @@ module uc_coordena_asteroides_tiros (
         sinal_movimenta_asteroides      =   (estado_atual == move_asteroides)                ? 1&apos;b1 : 1&apos;b0;
         conta_contador_asteroides       =   (estado_atual == incrementa_contador_asteroides) ? 1&apos;b1 : 1&apos;b0;
         fim_move_tiro_e_asteroides      =   (estado_atual == fim_movimentacao)               ? 1&apos;b1 : 1&apos;b0;
+        gera_frame                      =   (estado_atual == inicia_gera_frame)              ? 1&apos;b1 : 1&apos;b0;
         sinal_compara_asteroides_com_a_nave_e_tiro = (estado_atual == compara_asteroides_com_a_nave_e_tiro) ? 1&apos;b1 : 1&apos;b0;
+        pausar_renderizacao             =   (estado_atual == inicia_gera_frame || estado_atual == espera_gera_frame) ? 1&apos;b1 : 1&apos;b0;
 
 
         // Saída de depuração (estado)
@@ -1251,6 +1884,8 @@ module uc_coordena_asteroides_tiros (
             espera_move_asteroides:                      db_estado_coordena_asteroides_tiros = 5&apos;b01011; // 11
             incrementa_contador_asteroides:              db_estado_coordena_asteroides_tiros = 5&apos;b01100; // 12
             fim_movimentacao:                            db_estado_coordena_asteroides_tiros = 5&apos;b01101; // 13
+            inicia_gera_frame:                           db_estado_coordena_asteroides_tiros = 5&apos;b01110; // 14
+            espera_gera_frame:                           db_estado_coordena_asteroides_tiros = 5&apos;b01111; // 15
             erro:                                        db_estado_coordena_asteroides_tiros = 5&apos;b01111; // F  
             default:                                     db_estado_coordena_asteroides_tiros = 5&apos;b00000; 
         endcase
@@ -1261,6 +1896,137 @@ endmodule
 
 
 
+
+
+module uc_gera_frame (
+        input clock,
+        input reset,
+        input gera_frame,
+        input rco_contador_asteroides,
+        input rco_contador_tiro,
+        input loaded_tiro,
+        input loaded_asteroide,
+
+        output reg conta_contador_asteroide,
+        output reg conta_contador_tiro,
+        output reg reset_contador_tiro,
+        output reg reset_contador_asteroide,
+        output reg clear_mem_frame,
+        output reg enable_mem_frame,
+        output reg fim_gera_frame,
+        output reg [1:0] select_mux_gera_frame,
+
+        output reg [3:0] db_estado_uc_gera_frame
+);
+
+        /* declaração dos estados dessa UC */
+        parameter inicial                    = 4&apos;b0000; // 0
+        parameter espera                     = 4&apos;b0001; // 1
+        parameter reseta_contadores          = 4&apos;b0010; // 2
+        parameter verifica_loaded_asteroide  = 4&apos;b0011; // 3
+        parameter salva_aste                 = 4&apos;b0100; // 4
+        parameter verifica_rco_asteroide     = 4&apos;b0101; // 5
+        parameter incrementa_asteroides      = 4&apos;b0110; // 6
+        parameter verifica_loaded_tiro       = 4&apos;b0111; // 7
+        parameter salva_tiro                 = 4&apos;b1000; // 8
+        parameter verifica_rco_tiro          = 4&apos;b1001; // 9
+        parameter incrementa_tiro            = 4&apos;b1010; // A
+        parameter sinaliza                   = 4&apos;b1011; // B
+        parameter espera_mem_aste            = 4&apos;b1100; // C
+        parameter espera_mem_tiro            = 4&apos;b1101; // D
+        parameter salva_nave                 = 4&apos;b1110; // E
+
+
+
+        // Variáveis de estado
+        reg [3:0] estado_atual, proximo_estado;
+
+
+        // Memória de estado
+        always @(posedge clock or posedge reset) begin
+                if (reset)
+                        estado_atual &lt;= inicial;
+                else
+                        estado_atual &lt;= proximo_estado;
+        end
+
+        // mudança de estados
+        always @* begin
+        case (estado_atual)
+                inicial:                  proximo_estado = espera;
+                espera:                   proximo_estado = gera_frame ? reseta_contadores : espera;
+                reseta_contadores:        proximo_estado = verifica_loaded_asteroide;
+                verifica_loaded_asteroide: proximo_estado = loaded_asteroide ? salva_aste : verifica_rco_asteroide;
+                // verifica_rco_asteroide:   proximo_estado = rco_contador_asteroides ? salva_nave : incrementa_asteroides;
+                
+                verifica_rco_asteroide:   proximo_estado = rco_contador_asteroides ? verifica_loaded_tiro : incrementa_asteroides;
+
+                
+                salva_nave:               proximo_estado = sinaliza;
+
+                incrementa_asteroides:    proximo_estado = espera_mem_aste;
+                
+                espera_mem_aste:          proximo_estado = verifica_loaded_asteroide;
+
+
+                salva_aste:               proximo_estado = verifica_rco_asteroide;
+                incrementa_tiro:          proximo_estado = espera_mem_tiro;
+
+                espera_mem_tiro:          proximo_estado = verifica_loaded_tiro;
+                verifica_loaded_tiro:     proximo_estado = loaded_tiro ? salva_tiro : verifica_rco_tiro;
+                verifica_rco_tiro:        proximo_estado = rco_contador_tiro ? salva_nave : incrementa_tiro;
+
+                salva_tiro:               proximo_estado = verifica_rco_tiro;
+                sinaliza:                 proximo_estado = espera;
+                default:                  proximo_estado = inicial;
+        endcase 
+    end
+
+    // Lógica de saída (maquina Moore)
+    always @* begin
+        reset_contador_tiro       = (estado_atual == reseta_contadores)           ? 1&apos;b1 : 1&apos;b0;
+        reset_contador_asteroide  = (estado_atual == reseta_contadores)           ? 1&apos;b1 : 1&apos;b0;
+        // clear_mem_frame           = (estado_atual == verifica_loaded_asteroide)   ? 1&apos;b1 : 1&apos;b0;
+        clear_mem_frame           = (estado_atual == reseta_contadores)           ? 1&apos;b1 : 1&apos;b0;
+        enable_mem_frame          = (estado_atual == salva_aste || 
+                                     estado_atual == salva_tiro || 
+                                     estado_atual == salva_nave )? 1&apos;b1 : 1&apos;b0;
+        conta_contador_tiro       = (estado_atual == incrementa_tiro)           ? 1&apos;b1 : 1&apos;b0;
+        conta_contador_asteroide  = (estado_atual == incrementa_asteroides)     ? 1&apos;b1 : 1&apos;b0;
+        fim_gera_frame            = (estado_atual == sinaliza)                  ? 1&apos;b1 : 1&apos;b0;
+        select_mux_gera_frame     = (estado_atual == salva_aste)? 2&apos;b00 : //asteroide
+                                    (estado_atual == salva_tiro)? 2&apos;b01 : //tiro
+                                     (estado_atual == salva_nave)? 2&apos;b10 : 2&apos;b11; //nave e monta frame respectivamente
+        // Saída de depuração (estado)
+        case (estado_atual)
+                inicial:                    db_estado_uc_gera_frame= 4&apos;b0000; // 0
+                espera:                     db_estado_uc_gera_frame= 4&apos;b0001; // 1
+                reseta_contadores:          db_estado_uc_gera_frame= 4&apos;b0010; // 2
+                verifica_loaded_asteroide:  db_estado_uc_gera_frame= 4&apos;b0011; // 3
+                salva_aste:                 db_estado_uc_gera_frame= 4&apos;b0100; // 4
+                verifica_rco_asteroide:     db_estado_uc_gera_frame= 4&apos;b0101; // 5
+                incrementa_asteroides:      db_estado_uc_gera_frame= 4&apos;b0110; // 6
+                verifica_loaded_tiro:       db_estado_uc_gera_frame= 4&apos;b0111; // 7
+                salva_tiro:                 db_estado_uc_gera_frame= 4&apos;b1000; // 8
+                verifica_rco_tiro:          db_estado_uc_gera_frame= 4&apos;b1001; // 9
+                incrementa_tiro:            db_estado_uc_gera_frame= 4&apos;b1010; // 10
+                sinaliza:                   db_estado_uc_gera_frame= 4&apos;b1011; // 11
+                espera_mem_aste:            db_estado_uc_gera_frame= 4&apos;b1100; // 12
+                espera_mem_tiro:            db_estado_uc_gera_frame= 4&apos;b1101; // 13
+                salva_nave:                 db_estado_uc_gera_frame= 4&apos;b1110; // 14
+
+                default:                    db_estado_uc_gera_frame = 4&apos;b1111;
+        endcase
+    end
+
+
+
+
+
+
+
+
+endmodule
 
 module uc_jogo_principal (
 
@@ -1721,442 +2487,83 @@ module uc_registra_tiro (
 
 endmodule
 
-module comparador_85 #(parameter N = 4)(
-                input [N-1:0] A, 
-                input [N-1:0] B,
-                input       ALBi, 
-                input       AGBi, 
-                input       AEBi,  
-                output      ALBo, 
-                output      AGBo, 
-                output      AEBo
-                );
 
-    wire[N:0]  CSL, CSG;
+module uc_renderiza (
+        input clock                    ,
+        input reset                    ,
+        input pausar_renderizacao      ,
+        input rco_contador_frame       ,
+        output reg reset_contador_frame,    
+        output reg conta_contador_frame,    
+        output reg [3:0] db_estado_uc_renderiza
+);
 
-    assign CSL  = ~A + B + ALBi;
-    assign ALBo = ~CSL[N];
-    assign CSG  = A + ~B + AGBi;
-    assign AGBo = ~CSG[N];
-    assign AEBo = ((A == B) &amp;&amp; AEBi);
+        /* declaração dos estados dessa UC */
+        parameter inicial                 = 4&apos;b0000; // 0
+        parameter zera_contador           = 4&apos;b0001; // 1
+        parameter conta_contador          = 4&apos;b0010; // 2
+        parameter pausado                 = 4&apos;b0011; // 3
+        // parameter incrementa_contador_tiro = 4&apos;b0100; // 4
+        // parameter salva_tiro               = 4&apos;b0101; // 5
+        // parameter sinaliza                 = 4&apos;b0110; // 6
+        // parameter aux                      = 4&apos;b0111; // 7
+        parameter erro                     = 4&apos;b1111; // F
 
-endmodule 
-module contador_163 #(parameter N = 16, parameter tempo = 2000) ( 
-                        input clock, 
-                        input clr, 
-                        input ld, 
-                        input ent, 
-                        input enp, 
-                        input [N-1:0] D, 
-                        output reg [N-1:0] Q, 
-                        output reg rco
-                    );
 
-    initial begin
-        Q = 0;
-    end
-        
-    always @ (posedge clock)
-        if (clr)               Q &lt;= 0;
-        else if (ld)           Q &lt;= D;
-        else if (ent &amp;&amp; enp)   Q &lt;= Q + 1;
-        else                   Q &lt;= Q;
+        // Variáveis de estado
+        reg [3:0] estado_atual, proximo_estado;
 
-    always @ (Q or ent)
-        if (ent &amp;&amp; (Q == tempo))   rco = 1;
-        else                       rco = 0;
-endmodule
-module contador_m #(parameter M=16, N=4)
-  (
-   input  wire          clock,
-   input  wire          zera_as,
-   input  wire          zera_s,
-   input  wire          conta,
-   output reg  [N-1:0]  Q,
-   output reg           fim,
-   output reg           meio
-  );
 
-  always @(posedge clock or posedge zera_as) begin
-    if (zera_as) begin
-      Q &lt;= 0;
-    end else if (clock) begin
-      if (zera_s) begin
-        Q &lt;= 0;
-      end else if (conta) begin
-        if (Q == M-1) begin
-          Q &lt;= 0;
-        end else begin
-          Q &lt;= Q + 1;
+        // Memória de estado
+        always @(posedge clock or posedge reset) begin
+                if (reset)
+                        estado_atual &lt;= inicial;
+                else
+                        estado_atual &lt;= proximo_estado;
         end
-      end
-    end
-  end
 
-  // Saidas
-  always @ (Q)
-      if (Q == M-1)   fim = 1;
-      else            fim = 0;
+        // mudança de estados
+        always @* begin
+        case (estado_atual)
+                inicial:                  proximo_estado = zera_contador;
+                zera_contador:            proximo_estado = pausar_renderizacao ? pausado : conta_contador;
+                conta_contador:           proximo_estado = pausar_renderizacao ? pausado : 
+                                                           (rco_contador_frame &amp;&amp; ~pausar_renderizacao)? zera_contador : conta_contador;
+                pausado:                  proximo_estado = pausar_renderizacao ? pausado : zera_contador;
 
-  always @ (Q)
-      if (Q == M/2-1) meio = 1;
-      else            meio = 0;
-
-endmodule
-
-// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
-
-module decrementador #(parameter N=4) ( 
-                      input clock       , 
-                      input clr         , 
-                      input ld          , 
-                      input ent         , 
-                      input enp         , 
-                      input [N-1:0] D     , 
-                      output reg [N-1:0] Q , 
-                      output reg rco
-                    );
-
-	 initial begin
-		Q = 3;
-    end
-    
-
-    always @ (posedge clock)
-        if (clr)                           Q &lt;= 3;
-        else if (ld)                       Q &lt;= D;
-        else if (ent &amp;&amp; enp &amp;&amp;  Q != 0)    Q &lt;= Q - 1;
-        else                               Q &lt;= Q;
- 
-    always @ (Q or ent)
-        if (ent &amp;&amp; (Q == 0))       rco = 1;
-        else                       rco = 0;
-
-endmodule
-
- module edge_detector (
-    input  clock,
-    input  reset,
-    input  sinal,
-    output pulso
-);
-
-    reg reg0;
-    reg reg1;
-
-    always @(posedge clock or posedge reset) begin
-        if (reset) begin
-            reg0 &lt;= 1&apos;b0;
-            reg1 &lt;= 1&apos;b0;
-        end else if (clock) begin
-            reg0 &lt;= sinal;
-            reg1 &lt;= reg0;
-        end
+                default:                  proximo_estado = erro;
+        endcase
     end
 
-    assign pulso = ~reg1 &amp; reg0;
+    // Lógica de saída (maquina Moore)
+    always @* begin
 
-endmodule
+        reset_contador_frame   = (estado_atual == zera_contador || estado_atual == inicial) ? 1&apos;b1 : 1&apos;b0;
+        conta_contador_frame   = (estado_atual == conta_contador) ? 1&apos;b1 : 1&apos;b0;
 
-module memoria_aster(
-    input        clk,
-    input        we,
-    input  [9:0] data,
-    input  [3:0] addr,
-    output [9:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [9:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial begin
-        ram[4&apos;b0]  =  10&apos;b0111_1110_11; // (7,14)
-        ram[4&apos;d1]  =  10&apos;b0111_1110_11; // (7,14)
-        ram[4&apos;d2]  =  10&apos;b0111_1110_11; // (7,14)
-        ram[4&apos;d3]  =  10&apos;b0000_0111_00; // (0,7)
-        ram[4&apos;d4]  =  10&apos;b0111_0000_00; // (7,0)
-        ram[4&apos;d5]  =  10&apos;b1110_0111_01; // (14,7)
-        ram[4&apos;d6]  =  10&apos;b0111_1110_11; // (7,14)
-        ram[4&apos;d7]  =  10&apos;b1110_0111_01; // (14,7)
-        ram[4&apos;d8]  =  10&apos;b0111_1110_11; // (7,14)
-        ram[4&apos;d9]  =  10&apos;b0111_0111_00; // (7,7)
-        ram[4&apos;d10] =  10&apos;b0111_0000_10; // (7,0)
-        ram[4&apos;d11] =  10&apos;b0111_0000_10; // (7,0)
-        ram[4&apos;d12] =  10&apos;b0000_0111_00; // (0,7)
-        ram[4&apos;d13] =  10&apos;b0000_0111_00; // (0,7)
-        ram[4&apos;d14] =  10&apos;b0111_1110_11; // (7,14)
-        ram[4&apos;d15] =  10&apos;b0111_1110_11; // (7,14)
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] &lt;= data;
-
-        addr_reg &lt;= addr;
+        // Saída de depuração (estado)
+        case (estado_atual)
+                inicial:                 db_estado_uc_renderiza = 4&apos;b0000; // 0
+                zera_contador:           db_estado_uc_renderiza = 4&apos;b0001; // 1
+                conta_contador:          db_estado_uc_renderiza = 4&apos;b0010; // 2
+                pausado:                 db_estado_uc_renderiza = 4&apos;b0011; // 3
+                erro:                    db_estado_uc_renderiza = 4&apos;b1111; // F
+                default:                 db_estado_uc_renderiza = 4&apos;b0000;
+        endcase
     end
 
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module memoria_load_aste(
-    input        clk,
-    input        we,
-    input  [1:0] data,
-    input  [3:0] addr,
-    output [1:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [1:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial 
-    begin : INICIA_RAM
-        ram[4&apos;b0] =  2&apos;b10;
-        ram[4&apos;d1] =  2&apos;b00;
-        ram[4&apos;d2] =  2&apos;b00;
-        ram[4&apos;d3] =  2&apos;b00;
-        ram[4&apos;d4] =  2&apos;b00; 
-        ram[4&apos;d5] =  2&apos;b00;
-        ram[4&apos;d6] =  2&apos;b00;
-        ram[4&apos;d7] =  2&apos;b00;
-        ram[4&apos;d8] =  2&apos;b00;
-        ram[4&apos;d9] =  2&apos;b00;
-        ram[4&apos;d10] = 2&apos;b00;
-        ram[4&apos;d11] = 2&apos;b00;
-        ram[4&apos;d12] = 2&apos;b00;
-        ram[4&apos;d13] = 2&apos;b00;
-        ram[4&apos;d14] = 2&apos;b00;
-        ram[4&apos;d15] = 2&apos;b00;
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] &lt;= data;
-
-        addr_reg &lt;= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module memoria_tiro(
-    input        clk,
-    input        we,
-    input  [9:0] data,
-    input  [3:0] addr,
-    output [9:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [9:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial begin
-        ram[4&apos;b0] =  10&apos;b0000_0000_00;
-        ram[4&apos;d1] =  10&apos;b0000_0000_00;
-        ram[4&apos;d2] =  10&apos;b0000_0000_00;
-        ram[4&apos;d3] =  10&apos;b0000_0000_00;
-        ram[4&apos;d4] =  10&apos;b0000_0000_00;
-        ram[4&apos;d5] =  10&apos;b0000_0000_00;
-        ram[4&apos;d6] =  10&apos;b0000_0000_00;
-        ram[4&apos;d7] =  10&apos;b0000_0000_00;
-        ram[4&apos;d8] =  10&apos;b0000_0000_00;
-        ram[4&apos;d9] =  10&apos;b0000_0000_00;
-        ram[4&apos;d10] = 10&apos;b0000_0000_00;
-        ram[4&apos;d11] = 10&apos;b0000_0000_00;
-        ram[4&apos;d12] = 10&apos;b0000_0000_00;
-        ram[4&apos;d13] = 10&apos;b0000_0000_00;
-        ram[4&apos;d14] = 10&apos;b0000_0000_00;
-        ram[4&apos;d15] = 10&apos;b0000_0000_00;
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] &lt;= data;
-
-        addr_reg &lt;= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module memoria_load_tiro(
-    input        clk,
-    input        we,
-    input  [1:0] data,
-    input  [3:0] addr,
-    output [1:0] q
-);
-
-    // Variavel RAM (armazena dados)
-    reg [1:0] ram[15:0];
-
-    // Registra endereco de acesso
-    reg [3:0] addr_reg;
-
-    // Especifica conteudo inicial da RAM
-    // a partir da leitura de arquivo usando $readmemb
-    initial 
-    begin : INICIA_RAM
-        ram[4&apos;b0] =  2&apos;b00;
-        ram[4&apos;d1] =  2&apos;b00;
-        ram[4&apos;d2] =  2&apos;b00;
-        ram[4&apos;d3] =  2&apos;b00;
-        ram[4&apos;d4] =  2&apos;b00; 
-        ram[4&apos;d5] =  2&apos;b00;
-        ram[4&apos;d6] =  2&apos;b00;
-        ram[4&apos;d7] =  2&apos;b00;
-        ram[4&apos;d8] =  2&apos;b00;
-        ram[4&apos;d9] =  2&apos;b00;
-        ram[4&apos;d10] = 2&apos;b00;
-        ram[4&apos;d11] = 2&apos;b00;
-        ram[4&apos;d12] = 2&apos;b00;
-        ram[4&apos;d13] = 2&apos;b00;
-        ram[4&apos;d14] = 2&apos;b00;
-        ram[4&apos;d15] = 2&apos;b00;
-    end 
-
-    always @ (posedge clk)
-    begin
-        // Escrita da memoria
-        if (we)
-            ram[addr] &lt;= data;
-
-        addr_reg &lt;= addr;
-    end
-
-    // Atribuicao continua retorna dado
-    assign q = ram[addr_reg];
-
-endmodule
-module mux_coor #(parameter N = 4)(
-        input select_mux_coor,
-        input [N-1:0] mem_coor_x,
-        input [N-1:0] mem_coor_y,
-        output [N-1:0] saida_mux
-        );
-
-        parameter select_mem_coor_x = 1&apos;b0;
-
-        assign saida_mux = select_mux_coor == select_mem_coor_x ? mem_coor_x : mem_coor_y;
-endmodule
 
 
 
 
 
-module mux_pos #(parameter N = 4)(
-        input [1:0] select_mux_pos,
-        input [N-1:0] resul_soma,
-        input [N-1:0] mem_coor_x,
-        input [N-1:0] mem_coor_y,
-        input [1:0]   mem_opcode,
-        input [N-1:0] random_x,
-        input [N-1:0] random_y,
-        input [1:0] random_opcode,
-        output [9:0] saida_mux
-        );
 
-        parameter posicao_op_random = 2&apos;b00;
-        parameter resul_soma_coor_x = 2&apos;b01;
-        parameter resul_soma_coor_y = 2&apos;b10;
-
-        // 00 - seleciona a posição e opcode randomicos
-        // 01 - seleciona o resultado da soma na coordenada X e opcode da memoria (Y da memoria)
-        // 10 - seleciona o resultado da soma na coordenada Y e opcode da memoria (X da memoria)
-
-        assign saida_mux = select_mux_pos == posicao_op_random ? {random_x, random_y, random_opcode}  :
-                           select_mux_pos == resul_soma_coor_x ? {resul_soma, mem_coor_y, mem_opcode} :
-                           select_mux_pos == resul_soma_coor_y ? {mem_coor_x, resul_soma, mem_opcode} : {mem_coor_x, mem_coor_y, mem_opcode};
-endmodule
-module mux_reg_jogada (
-        input [3:0] select_mux_jogada,
-        output [1:0] saida_mux
-        );
-
-        assign saida_mux = select_mux_jogada == 4&apos;b0001 ? 2&apos;b00 : 
-                           select_mux_jogada == 4&apos;b1000 ? 2&apos;b10 :
-                           select_mux_jogada == 4&apos;b0010 ? 2&apos;b01 : 
-                           select_mux_jogada == 4&apos;b0100 ? 2&apos;b11 : 2&apos;b11 ;
-endmodule
-
-
-
-
-
-//registrador_n #(N = 5)(
-
-// )
-module registrador_n #(parameter N = 4)(
-    input        clock ,
-    input        clear ,
-    input        enable,
-    input  [N-1:0] D     ,
-    output [N-1:0] Q
-);
-
-    reg [N-1:0] IQ;
-
-    always @(posedge clock or posedge clear) begin
-        if (clear)
-            IQ &lt;= 0;
-        else if (enable)
-            IQ &lt;= D;
-    end
-
-    assign Q = IQ;
-
-endmodule
-// modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
-// caso seja 0 então ocorre a subtração
-
-module somador_subtrator #(parameter N=4) ( 
-                          input [N-1:0] a,
-                          input [N-1:0] b,
-                          input select,
-                          output [N:0] resul
-                    );
-
-  reg [N:0] res;
-
-  always@(*) begin
-    if(~select) res = a + b;
-    else res = a-b;
-  end
-
-  assign resul = res;
-
-
-  // assign resul = select ? a + b : a - b;
 
 endmodule</string>
         </entry>
         <entry>
           <string>externalOutputs</string>
-          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_vidas:4,db_asteroide_x:4,db_asteroide_y:4,db_tiro_x:4,db_tiro_y:4,db_aste_renderizado,db_tiro_renderizado</string>
+          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_vidas:4,db_asteroide_x:4,db_asteroide_y:4,db_tiro_x:4,db_tiro_y:4,db_aste_renderizado,db_tiro_renderizado,db_estado_uc_gera_frame:4,matriz_x:15,matriz_y:4,db_estado_uc_renderiza:4</string>
         </entry>
         <entry>
           <string>Width</string>
@@ -2174,11 +2581,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>2 Hz</string>
-        </entry>
-        <entry>
-          <string>Frequency</string>
-          <int>2</int>
+          <string>1 Hz</string>
         </entry>
       </elementAttributes>
       <pos x="400" y="260"/>
@@ -2335,7 +2738,7 @@ endmodule</string>
           <string>Pronto</string>
         </entry>
       </elementAttributes>
-      <pos x="1060" y="300"/>
+      <pos x="1500" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2349,7 +2752,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="240"/>
+      <pos x="1740" y="240"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2363,7 +2766,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="300"/>
+      <pos x="1740" y="300"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2377,7 +2780,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="360"/>
+      <pos x="1740" y="360"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2391,7 +2794,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="420"/>
+      <pos x="1740" y="420"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2405,7 +2808,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="480"/>
+      <pos x="1740" y="480"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2419,7 +2822,7 @@ endmodule</string>
           <int>5</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="540"/>
+      <pos x="1740" y="540"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2433,7 +2836,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1300" y="600"/>
+      <pos x="1740" y="600"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -2451,7 +2854,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1200" y="560"/>
+      <pos x="1640" y="560"/>
     </visualElement>
     <visualElement>
       <elementName>Clock</elementName>
@@ -2462,11 +2865,11 @@ endmodule</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>10 KHz</string>
+          <string>10 MHz</string>
         </entry>
         <entry>
           <string>Frequency</string>
-          <int>10000</int>
+          <int>10000000</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="220"/>
@@ -2507,42 +2910,42 @@ endmodule</string>
     <visualElement>
       <elementName>Seven-Seg-Hex</elementName>
       <elementAttributes/>
-      <pos x="1400" y="680"/>
+      <pos x="1840" y="680"/>
     </visualElement>
     <visualElement>
       <elementName>Ground</elementName>
       <elementAttributes/>
-      <pos x="1460" y="840"/>
+      <pos x="1900" y="840"/>
     </visualElement>
     <visualElement>
       <elementName>Seven-Seg-Hex</elementName>
       <elementAttributes/>
-      <pos x="1500" y="680"/>
+      <pos x="1940" y="680"/>
     </visualElement>
     <visualElement>
       <elementName>Ground</elementName>
       <elementAttributes/>
-      <pos x="1560" y="840"/>
+      <pos x="2000" y="840"/>
     </visualElement>
     <visualElement>
       <elementName>Seven-Seg-Hex</elementName>
       <elementAttributes/>
-      <pos x="1620" y="680"/>
+      <pos x="2060" y="680"/>
     </visualElement>
     <visualElement>
       <elementName>Ground</elementName>
       <elementAttributes/>
-      <pos x="1680" y="840"/>
+      <pos x="2120" y="840"/>
     </visualElement>
     <visualElement>
       <elementName>Seven-Seg-Hex</elementName>
       <elementAttributes/>
-      <pos x="1720" y="680"/>
+      <pos x="2160" y="680"/>
     </visualElement>
     <visualElement>
       <elementName>Ground</elementName>
       <elementAttributes/>
-      <pos x="1780" y="840"/>
+      <pos x="2220" y="840"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2552,7 +2955,7 @@ endmodule</string>
           <string>asteroide</string>
         </entry>
       </elementAttributes>
-      <pos x="1380" y="640"/>
+      <pos x="1820" y="640"/>
     </visualElement>
     <visualElement>
       <elementName>Text</elementName>
@@ -2562,7 +2965,7 @@ endmodule</string>
           <string>tiros</string>
         </entry>
       </elementAttributes>
-      <pos x="1620" y="640"/>
+      <pos x="2060" y="640"/>
     </visualElement>
     <visualElement>
       <elementName>Register</elementName>
@@ -2572,7 +2975,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="780"/>
+      <pos x="1660" y="780"/>
     </visualElement>
     <visualElement>
       <elementName>Register</elementName>
@@ -2582,7 +2985,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="700"/>
+      <pos x="1660" y="700"/>
     </visualElement>
     <visualElement>
       <elementName>Register</elementName>
@@ -2592,7 +2995,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="940"/>
+      <pos x="1660" y="940"/>
     </visualElement>
     <visualElement>
       <elementName>Register</elementName>
@@ -2602,21 +3005,7 @@ endmodule</string>
           <int>4</int>
         </entry>
       </elementAttributes>
-      <pos x="1220" y="860"/>
-    </visualElement>
-    <visualElement>
-      <elementName>LedMatrix</elementName>
-      <elementAttributes>
-        <entry>
-          <string>colAddrBits</string>
-          <int>4</int>
-        </entry>
-        <entry>
-          <string>rowDataBits</string>
-          <int>15</int>
-        </entry>
-      </elementAttributes>
-      <pos x="3600" y="420"/>
+      <pos x="1660" y="860"/>
     </visualElement>
     <visualElement>
       <elementName>Clock</elementName>
@@ -2759,15 +3148,53 @@ endmodule</string>
       </elementAttributes>
       <pos x="2440" y="520"/>
     </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="1300" y="880"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="1360" y="1040"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Seven-Seg-Hex</elementName>
+      <elementAttributes/>
+      <pos x="740" y="880"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Ground</elementName>
+      <elementAttributes/>
+      <pos x="800" y="1040"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LedMatrix</elementName>
+      <elementAttributes>
+        <entry>
+          <string>colAddrBits</string>
+          <int>4</int>
+        </entry>
+        <entry>
+          <string>rowDataBits</string>
+          <int>15</int>
+        </entry>
+      </elementAttributes>
+      <pos x="1040" y="920"/>
+    </visualElement>
   </visualElements>
   <wires>
     <wire>
-      <p1 x="1040" y="960"/>
-      <p2 x="1220" y="960"/>
+      <p1 x="1400" y="960"/>
+      <p2 x="1660" y="960"/>
     </wire>
     <wire>
-      <p1 x="1280" y="960"/>
-      <p2 x="1760" y="960"/>
+      <p1 x="1720" y="960"/>
+      <p2 x="2200" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="640"/>
+      <p2 x="1240" y="640"/>
     </wire>
     <wire>
       <p1 x="440" y="260"/>
@@ -2779,31 +3206,35 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="580"/>
-      <p2 x="1100" y="580"/>
+      <p2 x="1540" y="580"/>
     </wire>
     <wire>
-      <p1 x="1060" y="900"/>
-      <p2 x="1220" y="900"/>
+      <p1 x="1500" y="900"/>
+      <p2 x="1660" y="900"/>
     </wire>
     <wire>
       <p1 x="1040" y="520"/>
-      <p2 x="1160" y="520"/>
+      <p2 x="1600" y="520"/>
     </wire>
     <wire>
       <p1 x="2440" y="520"/>
       <p2 x="2620" y="520"/>
     </wire>
     <wire>
-      <p1 x="1360" y="840"/>
-      <p2 x="1440" y="840"/>
+      <p1 x="1800" y="840"/>
+      <p2 x="1880" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="840"/>
+      <p2 x="1060" y="840"/>
     </wire>
     <wire>
       <p1 x="1040" y="460"/>
-      <p2 x="1240" y="460"/>
+      <p2 x="1680" y="460"/>
     </wire>
     <wire>
-      <p1 x="1140" y="780"/>
-      <p2 x="1220" y="780"/>
+      <p1 x="1580" y="780"/>
+      <p2 x="1660" y="780"/>
     </wire>
     <wire>
       <p1 x="400" y="400"/>
@@ -2815,7 +3246,7 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="400"/>
-      <p2 x="1260" y="400"/>
+      <p2 x="1700" y="400"/>
     </wire>
     <wire>
       <p1 x="2500" y="400"/>
@@ -2823,23 +3254,23 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="240" y="720"/>
-      <p2 x="1040" y="720"/>
+      <p2 x="1400" y="720"/>
     </wire>
     <wire>
-      <p1 x="1280" y="720"/>
-      <p2 x="1360" y="720"/>
+      <p1 x="1720" y="720"/>
+      <p2 x="1800" y="720"/>
     </wire>
     <wire>
-      <p1 x="1040" y="720"/>
-      <p2 x="1220" y="720"/>
+      <p1 x="1400" y="720"/>
+      <p2 x="1660" y="720"/>
     </wire>
     <wire>
-      <p1 x="1060" y="980"/>
-      <p2 x="1220" y="980"/>
+      <p1 x="1500" y="980"/>
+      <p2 x="1660" y="980"/>
     </wire>
     <wire>
       <p1 x="1040" y="340"/>
-      <p2 x="1060" y="340"/>
+      <p2 x="1500" y="340"/>
     </wire>
     <wire>
       <p1 x="440" y="340"/>
@@ -2850,68 +3281,88 @@ endmodule</string>
       <p2 x="540" y="340"/>
     </wire>
     <wire>
-      <p1 x="1220" y="600"/>
-      <p2 x="1300" y="600"/>
+      <p1 x="1040" y="660"/>
+      <p2 x="1080" y="660"/>
+    </wire>
+    <wire>
+      <p1 x="1660" y="600"/>
+      <p2 x="1740" y="600"/>
     </wire>
     <wire>
       <p1 x="1040" y="600"/>
-      <p2 x="1080" y="600"/>
+      <p2 x="1520" y="600"/>
     </wire>
     <wire>
-      <p1 x="1120" y="860"/>
-      <p2 x="1220" y="860"/>
+      <p1 x="920" y="920"/>
+      <p2 x="1040" y="920"/>
     </wire>
     <wire>
-      <p1 x="1340" y="860"/>
-      <p2 x="1540" y="860"/>
+      <p1 x="1560" y="860"/>
+      <p2 x="1660" y="860"/>
     </wire>
     <wire>
-      <p1 x="1240" y="540"/>
-      <p2 x="1300" y="540"/>
+      <p1 x="1780" y="860"/>
+      <p2 x="1980" y="860"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="860"/>
+      <p2 x="1080" y="860"/>
+    </wire>
+    <wire>
+      <p1 x="1680" y="540"/>
+      <p2 x="1740" y="540"/>
     </wire>
     <wire>
       <p1 x="1040" y="540"/>
-      <p2 x="1140" y="540"/>
+      <p2 x="1580" y="540"/>
     </wire>
     <wire>
       <p1 x="440" y="220"/>
       <p2 x="480" y="220"/>
     </wire>
     <wire>
-      <p1 x="1040" y="800"/>
-      <p2 x="1220" y="800"/>
+      <p1 x="1400" y="800"/>
+      <p2 x="1660" y="800"/>
     </wire>
     <wire>
-      <p1 x="1280" y="800"/>
-      <p2 x="1340" y="800"/>
+      <p1 x="1720" y="800"/>
+      <p2 x="1780" y="800"/>
     </wire>
     <wire>
-      <p1 x="1260" y="480"/>
-      <p2 x="1300" y="480"/>
+      <p1 x="1700" y="480"/>
+      <p2 x="1740" y="480"/>
     </wire>
     <wire>
       <p1 x="1040" y="480"/>
-      <p2 x="1220" y="480"/>
+      <p2 x="1660" y="480"/>
     </wire>
     <wire>
       <p1 x="2440" y="480"/>
       <p2 x="2580" y="480"/>
     </wire>
     <wire>
-      <p1 x="1080" y="740"/>
-      <p2 x="1220" y="740"/>
+      <p1 x="3380" y="480"/>
+      <p2 x="3480" y="480"/>
+    </wire>
+    <wire>
+      <p1 x="1520" y="740"/>
+      <p2 x="1660" y="740"/>
     </wire>
     <wire>
       <p1 x="1040" y="420"/>
-      <p2 x="1300" y="420"/>
+      <p2 x="1740" y="420"/>
     </wire>
     <wire>
       <p1 x="2580" y="420"/>
       <p2 x="2680" y="420"/>
     </wire>
     <wire>
-      <p1 x="3380" y="420"/>
-      <p2 x="3600" y="420"/>
+      <p1 x="1240" y="1060"/>
+      <p2 x="1340" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="600" y="1060"/>
+      <p2 x="780" y="1060"/>
     </wire>
     <wire>
       <p1 x="3180" y="360"/>
@@ -2923,27 +3374,35 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="360"/>
-      <p2 x="1220" y="360"/>
+      <p2 x="1660" y="360"/>
     </wire>
     <wire>
-      <p1 x="1260" y="360"/>
-      <p2 x="1300" y="360"/>
+      <p1 x="1700" y="360"/>
+      <p2 x="1740" y="360"/>
     </wire>
     <wire>
       <p1 x="2620" y="360"/>
       <p2 x="2680" y="360"/>
     </wire>
     <wire>
-      <p1 x="1100" y="940"/>
-      <p2 x="1220" y="940"/>
+      <p1 x="1040" y="680"/>
+      <p2 x="1060" y="680"/>
+    </wire>
+    <wire>
+      <p1 x="1540" y="940"/>
+      <p2 x="1660" y="940"/>
+    </wire>
+    <wire>
+      <p1 x="900" y="940"/>
+      <p2 x="1040" y="940"/>
     </wire>
     <wire>
       <p1 x="440" y="300"/>
       <p2 x="480" y="300"/>
     </wire>
     <wire>
-      <p1 x="1240" y="300"/>
-      <p2 x="1300" y="300"/>
+      <p1 x="1680" y="300"/>
+      <p2 x="1740" y="300"/>
     </wire>
     <wire>
       <p1 x="2440" y="300"/>
@@ -2951,39 +3410,43 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="620"/>
-      <p2 x="1060" y="620"/>
+      <p2 x="1500" y="620"/>
     </wire>
     <wire>
-      <p1 x="1040" y="880"/>
-      <p2 x="1220" y="880"/>
-    </wire>
-    <wire>
-      <p1 x="1280" y="880"/>
+      <p1 x="1400" y="880"/>
       <p2 x="1660" y="880"/>
     </wire>
     <wire>
-      <p1 x="1220" y="240"/>
-      <p2 x="1300" y="240"/>
+      <p1 x="1720" y="880"/>
+      <p2 x="2100" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="1660" y="240"/>
+      <p2 x="1740" y="240"/>
     </wire>
     <wire>
       <p1 x="1040" y="560"/>
-      <p2 x="1120" y="560"/>
+      <p2 x="1560" y="560"/>
     </wire>
     <wire>
-      <p1 x="1080" y="820"/>
-      <p2 x="1220" y="820"/>
+      <p1 x="1520" y="820"/>
+      <p2 x="1660" y="820"/>
+    </wire>
+    <wire>
+      <p1 x="660" y="820"/>
+      <p2 x="1040" y="820"/>
     </wire>
     <wire>
       <p1 x="1040" y="500"/>
-      <p2 x="1200" y="500"/>
+      <p2 x="1640" y="500"/>
+    </wire>
+    <wire>
+      <p1 x="3220" y="500"/>
+      <p2 x="3480" y="500"/>
     </wire>
     <wire>
       <p1 x="240" y="180"/>
       <p2 x="480" y="180"/>
-    </wire>
-    <wire>
-      <p1 x="3220" y="440"/>
-      <p2 x="3600" y="440"/>
     </wire>
     <wire>
       <p1 x="400" y="440"/>
@@ -2991,11 +3454,15 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="440"/>
-      <p2 x="1260" y="440"/>
+      <p2 x="1700" y="440"/>
     </wire>
     <wire>
       <p1 x="2620" y="440"/>
       <p2 x="2680" y="440"/>
+    </wire>
+    <wire>
+      <p1 x="600" y="760"/>
+      <p2 x="660" y="760"/>
     </wire>
     <wire>
       <p1 x="3180" y="380"/>
@@ -3007,35 +3474,31 @@ endmodule</string>
     </wire>
     <wire>
       <p1 x="1040" y="380"/>
-      <p2 x="1240" y="380"/>
+      <p2 x="1680" y="380"/>
     </wire>
     <wire>
       <p1 x="2580" y="380"/>
       <p2 x="2680" y="380"/>
     </wire>
     <wire>
-      <p1 x="1160" y="700"/>
-      <p2 x="1220" y="700"/>
+      <p1 x="1600" y="700"/>
+      <p2 x="1660" y="700"/>
     </wire>
     <wire>
       <p1 x="320" y="480"/>
       <p2 x="320" y="500"/>
     </wire>
     <wire>
-      <p1 x="1220" y="240"/>
-      <p2 x="1220" y="360"/>
+      <p1 x="1600" y="520"/>
+      <p2 x="1600" y="700"/>
     </wire>
     <wire>
-      <p1 x="1220" y="480"/>
-      <p2 x="1220" y="600"/>
+      <p1 x="1540" y="580"/>
+      <p2 x="1540" y="940"/>
     </wire>
     <wire>
-      <p1 x="1540" y="820"/>
-      <p2 x="1540" y="860"/>
-    </wire>
-    <wire>
-      <p1 x="1160" y="520"/>
-      <p2 x="1160" y="700"/>
+      <p1 x="900" y="840"/>
+      <p2 x="900" y="940"/>
     </wire>
     <wire>
       <p1 x="520" y="480"/>
@@ -3046,40 +3509,48 @@ endmodule</string>
       <p2 x="520" y="460"/>
     </wire>
     <wire>
-      <p1 x="1100" y="580"/>
-      <p2 x="1100" y="940"/>
+      <p1 x="2120" y="820"/>
+      <p2 x="2120" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="1800" y="720"/>
+      <p2 x="1800" y="840"/>
     </wire>
     <wire>
       <p1 x="460" y="380"/>
       <p2 x="460" y="440"/>
     </wire>
     <wire>
-      <p1 x="1680" y="820"/>
-      <p2 x="1680" y="840"/>
+      <p1 x="780" y="1020"/>
+      <p2 x="780" y="1060"/>
     </wire>
     <wire>
       <p1 x="400" y="480"/>
       <p2 x="400" y="500"/>
     </wire>
     <wire>
-      <p1 x="1040" y="720"/>
-      <p2 x="1040" y="800"/>
+      <p1 x="2000" y="820"/>
+      <p2 x="2000" y="840"/>
     </wire>
     <wire>
-      <p1 x="1040" y="800"/>
-      <p2 x="1040" y="880"/>
+      <p1 x="1680" y="300"/>
+      <p2 x="1680" y="380"/>
     </wire>
     <wire>
-      <p1 x="1040" y="880"/>
-      <p2 x="1040" y="960"/>
+      <p1 x="1680" y="460"/>
+      <p2 x="1680" y="540"/>
     </wire>
     <wire>
-      <p1 x="1360" y="720"/>
-      <p2 x="1360" y="840"/>
+      <p1 x="1360" y="1020"/>
+      <p2 x="1360" y="1040"/>
+    </wire>
+    <wire>
+      <p1 x="1040" y="700"/>
+      <p2 x="1040" y="820"/>
     </wire>
     <wire>
       <p1 x="3220" y="380"/>
-      <p2 x="3220" y="440"/>
+      <p2 x="3220" y="500"/>
     </wire>
     <wire>
       <p1 x="2580" y="420"/>
@@ -3090,16 +3561,44 @@ endmodule</string>
       <p2 x="2580" y="380"/>
     </wire>
     <wire>
-      <p1 x="1560" y="820"/>
-      <p2 x="1560" y="840"/>
+      <p1 x="660" y="760"/>
+      <p2 x="660" y="820"/>
     </wire>
     <wire>
-      <p1 x="1240" y="300"/>
-      <p2 x="1240" y="380"/>
+      <p1 x="1560" y="560"/>
+      <p2 x="1560" y="860"/>
     </wire>
     <wire>
-      <p1 x="1240" y="460"/>
-      <p2 x="1240" y="540"/>
+      <p1 x="1880" y="820"/>
+      <p2 x="1880" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="2200" y="820"/>
+      <p2 x="2200" y="960"/>
+    </wire>
+    <wire>
+      <p1 x="920" y="860"/>
+      <p2 x="920" y="920"/>
+    </wire>
+    <wire>
+      <p1 x="1240" y="640"/>
+      <p2 x="1240" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="600" y="760"/>
+      <p2 x="600" y="1060"/>
+    </wire>
+    <wire>
+      <p1 x="1500" y="300"/>
+      <p2 x="1500" y="340"/>
+    </wire>
+    <wire>
+      <p1 x="1500" y="620"/>
+      <p2 x="1500" y="900"/>
+    </wire>
+    <wire>
+      <p1 x="1500" y="900"/>
+      <p2 x="1500" y="980"/>
     </wire>
     <wire>
       <p1 x="480" y="480"/>
@@ -3122,64 +3621,76 @@ endmodule</string>
       <p2 x="480" y="260"/>
     </wire>
     <wire>
-      <p1 x="1120" y="560"/>
-      <p2 x="1120" y="860"/>
+      <p1 x="800" y="1020"/>
+      <p2 x="800" y="1040"/>
     </wire>
     <wire>
-      <p1 x="1440" y="820"/>
-      <p2 x="1440" y="840"/>
+      <p1 x="1700" y="360"/>
+      <p2 x="1700" y="400"/>
     </wire>
     <wire>
-      <p1 x="1760" y="820"/>
-      <p2 x="1760" y="960"/>
+      <p1 x="1700" y="440"/>
+      <p2 x="1700" y="480"/>
     </wire>
     <wire>
-      <p1 x="1060" y="300"/>
-      <p2 x="1060" y="340"/>
-    </wire>
-    <wire>
-      <p1 x="1060" y="620"/>
-      <p2 x="1060" y="900"/>
-    </wire>
-    <wire>
-      <p1 x="1060" y="900"/>
-      <p2 x="1060" y="980"/>
+      <p1 x="1060" y="680"/>
+      <p2 x="1060" y="840"/>
     </wire>
     <wire>
       <p1 x="360" y="480"/>
       <p2 x="360" y="500"/>
     </wire>
     <wire>
-      <p1 x="1260" y="360"/>
-      <p2 x="1260" y="400"/>
+      <p1 x="1640" y="500"/>
+      <p2 x="1640" y="560"/>
     </wire>
     <wire>
-      <p1 x="1260" y="440"/>
-      <p2 x="1260" y="480"/>
+      <p1 x="2220" y="820"/>
+      <p2 x="2220" y="840"/>
     </wire>
     <wire>
-      <p1 x="1200" y="500"/>
-      <p2 x="1200" y="560"/>
+      <p1 x="1900" y="820"/>
+      <p2 x="1900" y="840"/>
+    </wire>
+    <wire>
+      <p1 x="1580" y="540"/>
+      <p2 x="1580" y="780"/>
     </wire>
     <wire>
       <p1 x="240" y="180"/>
       <p2 x="240" y="720"/>
     </wire>
     <wire>
+      <p1 x="1520" y="600"/>
+      <p2 x="1520" y="740"/>
+    </wire>
+    <wire>
+      <p1 x="1520" y="740"/>
+      <p2 x="1520" y="820"/>
+    </wire>
+    <wire>
       <p1 x="3380" y="360"/>
-      <p2 x="3380" y="420"/>
+      <p2 x="3380" y="480"/>
     </wire>
     <wire>
-      <p1 x="1780" y="820"/>
-      <p2 x="1780" y="840"/>
+      <p1 x="1780" y="800"/>
+      <p2 x="1780" y="860"/>
     </wire>
     <wire>
-      <p1 x="1460" y="820"/>
-      <p2 x="1460" y="840"/>
+      <p1 x="2100" y="820"/>
+      <p2 x="2100" y="880"/>
     </wire>
     <wire>
-      <p1 x="1140" y="540"/>
-      <p2 x="1140" y="780"/>
+      <p1 x="1400" y="720"/>
+      <p2 x="1400" y="800"/>
+    </wire>
+    <wire>
+      <p1 x="1400" y="800"/>
+      <p2 x="1400" y="880"/>
+    </wire>
+    <wire>
+      <p1 x="1400" y="880"/>
+      <p2 x="1400" y="960"/>
     </wire>
     <wire>
       <p1 x="440" y="360"/>
@@ -3190,20 +3701,20 @@ endmodule</string>
       <p2 x="440" y="500"/>
     </wire>
     <wire>
-      <p1 x="1080" y="600"/>
-      <p2 x="1080" y="740"/>
+      <p1 x="1080" y="660"/>
+      <p2 x="1080" y="860"/>
     </wire>
     <wire>
-      <p1 x="1080" y="740"/>
-      <p2 x="1080" y="820"/>
+      <p1 x="1660" y="240"/>
+      <p2 x="1660" y="360"/>
     </wire>
     <wire>
-      <p1 x="1340" y="800"/>
-      <p2 x="1340" y="860"/>
+      <p1 x="1660" y="480"/>
+      <p2 x="1660" y="600"/>
     </wire>
     <wire>
-      <p1 x="1660" y="820"/>
-      <p2 x="1660" y="880"/>
+      <p1 x="1980" y="820"/>
+      <p2 x="1980" y="860"/>
     </wire>
     <wire>
       <p1 x="2620" y="440"/>
@@ -3212,6 +3723,10 @@ endmodule</string>
     <wire>
       <p1 x="2620" y="260"/>
       <p2 x="2620" y="360"/>
+    </wire>
+    <wire>
+      <p1 x="1340" y="1020"/>
+      <p2 x="1340" y="1060"/>
     </wire>
   </wires>
   <measurementOrdering/>
