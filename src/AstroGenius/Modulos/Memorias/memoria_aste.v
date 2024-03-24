@@ -1,4 +1,4 @@
-module memoria_aster(
+module memoria_aste(
     input        clk,
     input        we,
     input  [9:0] data,
