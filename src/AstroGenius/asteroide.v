@@ -13,6 +13,8 @@ module asteroide(
     input new_load_aste,
     input new_destruido_aste,
 
+    input reset_gerador_random,
+
     output colisao_aste_com_nave,
     output rco_contador_aste,
     output [1:0] opcode_aste,
@@ -66,17 +68,17 @@ mux_pos #(4) mux_pos (
     /* inputs */
     .select_mux_pos (select_mux_pos_aste),
     .resul_soma      (wire_saida_som_sub[3:0]),
-    .mem_coor_x      (wire_saida_memoria_aste[9:6]),
-    .mem_coor_y      (wire_saida_memoria_aste[5:2]),
+    .mem_coor_x      (wire_saida_memoria_aste[9:6]), 
+    .mem_coor_y      (wire_saida_memoria_aste[5:2]), 
     .mem_opcode      (wire_saida_memoria_aste[1:0]),
-    .random_x        (),
-    .random_y        (),
-    .random_opcode   (),
+    .random_x        (random_asteroide[9:6]), // 4'b0000
+    .random_y        (random_asteroide[5:2]), // 4'b0111
+    .random_opcode   (random_asteroide[1:0]), // 2'b00
     /* output */
     .saida_mux       (wire_saida_mux_pos)
 );
 
-memoria_aster memoria_aster (
+memoria_aste memoria_aste (
     /* inputs */
     .clk  (clock),
     .we   (enable_mem_aste),
@@ -84,6 +86,20 @@ memoria_aster memoria_aster (
     .addr (wire_saida_contador),
     /* output */
     .q    (wire_saida_memoria_aste) 
+);
+
+wire [3:0] addr_rom;
+wire [9:0] random_asteroide;
+random random (
+    .clock(clock),
+    .reset(reset_gerador_random),
+    .rnd(addr_rom) 
+);
+
+rom_aste rom_aste(
+    .clk(clock),
+    .addr(addr_rom),
+    .q(random_asteroide)
 );
 
 mux_coor #(4) mux_coor(

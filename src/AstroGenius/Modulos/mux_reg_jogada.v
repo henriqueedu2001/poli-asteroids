@@ -5,8 +5,7 @@ module mux_reg_jogada (
 
         assign saida_mux = select_mux_jogada == 4'b0001 ? 2'b00 : 
                            select_mux_jogada == 4'b1000 ? 2'b10 :
-                           select_mux_jogada == 4'b0010 ? 2'b01 : 
-                           select_mux_jogada == 4'b0100 ? 2'b11 : 2'b11 ;
+                           select_mux_jogada == 4'b0010 ? 2'b01 : 2'b11;
 endmodule
 
 

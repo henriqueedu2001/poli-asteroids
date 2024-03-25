@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns
 
 module astro_genius_tb;
 
@@ -54,10 +54,138 @@ module astro_genius_tb;
         iniciar = 1'b0;
         #(10*clockPeriod)
 
-        chaves = 6'b100001;
+        chaves = 6'b001001;
         #(10*clockPeriod)
         chaves = 6'b000000;
-        #(100000*clockPeriod)
+        #(2000*clockPeriod)
+
+        chaves = 6'b001001;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000101;
+        #(10*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
+
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
 
         $finish;
     end

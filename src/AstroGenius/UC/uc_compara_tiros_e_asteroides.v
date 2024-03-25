@@ -17,7 +17,7 @@ module uc_compara_tiros_e_asteroides (
         output reg asteroide_destruido,
         output reg conta_contador_asteroides,
         output reg conta_contador_tiros,
-
+        output reg incrementa_pontos,
         output reg s_fim_comparacao,
         output reg [4:0] db_estado_compara_tiros_e_asteroide
 );
@@ -90,6 +90,7 @@ module uc_compara_tiros_e_asteroides (
                                           estado_atual == salva_destruicao  )    ? 1'b0 : 1'b1;
         asteroide_destruido          =   (estado_atual == destroi_asteroide ||
                                           estado_atual == salva_destruicao  )    ? 1'b1 : 1'b0;
+        incrementa_pontos            =   (estado_atual == destroi_asteroide)     ? 1'b1 : 1'b0;
         conta_contador_asteroides    =   (estado_atual == incrementa_asteroides) ? 1'b1 : 1'b0;
         conta_contador_tiros         =   (estado_atual == incrementa_tiros)      ? 1'b1 : 1'b0;
         s_fim_comparacao             =   (estado_atual == fim_comparacao)        ? 1'b1 : 1'b0;

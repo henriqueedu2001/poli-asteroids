@@ -19,6 +19,7 @@ module uc_move_tiros (
         output reg select_soma_sub     ,  
         output reg reset_contador_tiro ,
         output reg conta_contador_tiro , 
+        output reg reset_contador_movimenta_tiro,
         output reg enable_mem_tiro     , // enable da memoria de tiros
         output reg enable_load_tiro    ,
         output reg new_loaded,                 // valor do loaded que será salvo na nossa memoria (é 0 quando tiro sair da tela) 
@@ -108,6 +109,8 @@ module uc_move_tiros (
         select_mux_coor_tiro        = (estado_atual == vertical_crescente ||
                                        estado_atual == vertical_decrescente) ? 1'b1 : 1'b0;
         movimentacao_concluida_tiro = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
+
+        reset_contador_movimenta_tiro = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
         case (estado_atual)

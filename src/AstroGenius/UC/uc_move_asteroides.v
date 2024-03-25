@@ -13,26 +13,27 @@ module uc_move_asteroides (
         output reg select_soma_sub,  
         output reg reset_contador_aste,
         output reg conta_contador_aste, 
+        output reg reset_contador_movimenta_asteroide,
         output reg enable_mem_aste, // enable da memoria de tiros
         output reg movimentacao_concluida_aste, // sinal que indica o fim da movimentação dos tiros
         output reg [4:0] db_estado_move_aste
 
 );
 
-    parameter inicio                 = 5'b00000; // 0
-    parameter espera                 = 5'b00001; // 1
-    parameter reseta_contador        = 5'b00010; // 2
-    parameter verifica_loaded        = 5'b00011; // 3
-    parameter verifica_opcode        = 5'b00100; // 4
-    parameter horizontal_crescente   = 5'b00101; // 5 
-    parameter horizontal_decrescente = 5'b00110; // 6
-    parameter vertical_crescente     = 5'b00111; // 7
-    parameter vertical_decrescente   = 5'b01000; // 8
-    parameter salva_posicao          = 5'b01001; // 9
-    parameter incrementa_contador    = 5'b01010; // 10
-    parameter aux                    = 5'b01011; // 11
-    parameter sinaliza               = 5'b01110; // 12
-    parameter erro                   = 5'b11111; // erro
+        parameter inicio                 = 5'b00000; // 0
+        parameter espera                 = 5'b00001; // 1
+        parameter reseta_contador        = 5'b00010; // 2
+        parameter verifica_loaded        = 5'b00011; // 3
+        parameter verifica_opcode        = 5'b00100; // 4
+        parameter horizontal_crescente   = 5'b00101; // 5 
+        parameter horizontal_decrescente = 5'b00110; // 6
+        parameter vertical_crescente     = 5'b00111; // 7
+        parameter vertical_decrescente   = 5'b01000; // 8
+        parameter salva_posicao          = 5'b01001; // 9
+        parameter incrementa_contador    = 5'b01010; // 10
+        parameter aux                    = 5'b01011; // 11
+        parameter sinaliza               = 5'b01110; // 12
+        parameter erro                   = 5'b11111; // erro
 
 // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
@@ -86,7 +87,7 @@ module uc_move_asteroides (
                                        estado_atual == vertical_decrescente)   ? 2'b10 : 2'b00;
         select_mux_coor_aste        = (estado_atual == vertical_crescente      ||
                                        estado_atual == vertical_decrescente)   ? 1'b1 : 1'b0;
-        
+        reset_contador_movimenta_asteroide = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
         case (estado_atual)

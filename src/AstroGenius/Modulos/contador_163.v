@@ -1,10 +1,11 @@
-module contador_163 #(parameter N = 16, parameter tempo = 2000) ( 
+module contador_163 #(parameter N = 16) ( 
                         input clock, 
                         input clr, 
                         input ld, 
                         input ent, 
                         input enp, 
-                        input [N-1:0] D, 
+                        input [N-1:0] D,
+                        input [N-1:0] Max,
                         output reg [N-1:0] Q, 
                         output reg rco
                     );
@@ -16,10 +17,10 @@ module contador_163 #(parameter N = 16, parameter tempo = 2000) (
     always @ (posedge clock)
         if (clr)               Q <= 0;
         else if (ld)           Q <= D;
-        else if (ent && enp)   Q <= Q + 1;
+        else if (ent && enp && Q <= Max)   Q <= Q + 1;
         else                   Q <= Q;
 
     always @ (Q or ent)
-        if (ent && (Q == tempo))   rco = 1;
+        if (ent && (Q >= Max))     rco = 1;
         else                       rco = 0;
 endmodule

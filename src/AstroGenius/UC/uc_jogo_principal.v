@@ -23,8 +23,9 @@ module uc_jogo_principal (
         output reg reset_contador_vidas,
         // resets de outras máquinas de estados
         output reg reset_maquinas,
-
+        output reg reset_pontuacao,
         output reg pronto,
+        output reg termina,
         output reg [4:0] db_estado_jogo_principal
 );
 
@@ -39,10 +40,10 @@ module uc_jogo_principal (
         parameter inicia_state_registra_tiros             = 5'b00111; // 7
         parameter espera_salvamento                       = 5'b01000; // 8
         parameter espera_salvamento2                      = 5'b01001; // 9
-        parameter erro                                    = 5'b01111; // F
+        parameter erro                                    = 5'b11111; // F
 
 // Variáveis de estado
-        reg [3:0] estado_atual, proximo_estado;
+        reg [4:0] estado_atual, proximo_estado;
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin
@@ -57,23 +58,29 @@ module uc_jogo_principal (
         case (estado_atual)
                 inicial:              proximo_estado = iniciar ? inicializa_elementos : inicial;                                 
                 inicializa_elementos: proximo_estado = espera_jogada;
-                espera_jogada:        proximo_estado = ~vidas ? fim_jogo :
-                                                       (vidas && ocorreu_jogada)  ? registra_jogada : 
-                                                       (vidas && ~ocorreu_jogada) ? espera_jogada   : erro;
+                // espera_jogada:        proximo_estado = ~vidas ? fim_jogo :
+                //                                        (vidas && ocorreu_jogada)  ? registra_jogada : 
+                //                                        (vidas && ~ocorreu_jogada) ? espera_jogada   : erro;
+
+                espera_jogada:        proximo_estado = ~vidas ? fim_jogo :  
+                                                        (ocorreu_jogada)  ? registra_jogada : espera_jogada;
+
                 registra_jogada:      proximo_estado = espera_salvamento;
+                espera_salvamento:    proximo_estado = espera_salvamento2; 
+                // espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
+                //                                        (vidas && ocorreu_tiro)  ? termina_movimentacao_asteroides_e_tiros :
+                //                                        (vidas && ~ocorreu_tiro) ? espera_jogada : erro; 
 
-                espera_salvamento:   proximo_estado = espera_salvamento2; 
-
-                espera_salvamento2: proximo_estado = ~vidas ? fim_jogo : 
-                                                       (vidas && ocorreu_tiro)  ? termina_movimentacao_asteroides_e_tiros :
-                                                       (vidas && ~ocorreu_tiro) ? espera_jogada : erro; 
+                espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
+                                                (ocorreu_tiro)  ? termina_movimentacao_asteroides_e_tiros : espera_jogada;
 
                 termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_asteroides_e_tiros && ~vidas) ? fim_jogo :
-                                                                          (fim_movimentacao_asteroides_e_tiros && vidas)  ? inicia_state_registra_tiros :
-                                                                          termina_movimentacao_asteroides_e_tiros;
-                inicia_state_registra_tiros:     proximo_estado = espera_registra_tiros;
-                espera_registra_tiros:                          proximo_estado = fim_registra_tiros ? espera_jogada : espera_registra_tiros;                      
-                fim_jogo:                                proximo_estado = reset ? inicial : fim_jogo;                                
+                                                                        (fim_movimentacao_asteroides_e_tiros && vidas)  ? inicia_state_registra_tiros :
+                                                                        termina_movimentacao_asteroides_e_tiros;
+                inicia_state_registra_tiros:             proximo_estado = espera_registra_tiros;
+                espera_registra_tiros:                   proximo_estado = fim_registra_tiros ? espera_jogada : espera_registra_tiros;                      
+                fim_jogo:                                proximo_estado = reset ? inicial : fim_jogo;   
+                default:                                  proximo_estado = erro;                             
         endcase
     end
 
@@ -86,15 +93,16 @@ module uc_jogo_principal (
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_contador_tiro       = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
-        reset_maquinas            = (estado_atual == inicial               ||
-                                     estado_atual == inicializa_elementos  ||
+        reset_maquinas            = (estado_atual == inicializa_elementos  ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+        reset_pontuacao           = (estado_atual == inicializa_elementos) ? 1'b1 : 1'b0;
         reset_contador_vidas      = (estado_atual == inicializa_elementos ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         enable_reg_jogada         = (estado_atual == registra_jogada)      ? 1'b1 : 1'b0;
         inicia_registra_tiros     = (estado_atual == inicia_state_registra_tiros)       ? 1'b1 : 1'b0;
         pronto                    = (estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         inicia_movimentacao_asteroides_e_tiros = (estado_atual == espera_jogada) ? 1'b1 : 1'b0;
+        termina                   = (estado_atual == termina_movimentacao_asteroides_e_tiros) ? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
         case (estado_atual)
@@ -108,7 +116,6 @@ module uc_jogo_principal (
                 inicia_state_registra_tiros             : db_estado_jogo_principal = 5'b00111; // 7
                 espera_salvamento                       : db_estado_jogo_principal = 5'b01000; // 8
                 espera_salvamento2                      : db_estado_jogo_principal = 5'b01001; // 9
-                erro                                    : db_estado_jogo_principal = 5'b01111; // F
                 default                                 : db_estado_jogo_principal = 5'b11111;
         endcase
     end

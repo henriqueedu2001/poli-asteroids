@@ -16,7 +16,7 @@ module memoria_load_aste(
     // a partir da leitura de arquivo usando $readmemb
     initial 
     begin : INICIA_RAM
-        ram[4'b0] =  2'b10;
+        ram[4'b0] =  2'b00;
         ram[4'd1] =  2'b00;
         ram[4'd2] =  2'b00;
         ram[4'd3] =  2'b00;
