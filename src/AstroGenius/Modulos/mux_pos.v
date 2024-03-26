@@ -8,7 +8,7 @@ module mux_pos #(parameter N = 4)(
         input [N-1:0] random_y,
         input [1:0] random_opcode,
         output [9:0] saida_mux
-        );
+);
 
         parameter posicao_op_random = 2'b00;
         parameter resul_soma_coor_x = 2'b01;

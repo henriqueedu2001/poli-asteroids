@@ -14,23 +14,20 @@ module astro_genius (
         output [4:0] db_estado_compara_asteroides_com_nave_e_tiros,
         output [4:0] db_estado_move_asteroides,
         output [3:0] db_estado_registra_tiro,
-        output [3:0] db_vidas,
-        output [3:0] db_asteroide_x,
-        output [3:0] db_asteroide_y,
-        output [3:0] db_tiro_x,
-        output [3:0] db_tiro_y,
-        output db_aste_renderizado,
-        output db_tiro_renderizado,
         output [3:0] db_estado_uc_gera_frame,
-        output [14:0] matriz_x,
-        output [3:0] matriz_y,
         output [3:0] db_estado_uc_renderiza,
         output [3:0] db_uc_gera_asteroide,
-        output db_conta_contador_gera_asteroide,
-        output db_rco_contador_gera_aste,
-        output db_reset_contador_gera_asteroide,
-        output [15:0] db_contador_163,
-        output [9:0] db_pontos
+
+
+        output [14:0] matriz_x,
+        output [3:0] matriz_y,
+
+        output [6:0] db_vidas,
+        output [6:0] db_pontos,
+        output [6:0] db_tiro_x,
+        output [6:0] db_tiro_y,
+        output [6:0] db_asteroide_x,
+        output [6:0] db_asteroide_y
 );
 
 //wires da conexão da UC principal com outros modulos
@@ -56,13 +53,90 @@ wire [3:0] wire_aste_coor_y;
 wire [1:0] wire_opcode_mux_out;
 wire wire_reset_pontuacao_uc_principal;
 
-assign db_aste_renderizado = wire_aste_renderizado;
-assign db_tiro_renderizado = wire_tiro_renderizado;
-assign db_asteroide_x = wire_aste_renderizado ? wire_aste_coor_x : 4'b0000;
-assign db_asteroide_y = wire_aste_renderizado ? wire_aste_coor_y : 4'b0000;
+/* ---------------------------------------------------- */
+/* ---------------- Parte de depuração ---------------- */
+/* ---------------------------------------------------- */
 
-assign db_tiro_x = wire_tiro_renderizado ? wire_tiro_coor_x : 4'b0000;
-assign db_tiro_y = wire_tiro_renderizado ? wire_tiro_coor_y : 4'b0000;
+wire [3:0] wire_aste_coor_x_out;
+wire [3:0] wire_aste_coor_y_out;
+wire [3:0] wire_tiro_coor_x_out;
+wire [3:0] wire_tiro_coor_y_out;
+
+registrador_n #(4) tiro_renderizado_x(
+    .clock(clock) ,
+    .clear(),
+    .enable(wire_tiro_renderizado),
+    .D(wire_tiro_coor_x),
+    .Q(wire_tiro_coor_x_out)
+);
+
+registrador_n #(4) tiro_renderizado_y(
+    .clock(clock) ,
+    .clear(),
+    .enable(wire_tiro_renderizado),
+    .D(wire_tiro_coor_y),
+    .Q(wire_tiro_coor_y_out)
+);
+
+registrador_n #(4) aste_renderizado_x(
+    .clock(clock) ,
+    .clear(),
+    .enable(wire_aste_renderizado),
+    .D(wire_aste_coor_x),
+    .Q(wire_aste_coor_x_out)
+);
+
+registrador_n #(4) aste_renderizado_y(
+    .clock(clock) ,
+    .clear(),
+    .enable(wire_aste_renderizado),
+    .D(wire_aste_coor_y),
+    .Q(wire_aste_coor_y_out)
+);
+
+
+
+/* posicao x do asteroide */
+hexa7seg HEX5 (
+    .hexa    (wire_aste_coor_x_out),
+    .display (db_asteroide_x)
+);
+
+/* posicao y do asteroide */
+hexa7seg HEX4 (
+    .hexa    (wire_tiro_coor_y_out),
+    .display (db_asteroide_y)
+);
+
+/* posicao x do tiro */
+hexa7seg HEX3 (
+    .hexa    (wire_tiro_coor_x_out),
+    .display (db_tiro_x)
+);
+
+/* posicao y do tiro */
+hexa7seg HEX2 (
+    .hexa    (wire_tiro_coor_y_out),
+    .display (db_tiro_y)
+);
+
+wire [3:0] wire_quantidade_vidas;
+/* display para as vidas */
+hexa7seg HEX1 (
+    .hexa    (wire_quantidade_vidas),
+    .display (db_vidas)
+);
+
+/* display pra pontuacao */
+wire [9:0] wire_pontos_aux;
+hexa7seg HEX0 (
+    .hexa    (wire_pontos_aux[3:0]),
+    .display (db_pontos)
+);
+
+/* ---------------------------------------------------- */
+/* ---------------- Parte de depuração ---------------- */
+/* ---------------------------------------------------- */
 
 wire wire_termina_uc_jogo_principal;
 
@@ -122,10 +196,6 @@ wire wire_rco_contador_movimenta_tiro;
 wire wire_rco_contador_movimenta_asteroide;
 wire wire_reset_contador_movimenta_tiro;
 wire wire_reset_contador_movimenta_asteroide;
-assign db_contador_163 = wire_out_contador_163;
-assign db_conta_contador_gera_asteroide = wire_conta_contador_gera_asteroide;
-assign db_rco_contador_gera_aste = wire_rco_contador_gera_aste;
-assign db_reset_contador_gera_asteroide = wire_reset_contador_gera_asteroide;
 
 parameter tiro_easy = 16'd1500;
 parameter tiro_medium = 16'd1000;
@@ -634,8 +704,7 @@ tiro tiro (
     .db_tiro_pos_y(wire_tiro_coor_y)
 );
 
-wire [3:0] wire_quantidade_vidas;
-assign db_vidas = wire_quantidade_vidas;
+
 decrementador #(4) decrementador( 
     /* inputs */
     .clock(clock), 
@@ -686,7 +755,7 @@ contador_m #(1024, 10) contador_pontuacao (
     .zera_s(),
     .conta(wire_incrementa_pontos_uc_compara_tiros_e_asteroides),
     /* outputs */
-    .Q(db_pontos),
+    .Q(wire_pontos_aux),
     .fim(),
     .meio()
   );

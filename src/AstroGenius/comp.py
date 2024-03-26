@@ -20,6 +20,7 @@ arquivos = [
     "Modulos/registrador_n.v",
     "Modulos/somador_subtrator.v",
     "Modulos/random.v",
+    "Modulos/hexa7seg_dig.v",
     "UC/uc_compara_asteroides_com_nave_e_tiros.v",
     "UC/uc_compara_tiros_e_asteroides.v",
     "UC/uc_coordena_asteroides_tiros.v",
