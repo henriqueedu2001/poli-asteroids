@@ -1,11 +1,12 @@
 module memoria_load_tiro(
     input        clk,
     input        we,
+    input        clear,
     input  [1:0] data,
     input  [3:0] addr,
     output [1:0] q
 );
-
+    integer i;
     // Variavel RAM (armazena dados)
     reg [1:0] ram[15:0];
 
@@ -37,9 +38,15 @@ module memoria_load_tiro(
     always @ (posedge clk)
     begin
         // Escrita da memoria
-        if (we)
+        if (we && ~clear)
             ram[addr] <= data;
-
+        
+        if (clear) begin
+            for(i = 0; i < 16; i = i + 1) begin
+                ram[i] = 2'b00;
+            end
+        end
+        
         addr_reg <= addr;
     end
 
