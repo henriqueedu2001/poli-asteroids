@@ -22,13 +22,23 @@ module astro_genius (
         output [14:0] matriz_x,
         output [3:0] matriz_y,
 
-        output [6:0] db_vidas,
-        output [6:0] db_pontos,
-        output [6:0] db_tiro_x,
-        output [6:0] db_tiro_y,
-        output [6:0] db_asteroide_x,
-        output [6:0] db_asteroide_y
+        output [3:0] db_vidas,
+        output [3:0] db_pontos,
+        output [3:0] db_tiro_x,
+        output [3:0] db_tiro_y,
+        output [3:0] db_asteroide_x,
+        output [3:0] db_asteroide_y,
+        output db_up,
+        output db_down,
+        output db_left,
+        output db_right
 );
+
+
+assign db_up = chaves[5];
+assign db_down = chaves[4];
+assign db_left = chaves[3];
+assign db_right = chaves[2];
 
 //wires da conexão da UC principal com outros modulos
 wire wire_vidas;
@@ -54,7 +64,7 @@ wire [1:0] wire_opcode_mux_out;
 wire wire_reset_pontuacao_uc_principal;
 
 /* ---------------------------------------------------- */
-/* ---------------- Parte de depuração ---------------- */
+/* vvvvvvvvvvvvvvvv Parte de depuração vvvvvvvvvvvvvvvv */
 /* ---------------------------------------------------- */
 
 wire [3:0] wire_aste_coor_x_out;
@@ -63,7 +73,7 @@ wire [3:0] wire_tiro_coor_x_out;
 wire [3:0] wire_tiro_coor_y_out;
 
 registrador_n #(4) tiro_renderizado_x(
-    .clock(clock) ,
+    .clock(clock),
     .clear(),
     .enable(wire_tiro_renderizado),
     .D(wire_tiro_coor_x),
@@ -71,7 +81,7 @@ registrador_n #(4) tiro_renderizado_x(
 );
 
 registrador_n #(4) tiro_renderizado_y(
-    .clock(clock) ,
+    .clock(clock),
     .clear(),
     .enable(wire_tiro_renderizado),
     .D(wire_tiro_coor_y),
@@ -79,7 +89,7 @@ registrador_n #(4) tiro_renderizado_y(
 );
 
 registrador_n #(4) aste_renderizado_x(
-    .clock(clock) ,
+    .clock(clock),
     .clear(),
     .enable(wire_aste_renderizado),
     .D(wire_aste_coor_x),
@@ -87,13 +97,12 @@ registrador_n #(4) aste_renderizado_x(
 );
 
 registrador_n #(4) aste_renderizado_y(
-    .clock(clock) ,
+    .clock(clock),
     .clear(),
     .enable(wire_aste_renderizado),
     .D(wire_aste_coor_y),
     .Q(wire_aste_coor_y_out)
 );
-
 
 
 /* posicao x do asteroide */
@@ -104,7 +113,7 @@ hexa7seg HEX5 (
 
 /* posicao y do asteroide */
 hexa7seg HEX4 (
-    .hexa    (wire_tiro_coor_y_out),
+    .hexa    (wire_aste_coor_y_out),
     .display (db_asteroide_y)
 );
 
@@ -135,7 +144,7 @@ hexa7seg HEX0 (
 );
 
 /* ---------------------------------------------------- */
-/* ---------------- Parte de depuração ---------------- */
+/* ^^^^^^^^^^^^^^^^ Parte de depuração ^^^^^^^^^^^^^^^^ */
 /* ---------------------------------------------------- */
 
 wire wire_termina_uc_jogo_principal;
@@ -190,30 +199,28 @@ wire wire_pausar_renderizacao;
 wire wire_gera_asteroide;
 wire wire_rco_contador_gera_aste;
 wire reset_contador_gera_aste;
-wire [15:0] wire_out_contador_163;
 
 wire wire_rco_contador_movimenta_tiro;
 wire wire_rco_contador_movimenta_asteroide;
 wire wire_reset_contador_movimenta_tiro;
 wire wire_reset_contador_movimenta_asteroide;
 
-parameter tiro_easy = 16'd1500;
-parameter tiro_medium = 16'd1000;
-parameter tiro_hard = 16'd500;
+parameter tiro_easy = 64'd800;
+parameter tiro_medium = 64'd800;
+parameter tiro_hard = 64'd800;
 
-parameter tempo_move_asteroide_easy = 16'd6000;
-parameter tempo_move_asteroide_medium = 16'd3000;
-parameter tempo_move_asteroide_hard = 16'd1000;
+parameter tempo_move_asteroide_easy = 64'd5000;
+parameter tempo_move_asteroide_medium = 64'd3000;
+parameter tempo_move_asteroide_hard = 64'd1000;
 
-parameter tempo_gera_asteroide_easy = 16'd6000;
-parameter tempo_gera_asteroide_medium = 16'd3000;
-parameter tempo_gera_asteroide_hard = 16'd1000;
+parameter tempo_gera_asteroide_easy = 64'd10000;
+parameter tempo_gera_asteroide_medium = 64'd3000;
+parameter tempo_gera_asteroide_hard = 64'd1000;
 
 
-
-wire [15:0] tempo_gera_aste;
-wire [15:0] tempo_move_aste;
-wire [15:0] tempo_move_tiro;
+wire [63:0] tempo_gera_aste;
+wire [63:0] tempo_move_aste;
+wire [63:0] tempo_move_tiro;
 
 assign tempo_gera_aste = (dificuldade == 3'b100) ? tempo_gera_asteroide_easy :
                               (dificuldade == 3'b010) ? tempo_gera_asteroide_medium : tempo_gera_asteroide_hard;
@@ -225,7 +232,7 @@ assign tempo_move_aste = (dificuldade == 3'b100) ? tempo_move_asteroide_easy:
 assign tempo_move_tiro = (dificuldade == 3'b100) ? tiro_easy :
                               (dificuldade == 3'b010) ? tiro_medium : tiro_hard;
 
-contador_163 #(16) contador_gera_asteroide  ( 
+contador_163 #(64) contador_gera_asteroide  ( 
     /* inputs */
     .clock(clock), 
     .clr(wire_reset_contador_gera_asteroide), 
@@ -235,11 +242,11 @@ contador_163 #(16) contador_gera_asteroide  (
     .D(),
     .Max(tempo_gera_aste),
     /* outputs */
-    .Q(wire_out_contador_163),
+    .Q(),
     .rco(wire_rco_contador_gera_aste)
 );
 
-contador_163 #(16) contador_movimenta_tiro  ( 
+contador_163 #(64) contador_movimenta_tiro  ( 
     /* inputs */
     .clock(clock), 
     .clr(wire_reset_contador_movimenta_tiro), 
@@ -253,7 +260,7 @@ contador_163 #(16) contador_movimenta_tiro  (
     .rco(wire_rco_contador_movimenta_tiro)
 );
 
-contador_163 #(16) contador_movimenta_asteroide  ( 
+contador_163 #(64) contador_movimenta_asteroide  ( 
     /* inputs */
     .clock(clock), 
     .clr(wire_reset_contador_movimenta_asteroide), 
@@ -632,6 +639,7 @@ asteroide asteroide(
     .select_soma_sub_aste(wire_select_soma_sub_uc_move_asteroides),
     .enable_reg_nave(),
     .reset_reg_nave(),
+    .reset_memoria_load(wire_reset_maquinas),
     .enable_mem_aste(wire_enable_mem_aste_uc_move_asteroides | wire_enable_mem_aste_uc_gera_asteroide),
     .enable_load_aste(wire_enable_load_asteroide_uc_compara_tiros_e_asteroides |
                       wire_enable_load_asteroides_uc_compara_asteroides_com_nave_e_tiros |
@@ -672,7 +680,7 @@ tiro tiro (
                          wire_reset_contador_tiro_uc_gera_frame),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros |
                          wire_select_mux_pos_tiro_uc_registra_tiro),
-                         
+    .reset_memoria_load(wire_reset_maquinas),
     .select_mux_coor_tiro(wire_select_mux_coor_tiro_uc_move_tiros),
     .select_soma_sub_tiro(wire_select_soma_sub_uc_move_tiros),
     .enable_reg_nave(),
@@ -764,14 +772,14 @@ contador_m #(1024, 10) contador_pontuacao (
 edge_detector edge_detector_jogada_up(
     .clock(clock),
     .reset(1'b0),
-    .sinal(chaves[0]),
+    .sinal(chaves[5]),
     .pulso(jogada_up)
 );
 
 edge_detector edge_detector_jogada_down(
     .clock(clock),
     .reset(1'b0),
-    .sinal(chaves[1]),
+    .sinal(chaves[4]),
     .pulso(jogada_down)
 );
 
@@ -792,14 +800,14 @@ edge_detector edge_detector_jogada_left(
 edge_detector edge_detector_jogada_especial(
     .clock(clock),
     .reset(1'b0),
-    .sinal(chaves[4]),
+    .sinal(chaves[1]),
     .pulso(jogada_especial)
 );
 
 edge_detector edge_detector_jogada_tiro(
     .clock(clock),
     .reset(1'b0),
-    .sinal(chaves[5]),
+    .sinal(chaves[0]),
     .pulso(jogada_tiro)
 );
 
@@ -827,7 +835,7 @@ module asteroide(
     input reset_reg_nave,
     input enable_mem_aste,
     input enable_load_aste,
-
+    input reset_memoria_load,
     input new_load_aste,
     input new_destruido_aste,
 
@@ -979,6 +987,7 @@ memoria_load_aste memoria_load_aste (
     /* inputs */
     .clk  (clock),
     .we   (enable_load_aste),
+    .clear(reset_memoria_load),
     .data ({new_load_aste, new_destruido_aste}),
     .addr (wire_saida_contador),
     /* output */
@@ -1002,6 +1011,7 @@ module tiro(
     input [3:0] aste_coor_x,
     input [3:0] aste_coor_y,
     input new_load_tiro,
+    input reset_memoria_load,
     input [1:0] opcode_registra_tiro,
     output x_borda_min_tiro,
     output y_borda_min_tiro,
@@ -1057,7 +1067,7 @@ contador_m #(16, 4) contador(
 
 mux_pos #(4) mux_pos (
     /* inputs */
-    .select_mux_pos (select_mux_pos_tiro),
+    .select_mux_pos  (select_mux_pos_tiro),
     .resul_soma      (wire_saida_som_sub[3:0]),
     .mem_coor_x      (wire_saida_memoria_tiro[9:6]),
     .mem_coor_y      (wire_saida_memoria_tiro[5:2]),
@@ -1190,6 +1200,7 @@ memoria_load_tiro memoria_load_tiro (
     /* inputs */
     .clk  (clock),
     .we   (enable_load_tiro),
+    .clear(reset_memoria_load),
     .data ({new_load_tiro, 1'b0}),
     .addr (wire_saida_contador),
     /* output */
@@ -1411,11 +1422,12 @@ endmodule
 module memoria_load_aste(
     input        clk,
     input        we,
+    input        clear,
     input  [1:0] data,
     input  [3:0] addr,
     output [1:0] q
 );
-
+    integer i;
     // Variavel RAM (armazena dados)
     reg [1:0] ram[15:0];
 
@@ -1447,8 +1459,14 @@ module memoria_load_aste(
     always @ (posedge clk)
     begin
         // Escrita da memoria
-        if (we)
+        if (we && ~clear)
             ram[addr] <= data;
+        
+        if (clear) begin
+            for (i = 0; i < 16; i = i + 1) begin
+                ram[i] = 2'b00;
+            end
+        end
 
         addr_reg <= addr;
     end
@@ -1510,11 +1528,12 @@ endmodule
 module memoria_load_tiro(
     input        clk,
     input        we,
+    input        clear,
     input  [1:0] data,
     input  [3:0] addr,
     output [1:0] q
 );
-
+    integer i;
     // Variavel RAM (armazena dados)
     reg [1:0] ram[15:0];
 
@@ -1546,9 +1565,15 @@ module memoria_load_tiro(
     always @ (posedge clk)
     begin
         // Escrita da memoria
-        if (we)
+        if (we && ~clear)
             ram[addr] <= data;
-
+        
+        if (clear) begin
+            for(i = 0; i < 16; i = i + 1) begin
+                ram[i] = 2'b00;
+            end
+        end
+        
         addr_reg <= addr;
     end
 

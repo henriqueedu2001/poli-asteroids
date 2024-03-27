@@ -54,7 +54,7 @@ module astro_genius_tb;
         iniciar = 1'b0;
         #(10*clockPeriod)
 
-        chaves = 6'b001001;
+        chaves = 6'b100001;
         #(10*clockPeriod)
         chaves = 6'b000000;
         #(2000*clockPeriod)
