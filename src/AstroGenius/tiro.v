@@ -12,6 +12,7 @@ module tiro(
     input [3:0] aste_coor_x,
     input [3:0] aste_coor_y,
     input new_load_tiro,
+    input reset_memoria_load,
     input [1:0] opcode_registra_tiro,
     output x_borda_min_tiro,
     output y_borda_min_tiro,
@@ -67,7 +68,7 @@ contador_m #(16, 4) contador(
 
 mux_pos #(4) mux_pos (
     /* inputs */
-    .select_mux_pos (select_mux_pos_tiro),
+    .select_mux_pos  (select_mux_pos_tiro),
     .resul_soma      (wire_saida_som_sub[3:0]),
     .mem_coor_x      (wire_saida_memoria_tiro[9:6]),
     .mem_coor_y      (wire_saida_memoria_tiro[5:2]),
@@ -200,6 +201,7 @@ memoria_load_tiro memoria_load_tiro (
     /* inputs */
     .clk  (clock),
     .we   (enable_load_tiro),
+    .clear(reset_memoria_load),
     .data ({new_load_tiro, 1'b0}),
     .addr (wire_saida_contador),
     /* output */

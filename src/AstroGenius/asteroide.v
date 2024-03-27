@@ -9,7 +9,7 @@ module asteroide(
     input reset_reg_nave,
     input enable_mem_aste,
     input enable_load_aste,
-
+    input reset_memoria_load,
     input new_load_aste,
     input new_destruido_aste,
 
@@ -161,6 +161,7 @@ memoria_load_aste memoria_load_aste (
     /* inputs */
     .clk  (clock),
     .we   (enable_load_aste),
+    .clear(reset_memoria_load),
     .data ({new_load_aste, new_destruido_aste}),
     .addr (wire_saida_contador),
     /* output */
