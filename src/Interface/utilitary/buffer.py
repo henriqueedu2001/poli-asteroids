@@ -18,8 +18,8 @@ class Buffer():
         index = self.index % self.buffer_size
         self.buffer[index] = byte
         
-        if self.complete_chunk(byte) == True:
-            print('chunk completo encontrado')
+        if self.is_break_point(byte) == True:
+            print(f'chunk completo encontrado em {index}')
         
         # atualiza índice
         self.index = index + 1
@@ -27,7 +27,7 @@ class Buffer():
         return
     
     
-    def complete_chunk(self, last_byte):
+    def is_break_point(self, last_byte):
         """verifica se o último byte indica um chunk completo de dados
 
         Args:
@@ -39,18 +39,24 @@ class Buffer():
         last_break_point_str_byte = self.break_point_str[-1]
         break_point_str_size = len(self.break_point_str)
         
-        pivot_index = self.get_absolute_index(self.index, -1)
-        
+        # detecção de byte final de parada
         if last_byte == last_break_point_str_byte:
+            
+            # caso o último byte do buffer seja o último byte da str do breakpoint
+            # percorra o buffer para trás e verifique se a string é de fato de um breakpoint
             for i in range(break_point_str_size):
-                comparison_index = self.get_absolute_index(self.index, -i)
-                break_point_str_index = break_point_str_size - 1 - i
+                # cálculo dos índices
+                break_point_str_index = break_point_str_size - i - 1
+                buffer_index = self.get_absolute_index(self.index, -i)
                 
-                if self.buffer[comparison_index] != self.break_point_str[break_point_str_index]:
+                # obtenção dos caracteres
+                break_point_char = self.break_point_str[break_point_str_index]
+                buffer_char = self.buffer[buffer_index]
+                
+                if buffer_char != break_point_char:
                     return False
                 
-            return True
-                
+                return True
         
         return False
     
@@ -106,12 +112,12 @@ class Buffer():
         for i in range(n):
             for j in range(m):
                 print(self.buffer[i * m + j], end='')
-            print('\n')
+            print('')
     
 
 def test():
-    buffer = Buffer(buffer_size = 8, chunk_size = 2, break_point_str='ab')
-    data = list('2223333ab--111122223333ab--111122223333')
+    buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='abc')
+    data = list('abcggggggabcggggggabcgggggg')
     
     for byte in data:
         buffer.write_buffer(byte)
