@@ -1,11 +1,14 @@
+EMPTY_DATA_BYTE = 0
+
 class Buffer():
     def __init__(self, buffer_size, chunk_size, break_point_str) -> None:
         self.index = 0
         self.buffer_size = buffer_size
-        self.buffer = [0] * self.buffer_size # inicialização do buffer
+        self.buffer = [EMPTY_DATA_BYTE] * self.buffer_size # inicialização do buffer
         self.chunk_size = chunk_size
         self.break_point_str = break_point_str
         self.last_break_point = -1
+        self.chunk = [EMPTY_DATA_BYTE] * self.chunk_size
     
     
     def write_buffer(self, byte: str):
@@ -20,6 +23,7 @@ class Buffer():
         
         if self.is_break_point(byte):
             if self.complete_chunk():
+                self.load_chunk()
                 print('chunk completo recebido')
             
             self.last_break_point = index
@@ -28,6 +32,20 @@ class Buffer():
         # atualiza índice
         self.index = index + 1
     
+        return
+    
+    
+    def load_chunk(self):
+        """Carrega um chunk, percorrendo os últimos n = chunk_size bytes do buffer
+        """
+        # percorre o buffer, coletando os bytes do chunk
+        for i in range(self.chunk_size):
+            buffer_index = self.index
+            buffer_index = self.get_absolute_index(buffer_index, i - self.chunk_size + 1)
+            byte = self.buffer[buffer_index]
+            
+            self.chunk[i] = byte
+        
         return
     
     
@@ -138,6 +156,7 @@ def test():
     data = list('gggabcggggggabcggggggabcggg')
     
     for byte in data:
+        print(f'chunk = {buffer.chunk}')
         buffer.write_buffer(byte)
     
     buffer.print_buffer()
