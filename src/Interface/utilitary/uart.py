@@ -100,5 +100,3 @@ def data_transmission_test():
         time.sleep(1)
 
     pass
-
-data_transmission_test()
