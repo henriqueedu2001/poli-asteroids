@@ -5,7 +5,7 @@ class Buffer():
         self.buffer = [0] * self.buffer_size # inicialização do buffer
         self.chunk_size = chunk_size
         self.break_point_str = break_point_str
-        self.break_points = []
+        self.last_break_point = -1
     
     
     def write_buffer(self, byte: str):
@@ -18,13 +18,24 @@ class Buffer():
         index = self.index % self.buffer_size
         self.buffer[index] = byte
         
-        if self.is_break_point(byte) == True:
-            print(f'chunk completo encontrado em {index}')
+        if self.is_break_point(byte):
+            if self.complete_chunk():
+                print('chunk completo recebido')
+            
+            self.last_break_point = index
+            print(f'breakpoint em {index}')
         
         # atualiza índice
         self.index = index + 1
     
         return
+    
+    
+    def complete_chunk(self):
+        if self.index - self.last_break_point == self.chunk_size + 1:
+            return True
+        
+        return False
     
     
     def is_break_point(self, last_byte):
@@ -117,7 +128,7 @@ class Buffer():
 
 def test():
     buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='abc')
-    data = list('abcggggggabcggggggabcgggggg')
+    data = list('gggabcggggggabcggggggabcggg')
     
     for byte in data:
         buffer.write_buffer(byte)
