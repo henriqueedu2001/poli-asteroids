@@ -1,7 +1,7 @@
 import serial
 
 # Configurar a porta serial (substitua '/dev/ttyUSB0' pelo seu dispositivo serial)
-serial_port = serial.Serial('COM4', baudrate=9600, timeout=1, parity=serial.PARITY_NONE)
+serial_port = serial.Serial('COM6', baudrate=9600, timeout=1, parity=serial.PARITY_NONE)
 
 try:
     while True:
