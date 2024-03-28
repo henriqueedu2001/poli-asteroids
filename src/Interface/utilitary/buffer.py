@@ -55,7 +55,9 @@ class Buffer():
         Returns:
             bool: verdadeiro, se houve recepção de um chunk completo e falso caso contrário
         """
-        if self.index - self.last_break_point == self.chunk_size + 1:
+        
+        # verifica coerência da distância entre os breakpoints
+        if self.index - self.last_break_point == self.chunk_size:
             return True
         
         return False
@@ -152,8 +154,8 @@ class Buffer():
     
 
 def test():
-    buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='abc')
-    data = list('gggabcggggggabcggggggabcggg')
+    buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='ab')
+    data = list('nk1abchunk2abchunk3abchunk4abchunk5abch')
     
     for byte in data:
         print(f'chunk = {buffer.chunk}')
