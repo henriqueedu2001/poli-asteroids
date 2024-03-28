@@ -1,4 +1,3 @@
-
 module uc_registra_tiro (
         input clock                    ,
         input registra_tiro            , // entrada que inicia a máquina de estados
@@ -14,7 +13,6 @@ module uc_registra_tiro (
         output reg [1:0] select_mux_pos , // mux que seleciona a posição que será salva na memoria (salva a posição da nave e o opcode)
         output reg tiro_registrado      , // saida final que indica o fim da operação registra tiro
         output reg [3:0] db_estado_registra_tiro
-
 );
 
         /* declaração dos estados dessa UC */
@@ -32,7 +30,6 @@ module uc_registra_tiro (
         // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
 
-
         // Memória de estado
         always @(posedge clock or posedge reset) begin
                 if (reset)
@@ -46,9 +43,7 @@ module uc_registra_tiro (
         case (estado_atual)
                 inicial:                  proximo_estado = espera;
                 espera:                   proximo_estado = registra_tiro ? zera_contador : espera;
-                
                 zera_contador:            proximo_estado = verifica;
-
                 verifica:                 proximo_estado = (loaded_tiro && ~rco_contador_tiro) ? incrementa_contador_tiro : 
                                                            (loaded_tiro && rco_contador_tiro)  ? sinaliza   : salva_tiro;
                 incrementa_contador_tiro: proximo_estado = aux;
@@ -84,11 +79,5 @@ module uc_registra_tiro (
         endcase
     end
 
-
-
-
-
-
-
-
 endmodule
+

@@ -1,4 +1,12 @@
+/*
+*   Unidade de controle utilzada para realizar a comparação da posição dos tiros e asteroides 
+*   quando essa comparação é verdadeira, essa unidade de controle desrenderiza o tiro e o asteroide.
+*   Primeiro se compara o primeiro tiro com a posição de todos os asteroides e, caso seja igual esse 
+*   asteroide e tiro são desrenderizados.
+*/
+
 module uc_compara_tiros_e_asteroides (
+        /*input*/
         input clock,
         input reset,
         input compara_tiros_e_asteroides,
@@ -7,7 +15,7 @@ module uc_compara_tiros_e_asteroides (
         input rco_contador_tiros,
         input tiro_renderizado,
         input aste_renderizado,
-
+        /*output*/
         output reg reset_contador_asteroides,
         output reg reset_contador_tiros,
         output reg enable_load_tiro,

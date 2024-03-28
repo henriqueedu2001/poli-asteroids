@@ -32,6 +32,7 @@ UC/uc_move_asteroides.v
 UC/uc_move_tiros.v
 UC/uc_registra_tiro.v
 UC/uc_renderiza.v
+UC/uc_registra_especial.v
 
 
 

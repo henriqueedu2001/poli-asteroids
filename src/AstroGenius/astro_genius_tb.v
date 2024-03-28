@@ -59,27 +59,7 @@ module astro_genius_tb;
         chaves = 6'b000000;
         #(2000*clockPeriod)
 
-        chaves = 6'b001001;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
-
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
-
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
-
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
-
-        chaves = 6'b000101;
+        chaves = 6'b000010;
         #(10*clockPeriod)
         chaves = 6'b000000;
         #(2000*clockPeriod)

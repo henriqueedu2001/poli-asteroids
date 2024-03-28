@@ -1,4 +1,3 @@
-
 module uc_gera_frame (
         input clock,
         input reset,

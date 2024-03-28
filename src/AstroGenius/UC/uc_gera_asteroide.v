@@ -1,12 +1,16 @@
-
+/*
+*       A unidade de controle responsável por gerar asteroides, é percorrido a memoria de asteroides e quando 
+*       um asteroide desrenderizado é encontrado, ele é substituido por um asteroide renderizado em uma 
+*       posição aleatoriamente
+*
+*/
 module uc_gera_asteroide (
         /* input */
-        input clock                    ,
-        input reset                    ,
-        input gera_asteroide        ,
+        input clock,
+        input reset,
+        input gera_asteroide,
         input rco_contador_asteroide,
         input asteroide_renderizado,
-
         /* output */
         output reg reset_contador_asteroide,
         output reg conta_contador_asteroide,
@@ -17,7 +21,6 @@ module uc_gera_asteroide (
         output reg new_loaded_aste,
         output reg fim_gera_asteroide,
         output reg [3:0] db_uc_gera_asteroide
-
 );
 
         parameter inicial                = 4'b0000; // 0
@@ -31,10 +34,8 @@ module uc_gera_asteroide (
         parameter sinaliza               = 4'b1000; // 8
         parameter erro                   = 4'b1111; // F
 
-
         // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
-
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin
@@ -56,7 +57,6 @@ module uc_gera_asteroide (
                 espera_mem_aste:         proximo_estado = verifica_loaded;
                 salva:                   proximo_estado = sinaliza;
                 sinaliza:                proximo_estado = espera;
-   
                 default:                  proximo_estado = erro;
         endcase
     end
@@ -69,7 +69,6 @@ module uc_gera_asteroide (
         enable_load_aste         = (estado_atual == salva)               ? 1'b1 : 1'b0;
         new_loaded_aste          = (estado_atual == salva)               ? 1'b1 : 1'b0; 
         fim_gera_asteroide       = (estado_atual == sinaliza)            ? 1'b1 : 1'b0;
-
         reset_contador_gera_asteroide = (estado_atual == inicial || estado_atual == sinaliza) ? 1'b1 : 1'b0;
         conta_contador_gera_asteroide = (estado_atual == espera) ? 1'b1 : 1'b0;
         // Saída de depuração (estado)

@@ -26,6 +26,7 @@ arquivos = [
     "UC/uc_coordena_asteroides_tiros.v",
     "UC/uc_gera_asteroide.v",
     "UC/uc_gera_frame.v",
+    "UC/uc_registra_especial.v",
     "UC/uc_jogo_principal.v",
     "UC/uc_move_asteroides.v",
     "UC/uc_move_tiros.v",

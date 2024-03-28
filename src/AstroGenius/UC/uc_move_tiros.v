@@ -1,4 +1,11 @@
 
+/* Essa unidade de controle é responsável pelo movimento dos tiros no jogo, o que é feito
+   é uma série de verificações para ver se o tiro que está sendo lido da memoria está atualmente
+   no jogo, e também se o tiro atingiou a borda do jogo, caso esteja na borda, ele é tirado do jogo.
+   Para movimentar o asteroide, é verificado o OPCODE do tiro, que contém a informação da direção
+   que o mesmo está se movendo e faz a operação respectiva de soma ou subtração para mover o tiro.
+   Após isso, o tiro será registrado na memória de tiros.*/
+
 module uc_move_tiros (
         input clock                    ,
         input movimenta_tiro           ,
@@ -6,14 +13,10 @@ module uc_move_tiros (
         input [1:0] opcode_tiro        ,
         input loaded_tiro              ,
         input rco_contador_tiro        ,
-
-        //entradas para verificar se o tiro saiu da tela
         input x_borda_max_tiro         , //true se a coord. X do tiro estiver no MAXIMO da horizontal
         input y_borda_max_tiro         , //true se a coord. Y do tiro estiver no MAXIMO da vetical
         input x_borda_min_tiro         , //true se a coord. Y do tiro estiver no MINIMO da horizontal
         input y_borda_min_tiro         , //true se a coord. Y do tiro estiver no MINIMO da vetical
-
-        //saidas 
         output reg [1:0] select_mux_pos_tiro ,   //seletor do mux da posição 
         output reg select_mux_coor_tiro,  //seletor do mux da posição 
         output reg select_soma_sub     ,  
@@ -28,23 +31,23 @@ module uc_move_tiros (
 
 );
 
-    parameter inicio                 = 5'b00000; // 0
-    parameter espera                 = 5'b00001; // 1
-    parameter reseta_contador        = 5'b00010; // 2
-    parameter verifica_loaded        = 5'b00011; // 3
-    parameter verifica_saiu_tela     = 5'b00100; // 4
-    parameter altera_loaded          = 5'b00101; // 5
-    parameter salva_loaded           = 5'b00110; // 6
-    parameter incrementa_contador    = 5'b00111; // 7
-    parameter verifica_opcode        = 5'b01000; // 8 
-    parameter horizontal_crescente   = 5'b01001; // 9 
-    parameter horizontal_decrescente = 5'b01010; // A
-    parameter vertical_crescente     = 5'b01011; // B
-    parameter vertical_decrescente   = 5'b01100; // C
-    parameter salva_posicao          = 5'b01101; // D
-    parameter sinaliza               = 5'b01110; // E
-    parameter aux                    = 5'b01111; // F
-    parameter erro                   = 5'b11111; // erro
+        parameter inicio                 = 5'b00000; // 0
+        parameter espera                 = 5'b00001; // 1
+        parameter reseta_contador        = 5'b00010; // 2
+        parameter verifica_loaded        = 5'b00011; // 3
+        parameter verifica_saiu_tela     = 5'b00100; // 4
+        parameter altera_loaded          = 5'b00101; // 5
+        parameter salva_loaded           = 5'b00110; // 6
+        parameter incrementa_contador    = 5'b00111; // 7
+        parameter verifica_opcode        = 5'b01000; // 8 
+        parameter horizontal_crescente   = 5'b01001; // 9 
+        parameter horizontal_decrescente = 5'b01010; // A
+        parameter vertical_crescente     = 5'b01011; // B
+        parameter vertical_decrescente   = 5'b01100; // C
+        parameter salva_posicao          = 5'b01101; // D
+        parameter sinaliza               = 5'b01110; // E
+        parameter aux                    = 5'b01111; // F
+        parameter erro                   = 5'b11111; // erro
 
 // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
@@ -60,16 +63,16 @@ module uc_move_tiros (
         // mudança de estados
         always @* begin
         case (estado_atual) 
-                inicio:                proximo_estado = espera;
-                espera:                proximo_estado = movimenta_tiro ? reseta_contador : espera;
-                reseta_contador:       proximo_estado = verifica_loaded;
-                verifica_loaded:       proximo_estado =   loaded_tiro                        ? verifica_saiu_tela  : 
-                                                        (~loaded_tiro && ~rco_contador_tiro) ? incrementa_contador : 
-                                                        (~loaded_tiro && rco_contador_tiro)  ? sinaliza : verifica_loaded;
-                verifica_saiu_tela:    proximo_estado = (opcode_tiro == 2'b00 && x_borda_max_tiro  ||
-                                                         opcode_tiro == 2'b01 && x_borda_min_tiro  ||
-                                                         opcode_tiro == 2'b10 && y_borda_max_tiro  ||
-                                                         opcode_tiro == 2'b11 && y_borda_min_tiro  )? altera_loaded : verifica_opcode;
+                inicio:                 proximo_estado = espera;
+                espera:                 proximo_estado = movimenta_tiro ? reseta_contador : espera;
+                reseta_contador:        proximo_estado = verifica_loaded;
+                verifica_loaded:        proximo_estado = loaded_tiro                         ? verifica_saiu_tela  : 
+                                                         (~loaded_tiro && ~rco_contador_tiro) ? incrementa_contador : 
+                                                         (~loaded_tiro && rco_contador_tiro)  ? sinaliza : verifica_loaded;
+                verifica_saiu_tela:     proximo_estado = (opcode_tiro == 2'b00 && x_borda_max_tiro ||
+                                                          opcode_tiro == 2'b01 && x_borda_min_tiro  ||
+                                                          opcode_tiro == 2'b10 && y_borda_max_tiro  ||
+                                                          opcode_tiro == 2'b11 && y_borda_min_tiro  )? altera_loaded : verifica_opcode;
                 altera_loaded:          proximo_estado = salva_loaded;
                 salva_loaded:           proximo_estado = rco_contador_tiro ? sinaliza : incrementa_contador;
                 verifica_opcode:        proximo_estado = opcode_tiro == 2'b00 ? horizontal_crescente : 
@@ -89,28 +92,25 @@ module uc_move_tiros (
 
     // Lógica de saída (maquina Moore)
     always @* begin
-        reset_contador_tiro         = (estado_atual == reseta_contador) ? 1'b1 : 1'b0;
-        new_loaded                  = (estado_atual == altera_loaded || 
-                                       estado_atual == salva_loaded) ? 1'b0 : 1'b1;
-        enable_load_tiro             = (estado_atual == salva_loaded) ? 1'b1 : 1'b0;
-        enable_mem_tiro             = (estado_atual == horizontal_crescente || 
-                                        estado_atual == horizontal_decrescente ||
-                                        estado_atual == vertical_crescente ||
-                                        estado_atual == vertical_decrescente) ? 1'b1 : 1'b0;
-        conta_contador_tiro         = (estado_atual == incrementa_contador) ? 1'b1 : 1'b0;
-        select_soma_sub             = (estado_atual == horizontal_decrescente ||
-                                       estado_atual == vertical_decrescente      )? 1'b1 : 1'b0;
-
-        select_mux_pos_tiro         = (estado_atual == horizontal_crescente ||
-                                       estado_atual == horizontal_decrescente) ? 2'b01 :  
-                                      (estado_atual == vertical_crescente ||
-                                       estado_atual == vertical_decrescente) ? 2'b10 : 2'b00;
-
-        select_mux_coor_tiro        = (estado_atual == vertical_crescente ||
-                                       estado_atual == vertical_decrescente) ? 1'b1 : 1'b0;
-        movimentacao_concluida_tiro = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
-
-        reset_contador_movimenta_tiro = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
+        reset_contador_tiro           = (estado_atual == reseta_contador)        ? 1'b1 : 1'b0;
+        new_loaded                    = (estado_atual == altera_loaded           || 
+                                         estado_atual == salva_loaded)           ? 1'b0 : 1'b1;
+        enable_load_tiro              = (estado_atual == salva_loaded)           ? 1'b1 : 1'b0;
+        enable_mem_tiro               = (estado_atual == horizontal_crescente    || 
+                                         estado_atual == horizontal_decrescente  ||
+                                         estado_atual == vertical_crescente      ||
+                                         estado_atual == vertical_decrescente)   ? 1'b1 : 1'b0;
+        conta_contador_tiro           = (estado_atual == incrementa_contador)    ? 1'b1 : 1'b0;
+        select_soma_sub               = (estado_atual == horizontal_decrescente  ||
+                                         estado_atual == vertical_decrescente)   ? 1'b1 : 1'b0;
+        select_mux_pos_tiro           = (estado_atual == horizontal_crescente    ||
+                                         estado_atual == horizontal_decrescente) ? 2'b01 :  
+                                        (estado_atual == vertical_crescente      ||
+                                         estado_atual == vertical_decrescente)   ? 2'b10 : 2'b00;
+        select_mux_coor_tiro          = (estado_atual == vertical_crescente      ||
+                                         estado_atual == vertical_decrescente)   ? 1'b1 : 1'b0;
+        movimentacao_concluida_tiro   = (estado_atual == sinaliza)               ? 1'b1 : 1'b0;
+        reset_contador_movimenta_tiro = (estado_atual == sinaliza)               ? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
         case (estado_atual)

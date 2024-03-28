@@ -1,3 +1,9 @@
+/* Esse unidade de controle realiza a movimentação dos asteroides de maneira muito similar
+   a dos asteroides, onde é verificada cada posição da memoria dos asteroides para verificar
+   se o mesmo está em jogo. Caso esteja, a próxima posição da memória é verificada até que todos
+   os asteroides sejam verificados. Quando um asteroide está em jogo, o mesmo será movido, verificando
+   o seu OPCODE para move-lo na direção correta.*/
+
 
 module uc_move_asteroides (
         input clock,
@@ -6,8 +12,6 @@ module uc_move_asteroides (
         input [1:0] opcode_aste,
         input loaded_aste,
         input rco_contador_aste,
-
-        //saidas 
         output reg [1:0] select_mux_pos_aste,   //seletor do mux da posição 
         output reg select_mux_coor_aste,  //seletor do mux da posição 
         output reg select_soma_sub,  
@@ -87,7 +91,7 @@ module uc_move_asteroides (
                                        estado_atual == vertical_decrescente)   ? 2'b10 : 2'b00;
         select_mux_coor_aste        = (estado_atual == vertical_crescente      ||
                                        estado_atual == vertical_decrescente)   ? 1'b1 : 1'b0;
-        reset_contador_movimenta_asteroide = (estado_atual == sinaliza) ? 1'b1 : 1'b0;
+        reset_contador_movimenta_asteroide = (estado_atual == sinaliza)        ? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
         case (estado_atual)

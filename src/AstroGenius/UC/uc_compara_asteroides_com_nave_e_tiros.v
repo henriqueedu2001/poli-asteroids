@@ -1,4 +1,13 @@
+/*
+*   Unidade de controle utilzada para comparar somente a posição de tiros e de asteroides,
+*   essa unidade de controle é chamada quando ocorre a operação de Incrementar a Posição dos Tiros.
+*   Primeiro é percorrido a memoria de tiros e a posição de cada tiro é comparado com a posição de 
+*   todos os asteroides renderizados e, quando iguais, a posição dos tiros e dos asteroides são desrenderizados
+*
+*/
+
 module uc_compara_asteroides_com_nave_e_tiros (
+        /*input*/
         input clock,
         input reset,
         input iniciar_comparacao_tiros_nave_asteroides,
@@ -6,10 +15,9 @@ module uc_compara_asteroides_com_nave_e_tiros (
         input ha_vidas,
         input rco_contador_asteroides,
         input fim_compara_tiros_e_asteroides,
-
         input loaded_asteroide,
         input destruido_asteroide,
-
+        /*output*/
         output reg enable_decrementador,
         output reg new_loaded_asteroide,
         output reg new_destruido_asteroide,
@@ -18,7 +26,6 @@ module uc_compara_asteroides_com_nave_e_tiros (
         output reg conta_contador_asteroides,
         output reg sinal_compara_tiros_e_asteroide,
         output reg reset_contador_asteroides,
-
         output reg [4:0] db_estado_compara_asteroides_com_nave_e_tiros
 );
 
@@ -74,13 +81,13 @@ module uc_compara_asteroides_com_nave_e_tiros (
     // Lógica de saída (maquina Moore)
     always @* begin
 
-        reset_contador_asteroides = (estado_atual == reset_contador)         ? 1'b1 : 1'b0;
-        enable_decrementador      = (estado_atual == decrementa_vida)        ? 1'b1 : 1'b0;
+        reset_contador_asteroides = (estado_atual == reset_contador    )? 1'b1 : 1'b0;
+        enable_decrementador      = (estado_atual == decrementa_vida   )? 1'b1 : 1'b0;
         new_loaded_asteroide      = (estado_atual == destroi_asteroide ||
-                                     estado_atual == salva_destruicao)       ? 1'b0 : 1'b1;
+                                     estado_atual == salva_destruicao  )? 1'b0 : 1'b1;
         new_destruido_asteroide   = (estado_atual == destroi_asteroide ||
-                                     estado_atual == salva_destruicao)       ? 1'b1 : 1'b0;
-        enable_load_asteroide      = (estado_atual == salva_destruicao)       ? 1'b1 : 1'b0;
+                                     estado_atual == salva_destruicao  )? 1'b1 : 1'b0;
+        enable_load_asteroide      = (estado_atual == salva_destruicao )? 1'b1 : 1'b0;
         fim_compara_asteroides_com_tiros_e_nave = (estado_atual == fim_comparacao)                        ? 1'b1 : 1'b0;
         conta_contador_asteroides               = (estado_atual == incrementa_contador_de_asteroides)     ? 1'b1 : 1'b0;
         sinal_compara_tiros_e_asteroide         = (estado_atual == compara_tiros_e_asteroides)            ? 1'b1 : 1'b0;
@@ -101,7 +108,6 @@ module uc_compara_asteroides_com_nave_e_tiros (
             aux:                                db_estado_compara_asteroides_com_nave_e_tiros = 5'b01011; // 11
             erro:                               db_estado_compara_asteroides_com_nave_e_tiros = 5'b01111; // F  
             default:                            db_estado_compara_asteroides_com_nave_e_tiros = 5'b00000; 
-
         endcase
     end
 endmodule
