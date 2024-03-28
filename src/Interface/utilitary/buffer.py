@@ -32,6 +32,11 @@ class Buffer():
     
     
     def complete_chunk(self):
+        """Verifica se o buffer acabou de receber um buffer completo
+
+        Returns:
+            bool: verdadeiro, se houve recepção de um chunk completo e falso caso contrário
+        """
         if self.index - self.last_break_point == self.chunk_size + 1:
             return True
         
@@ -39,13 +44,13 @@ class Buffer():
     
     
     def is_break_point(self, last_byte):
-        """verifica se o último byte indica um chunk completo de dados
+        """Verifica se o buffer acabou de receber um break_point
 
         Args:
-            last_byte (_type_): _description_
+            last_byte (str): último byte recebido
 
         Returns:
-            _type_: _description_
+            bool: verdadeiro se o buffer recebeu um break point
         """
         last_break_point_str_byte = self.break_point_str[-1]
         break_point_str_size = len(self.break_point_str)
@@ -94,7 +99,7 @@ class Buffer():
             relative_index (_type_): _description_
 
         Returns:
-            _type_: _description_
+            Int: índice no buffer
         """
         if relative_index == 0:
             # retornar mesmo endereço
@@ -117,6 +122,8 @@ class Buffer():
     
     
     def print_buffer(self):
+        """Exibe o buffer em linhas do tamanho dos chunks
+        """
         n = int(self.buffer_size/self.chunk_size)
         m = int(self.chunk_size)
         
