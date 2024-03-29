@@ -25,6 +25,7 @@ Modulos/hexa7seg.v
 UC/uc_compara_asteroides_com_nave_e_tiros.v
 UC/uc_compara_tiros_e_asteroides.v
 UC/uc_coordena_asteroides_tiros.v
+UC/uc_envia_dados.v
 UC/uc_gera_asteroide.v
 UC/uc_gera_frame.v
 UC/uc_jogo_principal.v

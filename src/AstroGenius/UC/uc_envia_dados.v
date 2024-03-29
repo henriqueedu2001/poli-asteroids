@@ -24,7 +24,7 @@ module uc_envia_dados (
         output reg reset_contador_rodape,
 
         output reg terminou_de_enviar_dados,
-
+        output reg esta_enviando_pos_asteroides,
         output reg [5:0] db_estado_uc_envia_dados
         );
 

@@ -29,7 +29,8 @@ module astro_genius (
     output db_left,
     output db_right,
     output [3:0] db_estado_registra_tiro_especial,
-    output db_especial
+    output db_especial,
+    output [5:0] db_estado_uc_envia_dados
 );
 
 
@@ -63,6 +64,129 @@ wire wire_tiro;
 wire wire_especial;
 wire wire_inicia_registra_especial;
 wire wire_wire_reset_pontuacao;
+
+
+/********************************************************************************************************************/
+/*********************************************UC_ENVIA_DADOS.V******************************************************/
+/********************************************************************************************************************/
+
+wire wire_conta_contador_aste_uc_envia_dados;
+wire wire_reset_contador_aste_uc_envia_dados;
+wire wire_conta_contador_tiro_uc_envia_dados;
+wire wire_reset_contador_tiro_uc_envia_dados;
+
+
+uc_envia_dados uc_envia_dados(
+    .clock(clock),
+    .reset(wire_reset_maquinas),
+    .enviar_dados(),
+    .acabou_transmissao_uart_tx(),
+    .rco_contador_aste(wire_rco_contador_asteroides),
+    .rco_contador_tiros(wire_rco_contador_tiro),
+    .rco_contador_byte_opcode(),
+    .rco_contador_rodape(),
+
+    .iniciar_transmissao_uart_tx(),
+    .enable_reg_opcode(wire_enable_reg_opcode),
+    .reset_reg_opcode(wire_reset_reg_opcode),
+    .conta_contador_byte_opcode(),
+    .reset_contador_byte_opcode(),
+    .conta_contador_mux_byte_enviar(),
+    .reset_contador_mux_byte_enviar(),
+    .conta_contador_aste(wire_conta_contador_aste_uc_envia_dados),
+    .reset_contador_aste(wire_reset_contador_aste_uc_envia_dados),
+    .conta_contador_tiro(wire_conta_contador_tiro_uc_envia_dados),
+    .reset_contador_tiro(wire_reset_contador_tiro_uc_envia_dados),
+    .conta_contador_rodape(),
+    .reset_contador_rodape(),
+
+    .terminou_de_enviar_dados(),
+    .esta_enviando_pos_asteroides(wire_esta_enviando_pos_asteroides),
+    .db_estado_uc_envia_dados(db_estado_uc_envia_dados)
+    );
+wire wire_reset_reg_opcode;
+wire wire_enable_reg_opcode;
+wire wire_esta_enviando_pos_asteroides,
+wire 
+/*Registrador para os enivar os 4 bytes de opcode de tiros / asteroides*/
+
+registrador_n #(32) reg_opcode (
+    .clock(clock),
+    .clear(wire_reset_reg_opcode),
+    .enable(wire_enable_reg_opcode),
+    .D(wire_esta_enviando_pos_asteroides ? ),
+    .Q(wire_opcode_enviar)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -647,13 +771,15 @@ asteroide asteroide(
                          wire_conta_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
                          wire_conta_contador_aste_uc_move_asteroides | 
                          wire_conta_contador_asteroides_uc_gera_frame |
-                         wire_conta_contador_asteroides_uc_gera_asteroide ),
+                         wire_conta_contador_asteroides_uc_gera_asteroide |
+                         wire_conta_contador_aste_uc_envia_dados),
     .reset_contador_aste(wire_reset_contador_asteroides_uc_principal | 
                          wire_reset_contador_asteroides_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
                          wire_reset_contador_aste_uc_move_asteroides |
                          wire_reset_contador_asteroide_uc_gera_frame |
-                         wire_reset_contador_asteroides_uc_gera_asteroide ),
+                         wire_reset_contador_asteroides_uc_gera_asteroide |
+                         wire_reset_contador_aste_uc_envia_dados ),
     .select_mux_pos_aste(wire_select_mux_pos_aste_uc_move_asteroides),
     .select_mux_coor_aste(wire_select_mux_coor_aste_uc_move_asteroides),
     .select_soma_sub_aste(wire_select_soma_sub_uc_move_asteroides),
@@ -694,13 +820,15 @@ tiro tiro (
                          wire_conta_contador_tiro_uc_move_tiros    |
                          wire_conta_contador_tiro_uc_registra_tiro |
                          wire_conta_contador_tiro_uc_gera_frame    |
-                         wire_conta_contador_tiro_uc_registra_especial),
+                         wire_conta_contador_tiro_uc_registra_especial |
+                         wire_conta_contador_tiro_uc_envia_dados),
     .reset_contador_tiro(wire_reset_contador_tiro_uc_principal                   |
                          wire_reset_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_tiro_uc_move_tiros    |
                          wire_reset_contador_tiro_uc_registra_tiro |
                          wire_reset_contador_tiro_uc_gera_frame    |
-                         wire_reset_contador_tiro_uc_registra_especial),
+                         wire_reset_contador_tiro_uc_registra_especial |
+                         wire_reset_contador_tiro_uc_envia_dados),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros    |
                          wire_select_mux_pos_tiro_uc_registra_tiro |
                          wire_select_mux_pos_tiro_uc_registra_especial),

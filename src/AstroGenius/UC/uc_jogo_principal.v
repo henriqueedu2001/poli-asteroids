@@ -44,8 +44,8 @@ module uc_jogo_principal (
         parameter inicia_state_registra_tiros             = 5'b00111; // 7
         parameter espera_salvamento                       = 5'b01000; // 8
         parameter espera_salvamento2                      = 5'b01001; // 9
-        parameter inicia_state_registra_especial          = 5'b01010; // 10 // adicionado 27/03 17h30
-        parameter espera_registra_especial                = 5'b01011; // 11 // adicionado 27/03 17h30
+        parameter inicia_state_registra_especial          = 5'b01010; // 10 
+        parameter espera_registra_especial                = 5'b01011; // 11 
         parameter erro                                    = 5'b11111; // F
 
 /* Variáveis de estado */
