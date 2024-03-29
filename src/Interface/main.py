@@ -26,6 +26,7 @@ class Game():
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
+    self.log_messages = False
     self.db_index = 0
     
 
@@ -34,9 +35,13 @@ class Game():
     """
     
     # inicia o jogo
-    pygame.init()
+    self.log_message('starting game...')
     
-    # self.text_font = pygame.font.SysFont(None, 48)
+    try:
+      pygame.init()
+      self.log_message('game started with sucess!')
+    except Exception as exeption:
+      self.log_message('failed to start the game')
     
     self.render_engine = RenderEngine(self.screen)
     
@@ -47,8 +52,10 @@ class Game():
   def run_game(self):
     """Roda o jogo poli-asteroids
     """
+    self.log_message('running game...')
+    
     run = True
-
+    
     while run:
       self.receive_data()
       self.render()
@@ -56,6 +63,7 @@ class Game():
       for event in pygame.event.get():
         # lógica de fim do jogo
         if event.type == pygame.QUIT:
+          self.log_message('player left the game')
           run = False
 
       pygame.display.flip()
@@ -107,6 +115,11 @@ class Game():
     uart.send_data(port, send_data)
 
     return received_data
+  
+  
+  def log_message(self, log_message):
+    if self.log_messages:
+        print(log_message)
 
 
 game = Game()

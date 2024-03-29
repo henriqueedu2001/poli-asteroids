@@ -1,4 +1,5 @@
 import pygame
+import os
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -10,6 +11,7 @@ class RenderEngine():
         self.screen = screen
         self.screen_width, self.screen_height = screen.get_size()
         self.default_text_font = pygame.font.SysFont(None, 24)
+        self.log_messages = True
         
         # state variables
         self.score = None
@@ -29,6 +31,55 @@ class RenderEngine():
             'white': (255, 255, 255),
             'black': (0, 0, 0)
         }
+        
+        self.images = {
+            'life': None,
+            'space_ship': None,
+            'asteroid_01': None,
+            'asteroid_02': None,
+            'asteroid_03': None,
+            'asteroid_04': None
+        }
+        
+        self.images_paths = {
+            'life': 'foto.jpeg',
+            'space_ship': 'foto.jpeg',
+            'asteroid_01': 'foto.jpeg',
+            'asteroid_02': 'foto.jpeg',
+            'asteroid_03': 'foto.jpeg',
+            'asteroid_04': 'foto.jpeg'
+        }
+        
+        # carregamento de imagens
+        self.load_assets()
+        
+        return
+    
+    
+    def load_assets(self):
+        """Carrega todas as imagens no jogo
+        """
+        self.log_message('loading images...')
+        
+        # getting the absolute path
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # loading all images
+        for img_key, img_path in self.images_paths.items():
+            try:
+                self.log_message(f'loading image {img_key}')
+                
+                # loading image
+                path = os.path.join(script_dir, "imgs", img_path)
+                self.images[img_key] = pygame.image.load(path)
+                
+                self.log_message(f'sucess in loading image {img_key}!')
+                pass
+            except Exception as exeption:
+                self.log_message(f'failed to load image {img_key}')
+                self.log_message(f'\texeption {exeption}')
+                pass
+            pass
         
         return
     
@@ -72,6 +123,8 @@ class RenderEngine():
         # render the graphic elements
         self.render_score()
         
+        self.draw_image(self.images['life'], 150, 150, 100, 100)
+        
         return
     
     
@@ -84,9 +137,9 @@ class RenderEngine():
         font = pygame.font.SysFont(None, 24)
         
         if score != None:
-            self.draw_text(f'Score: {score}', font, self.colors['white'], x, y, 'topleft')
+            self.draw_text(f'SCORE: {score}', font, self.colors['white'], x, y, 'topleft')
         else:
-            self.draw_text('Score: NOT LOADED', font, self.colors['white'], x, y, 'topleft')
+            self.draw_text('SCORE: NOT LOADED', font, self.colors['white'], x, y, 'topleft')
     
     
     def clear_screen(self):
@@ -102,6 +155,7 @@ class RenderEngine():
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect()
         
+        # alignment logic
         if alignment == 'center':
             text_rect.center = (x, y)
         elif alignment == 'topleft':
@@ -120,6 +174,12 @@ class RenderEngine():
         return
     
     
+    def draw_image(self, image, x, y, width, height):
+        resized_img = pygame.transform.scale(image, (width, height))
+        self.screen.blit(resized_img, (x, y))
+        return
+    
+    
     def relative_units_x(self, x):
         ru_x = int(x*self.screen_width/100)
         
@@ -131,3 +191,9 @@ class RenderEngine():
         
         return ru_y
     
+    
+    def log_message(self, log_message):
+        if self.log_messages:
+            print(log_message)
+            
+        return
