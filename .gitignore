@@ -1,10 +1,16 @@
+# Ignorar todos os arquivos por padrão
 *.*
+
+# Exceto os seguintes tipos de arquivo
 !*.v
 !*.qar
 !comp.txt
 !*.pdf
 !*.zip
 !.gitignore
+!*.py
+
+# Exceto os seguintes diretórios e arquivos
 work/*
 _info
 _vmake
