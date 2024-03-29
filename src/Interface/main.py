@@ -1,9 +1,13 @@
 import pygame
 import utilitary.uart as uart
+from utilitary.buffer import Buffer as Buffer
+from utilitary.chunk import Chunk
 
 # tamanho da tela
 SCREEN_WIDHT = 800
 SCREEN_HEIGHT = 600
+
+MEM = 'pç1111222233334444qwer9999888877776666asdfè$&pç4444888844448888ghjk9999888877776666asdfè$&'
 
 def start_game():
   """Inicia o jogo poli-asteroids
@@ -26,15 +30,25 @@ def run_game(screen, clock):
       clock (pygame.time.Clock): clock do jogo
   """
   run = True
-
-  i = 0
-  send_data_buffer = ['a', 'b', 'c', 'd']
   
+  # configuração do buffer
+  buffer_size=256
+  chunk_size=45
+  buffer = Buffer(buffer_size=buffer_size, chunk_size=chunk_size, break_point_str='$&')
+  chunk = Chunk(chunk_size=chunk_size)
+  
+  i = 0
   while run:
-    send_data = send_data_buffer[i%4]
-    received_data = transmit_data(send_data)
-    print(received_data)
+    
+    received_data = receive_data(i)
+    buffer.write_buffer(received_data)
+    chunk.load_chunk(buffer.chunk)
+    chunk.decode_data()
+    chunk.print_decoded_data()
+    print('-------------------')
+    
     i = i + 1
+    i = i % len(MEM)
 
     for event in pygame.event.get():
       # lógica de fim do jogo
@@ -43,7 +57,12 @@ def run_game(screen, clock):
   
   # sair do jogo
   pygame.quit()
+  
 
+def receive_data(index):
+  byte = MEM[index]
+  
+  return byte
 
 def transmit_data(send_data: str):
   port = uart.open_port(uart.DEFAULT_PORT_NAME)
