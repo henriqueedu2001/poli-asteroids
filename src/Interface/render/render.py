@@ -1,8 +1,5 @@
 import pygame
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
@@ -11,7 +8,8 @@ class RenderEngine():
         self.data = None
         self.loaded_data = False
         self.screen = screen
-        self.text_font = pygame.font.SysFont(None, 48)
+        self.screen_width, self.screen_height = screen.get_size()
+        self.default_text_font = pygame.font.SysFont(None, 24)
         
         # state variables
         self.score = None
@@ -26,6 +24,11 @@ class RenderEngine():
         self.available_special_shooting = None
         self.played_shooting = None
         self.end_of_lifes = None
+        
+        self.colors = {
+            'white': (255, 255, 255),
+            'black': (0, 0, 0)
+        }
         
         return
     
@@ -65,10 +68,25 @@ class RenderEngine():
     
     def render(self):
         self.clear_screen()
-        print(f'{self.data}')
-        # pygame.draw.rect(self.screen, WHITE, (100, 100, 200, 150))
-        self.draw_text('ffffff', self.text_font, WHITE, 200, 200)
+        
+        # render the graphic elements
+        self.render_score()
+        
         return
+    
+    
+    def render_score(self):
+        score = self.score
+        
+        x = self.relative_units_x(3)
+        y = self.relative_units_y(3)
+        
+        font = pygame.font.SysFont(None, 24)
+        
+        if score != None:
+            self.draw_text(f'Score: {score}', font, self.colors['white'], x, y, 'topleft')
+        else:
+            self.draw_text('Score: NOT LOADED', font, self.colors['white'], x, y, 'topleft')
     
     
     def clear_screen(self):
@@ -79,12 +97,37 @@ class RenderEngine():
         print(self.data)
         
         
-    def draw_text(self, text, font, color, x, y):
+    def draw_text(self, text, font, color, x, y, alignment='center'):
         screen = self.screen
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect()
-        text_rect.center = (x, y)
+        
+        if alignment == 'center':
+            text_rect.center = (x, y)
+        elif alignment == 'topleft':
+            text_rect.topleft = (x, y)
+        elif alignment == 'bottomleft':
+            text_rect.bottomleft = (x, y)
+        elif alignment == 'topright':
+            text_rect.topright = (x, y)
+        elif alignment == 'bottomright':
+            text_rect.bottomright = (x, y)
+        else:
+            text_rect.center = (x, y)
+            
         screen.blit(text_surface, text_rect)
 
         return
+    
+    
+    def relative_units_x(self, x):
+        ru_x = int(x*self.screen_width/100)
+        
+        return ru_x
+    
+    
+    def relative_units_y(self, y):
+        ru_y = int(y*self.screen_height/100)
+        
+        return ru_y
     
