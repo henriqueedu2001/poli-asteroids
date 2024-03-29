@@ -24,7 +24,7 @@ class Buffer():
         if self.is_break_point(byte):
             if self.complete_chunk():
                 self.load_chunk()
-                print('chunk completo recebido')
+                # print('chunk completo recebido')
             
             self.last_break_point = index
             # print(f'breakpoint em {index}')
@@ -84,7 +84,7 @@ class Buffer():
                 # cálculo dos índices
                 break_point_str_index = break_point_str_size - i - 1
                 buffer_index = self.get_absolute_index(self.index, -i) 
-                print(f'buffer_index = {self.index}\trel_index={-i}\tcalc_index = {buffer_index}')
+                # print(f'buffer_index = {self.index}\trel_index={-i}\tcalc_index = {buffer_index}')
                 
                 # obtenção dos caracteres
                 break_point_char = self.break_point_str[break_point_str_index]
