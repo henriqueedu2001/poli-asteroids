@@ -18,6 +18,7 @@ class Game():
     self.clock = pygame.time.Clock()
     self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str='$&')
     self.chunk = Chunk(chunk_size=CHUNK_SIZE)
+    self.received_game_data = None
     self.db_index = 0
     
 
@@ -64,8 +65,7 @@ class Game():
       chunk.load_chunk(buffer.chunk)
       chunk.decode_data()
       
-      chunk.print_decoded_data()
-      print('-------------------')
+      self.received_game_data = chunk.decoded_data
     
     # temporário, para depuração
     self.db_index = (self.db_index + 1) % len(MEM)
