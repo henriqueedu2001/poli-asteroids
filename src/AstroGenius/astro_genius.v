@@ -30,7 +30,9 @@ module astro_genius (
     output db_right,
     output [3:0] db_estado_registra_tiro_especial,
     output db_especial,
-    output [5:0] db_estado_uc_envia_dados
+    output [5:0] db_estado_uc_envia_dados,
+
+    output saida_serial
 );
 
 
@@ -74,55 +76,121 @@ wire wire_conta_contador_aste_uc_envia_dados;
 wire wire_reset_contador_aste_uc_envia_dados;
 wire wire_conta_contador_tiro_uc_envia_dados;
 wire wire_reset_contador_tiro_uc_envia_dados;
-
-
+wire wire_iniciar_transmissao_uart_tx;
+wire wire_terminou_de_enviar_dados;
 uc_envia_dados uc_envia_dados(
+    /* inputs */
     .clock(clock),
     .reset(wire_reset_maquinas),
     .enviar_dados(),
     .acabou_transmissao_uart_tx(),
     .rco_contador_aste(wire_rco_contador_asteroides),
     .rco_contador_tiros(wire_rco_contador_tiro),
-    .rco_contador_byte_opcode(),
-    .rco_contador_rodape(),
-
-    .iniciar_transmissao_uart_tx(),
+    .rco_contador_byte_opcode(wire_rco_contador_byte_opcode),
+    .rco_contador_rodape(wire_rco_contador_rodape),
+    /* outputs */
+    .iniciar_transmissao_uart_tx(wire_iniciar_transmissao_uart_tx),
     .enable_reg_opcode(wire_enable_reg_opcode),
     .reset_reg_opcode(wire_reset_reg_opcode),
-    .conta_contador_byte_opcode(),
-    .reset_contador_byte_opcode(),
-    .conta_contador_mux_byte_enviar(),
-    .reset_contador_mux_byte_enviar(),
+    .conta_contador_byte_opcode(wire_conta_contador_byte_opcode),
+    .reset_contador_byte_opcode(wire_reset_contador_byte_opcode),
+    .conta_contador_mux_byte_enviar(wire_conta_contador_mux_byte_enviar),
+    .reset_contador_mux_byte_enviar(wire_reset_contador_mux_byte_enviar),
     .conta_contador_aste(wire_conta_contador_aste_uc_envia_dados),
     .reset_contador_aste(wire_reset_contador_aste_uc_envia_dados),
     .conta_contador_tiro(wire_conta_contador_tiro_uc_envia_dados),
     .reset_contador_tiro(wire_reset_contador_tiro_uc_envia_dados),
-    .conta_contador_rodape(),
-    .reset_contador_rodape(),
-
-    .terminou_de_enviar_dados(),
+    .conta_contador_rodape(wire_conta_contador_rodape),
+    .reset_contador_rodape(wire_reset_contador_rodape),
+    .terminou_de_enviar_dados(wire_terminou_de_enviar_dados),
     .esta_enviando_pos_asteroides(wire_esta_enviando_pos_asteroides),
     .db_estado_uc_envia_dados(db_estado_uc_envia_dados)
     );
+
 wire wire_reset_reg_opcode;
 wire wire_enable_reg_opcode;
-wire wire_esta_enviando_pos_asteroides,
-wire 
-/*Registrador para os enivar os 4 bytes de opcode de tiros / asteroides*/
+wire wire_esta_enviando_pos_asteroides;
+wire [31:0] wire_opcode_enviar;
 
+/*Registrador para os enivar os 4 bytes de opcode de tiros / asteroides*/
 registrador_n #(32) reg_opcode (
     .clock(clock),
     .clear(wire_reset_reg_opcode),
     .enable(wire_enable_reg_opcode),
-    .D(wire_esta_enviando_pos_asteroides ? ),
+    .D(wire_esta_enviando_pos_asteroides ? {wire_opcode_enviar[31:2], wire_opcode_aste} : {wire_opcode_enviar[31:2], wire_opcode_tiro}),
     .Q(wire_opcode_enviar)
 );
 
+wire wire_conta_contador_byte_opcode;
+wire wire_reset_contador_byte_opcode;
+wire [1:0]  select_mux_byte_opcode;
+wire wire_rco_contador_byte_opcode;
 
+/*contador utilizado como seletor do mux de byte opcode*/
+contador_m #(4, 2) contador_byte_opcode
+  (
+   .clock(clock),
+   .zera_as(wire_reset_contador_byte_opcode),
+   .zera_s(1'b0),
+   .conta(wire_conta_contador_byte_opcode),
+   .Q(select_mux_byte_opcode),
+   .fim(wire_rco_contador_byte_opcode),
+   .meio()
+  );
+wire [7:0] byte_opcode_enviar;
+/*mux utilziado para selecionar o byte de opcode a ser enviado*/
+assign byte_opcode_enviar = select_mux_byte_opcode == 2'b00 ? wire_opcode_enviar[31:24] :
+                            select_mux_byte_opcode == 2'b01 ? wire_opcode_enviar[23:16] :
+                            select_mux_byte_opcode == 2'b10 ? wire_opcode_enviar[15:8]  : wire_opcode_enviar[7:0];
 
+wire wire_conta_contador_mux_byte_enviar;
+wire wire_reset_contador_mux_byte_enviar;
+wire [3:0] select_mux_byte_enviar;
+/*contador utilizado como seletor do mux de byte enviar*/
+contador_m #(7, 4) contador_byte_enviar
+  (
+   .clock(clock),
+   .zera_as(wire_reset_contador_mux_byte_enviar),
+   .zera_s(1'b0),
+   .conta(wire_conta_contador_mux_byte_enviar),
+   .Q(select_mux_byte_enviar),
+   .fim(),
+   .meio()
+  );
 
+wire [7:0] byte_enviar;
+assign byte_enviar = (select_mux_byte_enviar == 4'd0) ? wire_pontos_aux :
+                    (select_mux_byte_enviar == 4'd1) ? {wire_opcode_mux_out, wire_quantidade_vidas, dificuldade} :
+                    (select_mux_byte_enviar == 4'd2) ? {(wire_aste_renderizado ? {wire_aste_coor_x, wire_aste_coor_y} : 8'b0)} :
+                    (select_mux_byte_enviar == 4'd3) ? byte_opcode_enviar :
+                    (select_mux_byte_enviar == 4'd4) ? {(wire_tiro_renderizado ? {wire_tiro_coor_x, wire_tiro_coor_y} : 8'b0)} :
+                    (select_mux_byte_enviar == 4'd5) ? byte_opcode_enviar : 
+                    (select_mux_byte_enviar == 4'd6) ? {wire_saida_reg_jogada[1], wire_rco_contador_especial, wire_saida_reg_jogada[0], wire_vidas} : wire_pontos_aux;
 
+wire wire_conta_contador_rodape;
+wire wire_reset_contador_rodape;
+wire wire_rco_contador_rodape;
 
+/*contador utilizado para mandar o rodapé*/
+contador_m #(2, 2) contador_rodape
+  (
+   .clock(clock),
+   .zera_as(wire_reset_contador_rodape),
+   .zera_s(1'b0),
+   .conta(wire_conta_contador_rodape),
+   .Q(),
+   .fim(wire_rco_contador_rodape),
+   .meio()
+  );
+
+uart_tx #(5208) UART_TX_INST (
+		.i_Clock(clock),
+		.i_Tx_DV(wire_iniciar_transmissao_uart_tx), // sinal de iniciar a transmissão
+		.i_Tx_Byte(byte_enviar),                    // dado
+		.o_Tx_Active(),                             // sinal que indica que a uart de transmitir dados está ocupada
+		.o_Tx_Serial(saida_serial),
+		.o_Tx_Done(wire_terminou_de_enviar_dados)   // pronto
+	);
 
 
 
@@ -881,14 +949,14 @@ contador_m #(1024, 10) contador_pontuacao (
     .meio()
   );
 
-decrementador #(4) decrementador_de_vidas( 
+decrementador #(3) decrementador_de_vidas( 
     /* inputs */
     .clock(clock), 
     .clr(wire_reset_contador_vidas | reset), 
     .ld(1'b0), 
     .ent(1'b1), 
     .enp(wire_enable_decrementador), 
-    .D(4'b0011), 
+    .D(3'b011), 
     /* outputs */
     .Q(wire_quantidade_vidas), 
     .rco(wire_vidas)
@@ -1066,10 +1134,11 @@ hexa7seg HEX2 (
     .display (db_tiro_y)
 );
 
-wire [3:0] wire_quantidade_vidas;
+
+wire [2:0] wire_quantidade_vidas;
 /* display para as vidas */
 hexa7seg HEX1 (
-    .hexa    (wire_quantidade_vidas),
+    .hexa    ({1'b0, wire_quantidade_vidas}),
     .display (db_vidas)
 );
 
