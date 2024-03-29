@@ -3,10 +3,11 @@ import time # for debbuging
 import utilitary.uart as uart
 from utilitary.buffer import Buffer as Buffer
 from utilitary.chunk import Chunk
+from render.render import RenderEngine
 
 # tamanho da tela
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 300
+SCREEN_HEIGHT = 600
 
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45
@@ -24,6 +25,7 @@ class Game():
     self.chunk = Chunk(chunk_size=CHUNK_SIZE)
     self.received_game_data = None
     self.text_font = None
+    self.render_engine = None
     self.db_index = 0
     
 
@@ -34,7 +36,9 @@ class Game():
     # inicia o jogo
     pygame.init()
     
-    self.text_font = pygame.font.SysFont(None, 48)
+    # self.text_font = pygame.font.SysFont(None, 48)
+    
+    self.render_engine = RenderEngine(self.screen)
     
     # roda o jogo
     self.run_game()
@@ -56,7 +60,7 @@ class Game():
 
       pygame.display.flip()
       
-      time.sleep(0.1)
+      time.sleep(0.01)
       
     # sair do jogo
     pygame.quit()
@@ -84,51 +88,13 @@ class Game():
     
     return
   
+  
   def render(self):
-    self.clear_screen()
-    
-    font = self.text_font
-    
     data = self.received_game_data
-    
-    self.buffer.print_buffer()
-    print('-----------------')
-    
-    try:
-      score = data['score']
-      player_direction = data['player_direction']
-      lifes_quantity = data['lifes_quantity']
-      game_difficulty = data['game_difficulty']
-      asteroids_positions = data['asteroids_positions']
-      asteroids_directions = data['asteroids_directions']
-      shooting_positions = data['shooting_positions']
-      shooting_directions = data['shooting_directions']
-      played_special_shooting = data['played_special_shooting']
-      available_special_shooting = data['available_special_shooting']
-      played_shooting = data['played_shooting']
-      end_of_lifes = data['end_of_lifes']
-      
-      # print(data)
-      self.draw_text(f'{score}', font, WHITE, SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
-    except:
-      print('não foi possível renderizar')
-      pass
+    self.render_engine.load_data(data)
+    self.render_engine.render()
     
     pass
-  
-  
-  def clear_screen(self):
-    self.screen.fill(BLACK)
-
-  
-  def draw_text(self, text, font, color, x, y):
-    screen = self.screen
-    text_surface = font.render(text, True, color)
-    text_rect = text_surface.get_rect()
-    text_rect.center = (x, y)
-    screen.blit(text_surface, text_rect)
-    
-    return
 
 
   def transmit_data(send_data: str):
