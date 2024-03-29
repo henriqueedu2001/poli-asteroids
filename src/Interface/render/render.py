@@ -122,8 +122,8 @@ class RenderEngine():
         
         # render the graphic elements
         self.render_score()
-        
-        self.draw_image(self.images['life'], 150, 150, 100, 100)
+        self.render_lifes()
+        self.render_player()
         
         return
     
@@ -140,6 +140,52 @@ class RenderEngine():
             self.draw_text(f'SCORE: {score}', font, self.colors['white'], x, y, 'topleft')
         else:
             self.draw_text('SCORE: NOT LOADED', font, self.colors['white'], x, y, 'topleft')
+    
+    
+    def render_lifes(self):
+        # n = self.lifes_quantity
+        life_img = self.images['life']
+        n = 3
+        
+        x_base = self.relative_units_x(3)
+        y_base = self.relative_units_x(6)
+        
+        x_spacing = self.relative_units_x(6)
+        
+        for i in range(n):
+            x_i = x_base + i*x_spacing
+            
+            self.draw_image(life_img, x_i, y_base, 30, 30, 'topleft')
+        
+        return
+    
+    
+    def render_player(self):
+        # player_direction = self.player_direction
+        player_direction = 'UP'
+        space_ship_img = self.images['space_ship']
+        x_center = self.relative_units_x(50)
+        y_center = self.relative_units_x(50)
+        
+        # definição do ângulo, em função da direção
+        angle = 0
+        if player_direction == 'UP':
+            angle = 0
+        elif player_direction == 'DOWN':
+            angle = 180
+        elif player_direction == 'LEFT':
+            angle = 90
+        elif player_direction == 'RIGHT':
+            angle = -90
+        else:
+            angle = 0
+        
+        # rotação da imagem
+        space_ship_img = pygame.transform.rotate(space_ship_img, angle)
+        
+        self.draw_image(space_ship_img, x_center, y_center, 30, 30, 'center')
+        
+        return
     
     
     def clear_screen(self):
@@ -174,9 +220,23 @@ class RenderEngine():
         return
     
     
-    def draw_image(self, image, x, y, width, height):
+    def draw_image(self, image, x, y, width, height, alignment='center'):
         resized_img = pygame.transform.scale(image, (width, height))
-        self.screen.blit(resized_img, (x, y))
+        
+        rect = resized_img.get_rect()
+        if alignment == "center":
+            rect.center = (x, y)
+        elif alignment == "topleft":
+            rect.topleft = (x, y)
+        elif alignment == "topright":
+            rect.topright = (x, y)
+        elif alignment == "bottomleft":
+            rect.bottomleft = (x, y)
+        elif alignment == "bottomright":
+            rect.bottomright = (x, y)
+            
+        self.screen.blit(resized_img, rect)
+        
         return
     
     
