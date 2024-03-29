@@ -9,6 +9,8 @@ class Buffer():
         self.break_point_str = break_point_str
         self.last_break_point = -1
         self.chunk = [EMPTY_DATA_BYTE] * self.chunk_size
+        self.chunk_loaded = False
+        self.chunk_loading = False
     
     
     def write_buffer(self, byte: str):
@@ -25,6 +27,9 @@ class Buffer():
             if self.complete_chunk():
                 self.load_chunk()
                 # print('chunk completo recebido')
+            else:
+                self.chunk_loading = False
+                pass
             
             self.last_break_point = index
             # print(f'breakpoint em {index}')
@@ -38,6 +43,8 @@ class Buffer():
     def load_chunk(self):
         """Carrega um chunk, percorrendo os últimos n = chunk_size bytes do buffer
         """
+        self.chunk_loading = True
+        
         # percorre o buffer, coletando os bytes do chunk
         for i in range(self.chunk_size):
             buffer_index = self.index
@@ -45,6 +52,8 @@ class Buffer():
             byte = self.buffer[buffer_index]
             
             self.chunk[i] = byte
+        
+        self.chunk_loaded = True
         
         return
     
