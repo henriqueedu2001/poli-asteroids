@@ -27,7 +27,7 @@ class Buffer():
                 print('chunk completo recebido')
             
             self.last_break_point = index
-            print(f'breakpoint em {index}')
+            # print(f'breakpoint em {index}')
         
         # atualiza índice
         self.index = index + 1
@@ -83,7 +83,8 @@ class Buffer():
             for i in range(break_point_str_size):
                 # cálculo dos índices
                 break_point_str_index = break_point_str_size - i - 1
-                buffer_index = self.get_absolute_index(self.index, -i)
+                buffer_index = self.get_absolute_index(self.index, -i) 
+                print(f'buffer_index = {self.index}\trel_index={-i}\tcalc_index = {buffer_index}')
                 
                 # obtenção dos caracteres
                 break_point_char = self.break_point_str[break_point_str_index]
@@ -122,8 +123,8 @@ class Buffer():
             Int: índice no buffer
         """
         if relative_index == 0:
-            # retornar mesmo endereço
-            abs_index = pivot_index
+            # retornar mesmo endereço, módulo n = buffer_size
+            abs_index = pivot_index % self.buffer_size
         elif relative_index > 0:
             # retornar pivot_index + relative_index, descontando a ultrapassagem à direita
             abs_index = (pivot_index + relative_index) % self.buffer_size
@@ -165,4 +166,4 @@ def test():
     
     pass
 
-test()
+# test()
