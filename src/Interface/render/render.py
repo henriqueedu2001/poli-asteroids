@@ -51,12 +51,15 @@ class RenderEngine():
         self.images_paths = {
             'life': 'heart.svg',
             'space_ship': 'space_ship.svg',
-            'asteroid': 'asteroid_01.svg',
-            'shot': 'asteroid_01.svg',
-            'asteroid_01': 'foto.jpeg',
-            'asteroid_02': 'foto.jpeg',
-            'asteroid_03': 'foto.jpeg',
-            'asteroid_04': 'foto.jpeg'
+            'shot': 'shot.svg',
+            'asteroid_01': 'asteroid_01.svg',
+            'asteroid_02': 'asteroid_02.svg',
+            'asteroid_03': 'asteroid_03.svg',
+            'asteroid_04': 'asteroid_04.svg',
+            'asteroid_05': 'asteroid_05.svg',
+            'asteroid_06': 'asteroid_06.svg',
+            'asteroid_07': 'asteroid_07.svg',
+            'asteroid_08': 'asteroid_08.svg'
         }
         
         # carregamento de imagens
@@ -137,14 +140,12 @@ class RenderEngine():
             try:
                 for index, asteroid_position in enumerate(self.asteroids_positions):
                     try:
-                        # verifica se o asteroide está carregado ou não
-                        if asteroid_position != NOT_LOADED_ASTEROID_POSITION:
-                            new_asteroid = {
-                                'x': asteroid_position[0],
-                                'y': asteroid_position[1],
-                                'direction': self.asteroids_directions[index]
-                            }
-                            asteroids.append(new_asteroid)
+                        new_asteroid = {
+                            'x': asteroid_position[0],
+                            'y': asteroid_position[1],
+                            'direction': self.asteroids_directions[index]
+                        }
+                        asteroids.append(new_asteroid)
                     except Exception as exception:
                         self.log_message(f'error in loading asteroid n = {index}\n{exception}')
             except Exception as exception:
@@ -263,10 +264,10 @@ class RenderEngine():
         
         if asteroids != None:
             # renderiza cada asteroide
-            for asteroid in asteroids:
+            for i, asteroid in enumerate(asteroids):
                 x, y = asteroid['x'], asteroid['y']
                 x, y = self.transform_coordinates(x, y)
-                self.render_asteroid(x, y)
+                self.render_asteroid(x, y, i)
 
         return
     
@@ -285,20 +286,26 @@ class RenderEngine():
     
     
     def render_shot(self, x, y):
-        print(f'rendering shot at {(x,y)}')
         shot_img = self.images['shot']
         
-        self.draw_image(shot_img, x, y, 40, 40, 'center')
+        self.draw_image(shot_img, x, y, 10, 10, 'center')
         
         return
     
     
-    def render_asteroid(self, x, y):
-        asteroid_img = self.images['asteroid']
+    def render_asteroid(self, x, y, asset_index=0):
+        asteroid_img = self.get_asteroid_asset(asset_index)
         
         self.draw_image(asteroid_img, x, y, 40, 40, 'center')
         
         return
+    
+    
+    def get_asteroid_asset(self, asset_index):
+        n = 1 + (asset_index % 8)
+        asteroid_img = self.images[f'asteroid_0{n}']
+        
+        return asteroid_img
     
     
     def transform_coordinates(self, x, y):

@@ -8,7 +8,7 @@
    version="1.1"
    id="svg1"
    inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
-   sodipodi:docname="asteroid_01.svg"
+   sodipodi:docname="asteroid_02.svg"
    xml:space="preserve"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,8 +24,8 @@
      inkscape:deskcolor="#000000"
      inkscape:document-units="mm"
      inkscape:zoom="0.4489899"
-     inkscape:cx="329.62879"
-     inkscape:cy="476.62542"
+     inkscape:cx="327.40157"
+     inkscape:cy="474.3982"
      inkscape:window-width="1292"
      inkscape:window-height="704"
      inkscape:window-x="0"
@@ -51,8 +51,5 @@
      id="layer1"
      style="display:inline"><path
        style="fill:none;stroke:#ffffff;stroke-width:2.64583"
-       d="M 183.5022,81.654554 146.45278,70.249351 142.71887,25.650722 44.504223,48.941299 30.732362,158.52045 l 91.020268,12.3281 z"
-       id="path1" /><path
-       style="fill:none;stroke:#ffffff;stroke-width:2.64583"
-       d="m 90.499408,145.98645 6.511562,-14.04776 18.10639,4.60148 -2.28446,19.24821 z"
-       id="path2" /></g></svg>
+       d="M 55.572895,161.09893 87.332171,125.26759 25.065849,136.41338 42.525741,53.671678 97.53648,29.214019 l 66.22558,28.465263 23.0443,83.227398 -46.51444,41.53544 z"
+       id="path1" /></g></svg>
