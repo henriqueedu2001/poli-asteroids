@@ -4,6 +4,9 @@ import os
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+NOT_LOADED_ASTEROID_POSITION = (0, 0)
+NOT_LOADED_SHOOT_POSITION = (0, 0)
+
 class RenderEngine():
     def __init__(self, screen) -> None:
         self.data = None
@@ -11,13 +14,14 @@ class RenderEngine():
         self.screen = screen
         self.screen_width, self.screen_height = screen.get_size()
         self.default_text_font = pygame.font.SysFont(None, 24)
-        self.log_messages = True
+        self.log_messages = False
         
         # state variables
         self.score = None
         self.player_direction = None
         self.lifes_quantity = None
         self.game_difficulty = None
+        self.asteroids = None
         self.asteroids_positions = None
         self.asteroids_directions = None
         self.shooting_positions = None
@@ -35,6 +39,7 @@ class RenderEngine():
         self.images = {
             'life': None,
             'space_ship': None,
+            'asteroid': None,
             'asteroid_01': None,
             'asteroid_02': None,
             'asteroid_03': None,
@@ -44,6 +49,7 @@ class RenderEngine():
         self.images_paths = {
             'life': 'foto.jpeg',
             'space_ship': 'foto.jpeg',
+            'asteroid': 'foto.jpeg',
             'asteroid_01': 'foto.jpeg',
             'asteroid_02': 'foto.jpeg',
             'asteroid_03': 'foto.jpeg',
@@ -114,6 +120,35 @@ class RenderEngine():
         except:
             pass
         
+        # carrega os asteroides
+        self.load_asteroids()
+        
+        return
+    
+    
+    def load_asteroids(self):
+        asteroids = []
+        
+        # print(f'{self.data}')
+        
+        try:
+            for index, asteroid_position in enumerate(self.asteroids_positions):
+                try:
+                    # verifica se o asteroide está carregado ou não
+                    if asteroid_position != NOT_LOADED_ASTEROID_POSITION:
+                        new_asteroid = {
+                            'x': asteroid_position[0],
+                            'y': asteroid_position[1],
+                            'direction': self.asteroids_directions[index]
+                        }
+                        asteroids.append(new_asteroid)
+                except Exception as exception:
+                    self.log_message(f'error in loading asteroid n = {index}\n{exception}')
+        except Exception as exception:
+                    self.log_message(f'error in loading asteroids\n{exception}')
+                    
+        self.asteroids = asteroids 
+        
         return
     
     
@@ -124,6 +159,7 @@ class RenderEngine():
         self.render_score()
         self.render_lifes()
         self.render_player()
+        self.render_asteroids()
         
         return
     
@@ -184,6 +220,22 @@ class RenderEngine():
         space_ship_img = pygame.transform.rotate(space_ship_img, angle)
         
         self.draw_image(space_ship_img, x_center, y_center, 30, 30, 'center')
+        
+        return
+    
+    
+    def render_asteroids(self):
+        
+        return
+
+
+    def render_asteroid(self):
+        asteroid_img = self.images['asteroid']
+        
+        x = self.relative_units_x(20)
+        y = self.relative_units_y(20)
+        
+        self.draw_image(asteroid_img, x, y, 30, 30, 'center')
         
         return
     

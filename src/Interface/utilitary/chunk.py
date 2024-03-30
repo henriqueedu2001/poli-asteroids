@@ -31,12 +31,12 @@ class Chunk():
         # pedaços de informação
         PT = str(chunk[0])
         G1 = str(chunk[1])
-        AS = str(chunk[2:18])
-        DA = str(chunk[18:22])
-        TI = str(chunk[22:38])
-        DT = str(chunk[38:42])
+        AS = ''.join(chunk[2:18])
+        DA = ''.join(chunk[18:22])
+        TI = ''.join(chunk[22:38])
+        DT = ''.join(chunk[38:42])
         G2 = str(chunk[42])
-        BP = str(chunk[43:45])
+        BP = ''.join(chunk[43:45])
         
         sliced_chunk = {
             'PT': PT, 'G1': G1, 'AS': AS, 'DA': DA, 'TI': TI, 'DT': DT, 'G2': G2, 'BP': BP
