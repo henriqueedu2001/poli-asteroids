@@ -129,23 +129,22 @@ class RenderEngine():
     def load_asteroids(self):
         asteroids = []
         
-        # print(f'{self.data}')
-        
-        try:
-            for index, asteroid_position in enumerate(self.asteroids_positions):
-                try:
-                    # verifica se o asteroide está carregado ou não
-                    if asteroid_position != NOT_LOADED_ASTEROID_POSITION:
-                        new_asteroid = {
-                            'x': asteroid_position[0],
-                            'y': asteroid_position[1],
-                            'direction': self.asteroids_directions[index]
-                        }
-                        asteroids.append(new_asteroid)
-                except Exception as exception:
-                    self.log_message(f'error in loading asteroid n = {index}\n{exception}')
-        except Exception as exception:
-                    self.log_message(f'error in loading asteroids\n{exception}')
+        if self.loaded_data:
+            try:
+                for index, asteroid_position in enumerate(self.asteroids_positions):
+                    try:
+                        # verifica se o asteroide está carregado ou não
+                        if asteroid_position != NOT_LOADED_ASTEROID_POSITION:
+                            new_asteroid = {
+                                'x': asteroid_position[0],
+                                'y': asteroid_position[1],
+                                'direction': self.asteroids_directions[index]
+                            }
+                            asteroids.append(new_asteroid)
+                    except Exception as exception:
+                        self.log_message(f'error in loading asteroid n = {index}\n{exception}')
+            except Exception as exception:
+                        self.log_message(f'error in loading asteroids\n{exception}')
                     
         self.asteroids = asteroids 
         
@@ -201,7 +200,7 @@ class RenderEngine():
         player_direction = 'UP'
         space_ship_img = self.images['space_ship']
         x_center = self.relative_units_x(50)
-        y_center = self.relative_units_x(50)
+        y_center = self.relative_units_y(50)
         
         # definição do ângulo, em função da direção
         angle = 0
@@ -225,19 +224,38 @@ class RenderEngine():
     
     
     def render_asteroids(self):
+        asteroids = self.asteroids
         
+        if asteroids != None:
+            # renderiza cada asteroide
+            for asteroid in asteroids:
+                x, y = asteroid['x'], asteroid['y']
+                x, y = self.transform_coordinates(x, y)
+                self.render_asteroid(x, y)
+
         return
-
-
-    def render_asteroid(self):
+    
+    
+    def render_asteroid(self, x, y):
         asteroid_img = self.images['asteroid']
         
-        x = self.relative_units_x(20)
-        y = self.relative_units_y(20)
-        
-        self.draw_image(asteroid_img, x, y, 30, 30, 'center')
+        self.draw_image(asteroid_img, x, y, 20, 20, 'center')
         
         return
+    
+    
+    def transform_coordinates(self, x, y):
+        new_x, new_y = 0, 0
+        width, height = self.screen_width, self.screen_height
+        horizontal_margin = self.relative_units_x(10)
+        vertical_margin = self.relative_units_y(10)
+        
+        w, h, hm, vm = width, height, horizontal_margin, vertical_margin
+        
+        new_x = int(hm + ((w - 2*hm)/14)*x)
+        new_y = int(vm + ((h - 2*vm)/14)*(15-y))
+        
+        return new_x, new_y
     
     
     def clear_screen(self):
