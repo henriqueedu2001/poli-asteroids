@@ -89,11 +89,15 @@ class ChunkDecoder():
         
         for byte in DA_slice:
             bin_code = get_binary_code(byte)
-            first_asteroid_code = bin_code[0:2]
-            second_asteroid_code = bin_code[2:4]
+            asteroid_direction_1 = bin_code[0:2]
+            asteroid_direction_2 = bin_code[2:4]
+            asteroid_direction_3 = bin_code[4:6]
+            asteroid_direction_4 = bin_code[6:8]
             
-            asteroids_directions_codes.append(first_asteroid_code)
-            asteroids_directions_codes.append(second_asteroid_code)
+            asteroids_directions_codes.append(asteroid_direction_1)
+            asteroids_directions_codes.append(asteroid_direction_2)
+            asteroids_directions_codes.append(asteroid_direction_3)
+            asteroids_directions_codes.append(asteroid_direction_4)
         
         for asteroid_code in asteroids_directions_codes:
             direction = ChunkDecoder.decode_direction(asteroid_code)
@@ -126,11 +130,15 @@ class ChunkDecoder():
         
         for byte in DT_slice:
             bin_code = get_binary_code(byte)
-            first_shooting_code = bin_code[0:2]
-            second_shooting_code = bin_code[2:4]
+            shooting_code_1 = bin_code[0:2]
+            shooting_code_2 = bin_code[2:4]
+            shooting_code_3 = bin_code[4:6]
+            shooting_code_4 = bin_code[6:8]
             
-            shooting_directions_codes.append(first_shooting_code)
-            shooting_directions_codes.append(second_shooting_code)
+            shooting_directions_codes.append(shooting_code_1)
+            shooting_directions_codes.append(shooting_code_2)
+            shooting_directions_codes.append(shooting_code_3)
+            shooting_directions_codes.append(shooting_code_4)
         
         for shooting_code in shooting_directions_codes:
             direction = ChunkDecoder.decode_direction(shooting_code)
