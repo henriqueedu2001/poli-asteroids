@@ -8,7 +8,7 @@ from render.render import RenderEngine
 
 # tamanho da tela
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 800
 
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45

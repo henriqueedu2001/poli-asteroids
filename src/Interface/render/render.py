@@ -47,9 +47,9 @@ class RenderEngine():
         }
         
         self.images_paths = {
-            'life': 'foto.jpeg',
-            'space_ship': 'foto.jpeg',
-            'asteroid': 'foto.jpeg',
+            'life': 'heart.svg',
+            'space_ship': 'space_ship.svg',
+            'asteroid': 'asteroid_01.svg',
             'asteroid_01': 'foto.jpeg',
             'asteroid_02': 'foto.jpeg',
             'asteroid_03': 'foto.jpeg',
@@ -151,6 +151,31 @@ class RenderEngine():
         return
     
     
+    def load_shootings(self):
+        asteroids = []
+        
+        if self.loaded_data:
+            try:
+                for index, asteroid_position in enumerate(self.asteroids_positions):
+                    try:
+                        # verifica se o asteroide está carregado ou não
+                        if asteroid_position != NOT_LOADED_ASTEROID_POSITION:
+                            new_asteroid = {
+                                'x': asteroid_position[0],
+                                'y': asteroid_position[1],
+                                'direction': self.asteroids_directions[index]
+                            }
+                            asteroids.append(new_asteroid)
+                    except Exception as exception:
+                        self.log_message(f'error in loading asteroid n = {index}\n{exception}')
+            except Exception as exception:
+                        self.log_message(f'error in loading asteroids\n{exception}')
+                    
+        self.asteroids = asteroids 
+        
+        return
+    
+    
     def render(self):
         self.clear_screen()
         
@@ -191,7 +216,7 @@ class RenderEngine():
                 x_i = x_base + i*x_spacing
                 y_i = y_base
                 
-                self.draw_image(life_img, x_i, y_i, 30, 30, 'topleft')
+                self.draw_image(life_img, x_i, y_i, 50, 50, 'topleft')
         except Exception as exeption:
             self.draw_text('LIFES NOT LOADED', self.default_text_font, self.colors['white'], x_base, y_base, 'topleft')
             pass
@@ -200,8 +225,7 @@ class RenderEngine():
     
     
     def render_player(self):
-        # player_direction = self.player_direction
-        player_direction = 'UP'
+        player_direction = self.player_direction
         space_ship_img = self.images['space_ship']
         x_center = self.relative_units_x(50)
         y_center = self.relative_units_y(50)
@@ -222,7 +246,7 @@ class RenderEngine():
         # rotação da imagem
         space_ship_img = pygame.transform.rotate(space_ship_img, angle)
         
-        self.draw_image(space_ship_img, x_center, y_center, 30, 30, 'center')
+        self.draw_image(space_ship_img, x_center, y_center, 50, 50, 'center')
         
         return
     
@@ -243,7 +267,7 @@ class RenderEngine():
     def render_asteroid(self, x, y):
         asteroid_img = self.images['asteroid']
         
-        self.draw_image(asteroid_img, x, y, 20, 20, 'center')
+        self.draw_image(asteroid_img, x, y, 40, 40, 'center')
         
         return
     
@@ -251,8 +275,8 @@ class RenderEngine():
     def transform_coordinates(self, x, y):
         new_x, new_y = 0, 0
         width, height = self.screen_width, self.screen_height
-        horizontal_margin = self.relative_units_x(10)
-        vertical_margin = self.relative_units_y(10)
+        horizontal_margin = self.relative_units_x(15)
+        vertical_margin = self.relative_units_y(15)
         
         w, h, hm, vm = width, height, horizontal_margin, vertical_margin
         
