@@ -155,26 +155,38 @@ class ChunkDecoder():
         return shooting_directions
 
 
-    def get_played_special_shooting(G2_slice: str):
-        played_special_shooting = 0
+    def get_played_special_shooting(G2_slice: str):      
+        bin_code = get_binary_code(G2_slice)
+        bits = bin_code[0]
+        
+        played_special_shooting = get_number(bits)
 
         return played_special_shooting
 
 
     def get_available_special_shooting(G2_slice: str):
-        available_special_shooting = 0
+        bin_code = get_binary_code(G2_slice)
+        bits = bin_code[1]
+        
+        available_special_shooting = get_number(bits)
 
         return available_special_shooting
 
 
     def get_played_shooting(G2_slice: str):
-        played_shooting = 0
+        bin_code = get_binary_code(G2_slice)
+        bits = bin_code[2]
+        
+        played_shooting = get_number(bits)
 
         return played_shooting
 
 
     def get_end_of_lifes(G2_slice: str):
-        end_of_lifes = 0
+        bin_code = get_binary_code(G2_slice)
+        bits = bin_code[3]
+        
+        end_of_lifes = get_number(bits)
 
         return end_of_lifes
     
