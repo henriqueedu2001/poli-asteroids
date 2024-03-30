@@ -1,5 +1,8 @@
-// modulo que decrementa em 1 a cada boda de subida caso ent, enp sejam HIGH
-
+/*
+  Modulo desenvolvido pelo grupo para a decrementação de vidas. O valor inicial deste modulo é 3 e quando seu ent e enp estão
+  em HIGH a sua saida é decrementada a cada borda de subida de clock. Assim que sua saida se torna zero, o rco é ativado e não é
+  realizado mais decrementações.
+*/
 module decrementador #(parameter N=4) ( 
                       input clock       , 
                       input clr         , 

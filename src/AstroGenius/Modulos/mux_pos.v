@@ -1,3 +1,7 @@
+/*
+        Modulo de mux desenvolvido pelo grupo responsável por selecionar o que irá ser salvo na memoria de asteroides / tiros.
+*/
+
 module mux_pos #(parameter N = 4)(
         input [1:0] select_mux_pos,
         input [N-1:0] resul_soma,

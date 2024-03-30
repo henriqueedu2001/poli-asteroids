@@ -1,4 +1,7 @@
-
+/*
+*       Unidade de controle responsável por percorrer a memoria da matriz de leds para os asteroides,
+*       tiros e nave serem renderizados na matriz de led. 
+*/
 module uc_renderiza (
         input clock                    ,
         input reset                    ,
@@ -14,16 +17,10 @@ module uc_renderiza (
         parameter zera_contador           = 4'b0001; // 1
         parameter conta_contador          = 4'b0010; // 2
         parameter pausado                 = 4'b0011; // 3
-        // parameter incrementa_contador_tiro = 4'b0100; // 4
-        // parameter salva_tiro               = 4'b0101; // 5
-        // parameter sinaliza                 = 4'b0110; // 6
-        // parameter aux                      = 4'b0111; // 7
         parameter erro                     = 4'b1111; // F
-
 
         // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
-
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin
@@ -41,17 +38,14 @@ module uc_renderiza (
                 conta_contador:           proximo_estado = pausar_renderizacao ? pausado : 
                                                            (rco_contador_frame && ~pausar_renderizacao)? zera_contador : conta_contador;
                 pausado:                  proximo_estado = pausar_renderizacao ? pausado : zera_contador;
-
                 default:                  proximo_estado = erro;
         endcase
     end
 
     // Lógica de saída (maquina Moore)
     always @* begin
-
         reset_contador_frame   = (estado_atual == zera_contador || estado_atual == inicial) ? 1'b1 : 1'b0;
         conta_contador_frame   = (estado_atual == conta_contador) ? 1'b1 : 1'b0;
-
         // Saída de depuração (estado)
         case (estado_atual)
                 inicial:                 db_estado_uc_renderiza = 4'b0000; // 0
@@ -62,12 +56,4 @@ module uc_renderiza (
                 default:                 db_estado_uc_renderiza = 4'b0000;
         endcase
     end
-
-
-
-
-
-
-
-
 endmodule

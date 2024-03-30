@@ -34,7 +34,7 @@ module uc_jogo_principal (
         output reg [4:0] db_estado_jogo_principal
 );
 
- /* declaração dos estados dessa UC */
+        /* declaração dos estados dessa UC */
         parameter inicial                                 = 5'b00000; // 0
         parameter inicializa_elementos                    = 5'b00001; // 1
         parameter espera_jogada                           = 5'b00010; // 2
@@ -49,7 +49,7 @@ module uc_jogo_principal (
         parameter espera_registra_especial                = 5'b01011; // 11 
         parameter erro                                    = 5'b11111; // F
 
-/* Variáveis de estado */
+        /* Variáveis de estado */
         reg [4:0] estado_atual, proximo_estado;
 
         /* Memória de estado */
@@ -121,5 +121,4 @@ module uc_jogo_principal (
                 default                                 : db_estado_jogo_principal = 5'b11111;
         endcase
     end
-
 endmodule

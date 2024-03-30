@@ -1,6 +1,6 @@
-//registrador_n #(N = 5)(
-
-// )
+/*
+    Modulo de registrador parametrizado. Foi utilizado como base o modulo de registrador disponibilizado pelos professores
+*/
 module registrador_n #(parameter N = 4)(
     input        clock ,
     input        clear ,

@@ -1,5 +1,9 @@
-// modulo que implementa o somador/subtrator, caso select seja um então ocorre a soma
-// caso seja 0 então ocorre a subtração
+/*
+
+  Modulo que implementa um somador/subtrator, caso select seja um então ocorre a soma
+  caso seja 0 então ocorre a subtração. Esse somador é utilizado para realizar operações nas coordenadas dos asteroides / tiros
+
+*/
 
 module somador_subtrator #(parameter N=4) ( 
                           input [N-1:0] a,

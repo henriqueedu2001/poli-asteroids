@@ -1,3 +1,7 @@
+/*
+    Modulo responsável por gerar números aleatórios de 4 bits
+*/
+
 module random (
     input clock,
     input reset,

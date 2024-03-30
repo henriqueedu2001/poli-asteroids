@@ -1,3 +1,10 @@
+/*
+    Modulo do contador_163 disponibilizado pelos professores que foi adaptado pelo grupo,
+    esse contador tem seu valor máximo variável, sendo este a entrada Max. Esse contador é utilizado para a
+    seleção de dificuldade 
+
+*/
+
 module contador_163 #(parameter N = 16) ( 
                         input clock, 
                         input clr, 

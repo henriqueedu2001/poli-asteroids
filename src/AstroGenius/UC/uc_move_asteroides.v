@@ -12,14 +12,14 @@ module uc_move_asteroides (
         input [1:0] opcode_aste,
         input loaded_aste,
         input rco_contador_aste,
-        output reg [1:0] select_mux_pos_aste,   //seletor do mux da posição 
-        output reg select_mux_coor_aste,  //seletor do mux da posição 
+        output reg [1:0] select_mux_pos_aste,  
+        output reg select_mux_coor_aste,
         output reg select_soma_sub,  
         output reg reset_contador_aste,
         output reg conta_contador_aste, 
         output reg reset_contador_movimenta_asteroide,
-        output reg enable_mem_aste, // enable da memoria de tiros
-        output reg movimentacao_concluida_aste, // sinal que indica o fim da movimentação dos tiros
+        output reg enable_mem_aste,
+        output reg movimentacao_concluida_aste,
         output reg [4:0] db_estado_move_aste
 
 );
@@ -39,7 +39,7 @@ module uc_move_asteroides (
         parameter sinaliza               = 5'b01110; // 12
         parameter erro                   = 5'b11111; // erro
 
-// Variáveis de estado
+        // Variáveis de estado
         reg [4:0] estado_atual, proximo_estado;
 
         // Memória de estado
@@ -109,8 +109,7 @@ module uc_move_asteroides (
             aux:                    db_estado_move_aste = 5'b01011; // 11
             sinaliza:               db_estado_move_aste = 5'b01110; // 12
             erro:                   db_estado_move_aste = 5'b11111; // erro
-            default:                db_estado_move_aste = 5'b11111; // 
+            default:                db_estado_move_aste = 5'b11111;
         endcase
     end
 endmodule
-

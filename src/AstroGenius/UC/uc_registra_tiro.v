@@ -1,17 +1,24 @@
+/*
+* Arquivo: uc_registra_tiro.v
+* Descricão: UC para registrar realizado pelo jogador. Essa unidade de controle percorre a memoria de 
+* tiros e verifica se cada tiro está sendo renderizado, caso o tiro não esteja renderizado, é realizado 
+* o salvamento do tiro. Caso o tiro esteja renderizado, é realizado o incremento do contador de tiros.
+*/
 module uc_registra_tiro (
+        /*input*/
         input clock                    ,
-        input registra_tiro            , // entrada que inicia a máquina de estados
+        input registra_tiro            , 
         input reset                    ,
         input loaded_tiro              ,
         input rco_contador_tiro        ,
-        output reg enable_mem_tiro     , // enable da memoria de tiros
-        output reg enable_load_tiro    , // enable da memoria de tiros
+        /*output*/
+        output reg enable_mem_tiro     , 
+        output reg enable_load_tiro    , 
         output reg new_load            ,
-        //contador
-        output reg clear_contador_tiro  , // clear do contador que aponta para a posição do tiro na memoria
-        output reg conta_contador_tiro  , // conta do contador que aponta para a posição do tiro na memoria
-        output reg [1:0] select_mux_pos , // mux que seleciona a posição que será salva na memoria (salva a posição da nave e o opcode)
-        output reg tiro_registrado      , // saida final que indica o fim da operação registra tiro
+        output reg clear_contador_tiro  , 
+        output reg conta_contador_tiro  ,
+        output reg [1:0] select_mux_pos , 
+        output reg tiro_registrado      , 
         output reg [3:0] db_estado_registra_tiro
 );
 
@@ -23,7 +30,7 @@ module uc_registra_tiro (
         parameter incrementa_contador_tiro = 4'b0100; // 4
         parameter salva_tiro               = 4'b0101; // 5
         parameter sinaliza                 = 4'b0110; // 6
-        parameter aux                      = 4'b0111; // 7
+        parameter aux                      = 4'b0111; // 7 - estado auxiliar para compensar o atraso da leitura da memoria
         parameter erro                     = 4'b1111; // F
 
 
@@ -78,6 +85,5 @@ module uc_registra_tiro (
             default:                  db_estado_registra_tiro = 4'b0000;
         endcase
     end
-
 endmodule
 

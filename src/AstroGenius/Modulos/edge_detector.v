@@ -1,4 +1,8 @@
+/*
 
+    Modulo disponibilizado pelos professores
+
+*/
  module edge_detector (
     input  clock,
     input  reset,

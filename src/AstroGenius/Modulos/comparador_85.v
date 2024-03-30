@@ -1,3 +1,8 @@
+/*
+    Modulo responsável por comparar dois números A e B e colocar em suas saidas a relação de
+    igualdade e desigualdade.
+*/
+
 module comparador_85 #(parameter N = 4)(
                 input [N-1:0] A, 
                 input [N-1:0] B,

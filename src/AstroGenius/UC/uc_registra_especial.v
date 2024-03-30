@@ -10,22 +10,24 @@
 
    
 module uc_registra_especial (
+        /*input*/
         input clock                    ,
         input reset                    ,
-        input registra_tiro_especial   , // entrada que inicia a máquina de estados
+        input registra_tiro_especial   , 
         input loaded_tiro              ,
         input rco_contador_tiro        ,
         input rco_opcode               ,
-        output reg reset_contador_tiro , // reset do contador que aponta para a posição do tiro na memoria
+        /*output*/
+        output reg reset_contador_tiro , 
         output reg reset_contador_especial,
         output reg reset_intervalo_especial,
-        output reg enable_mem_tiro     , // enable da memoria de tiros
-        output reg [1:0] select_mux_pos, // mux que seleciona a posição que será salva na memoria (salva a posição da nave e o opcode)
+        output reg enable_mem_tiro     , 
+        output reg [1:0] select_mux_pos, 
         output reg new_load            ,
-        output reg enable_load_tiro    , // enable da memoria de tiros
+        output reg enable_load_tiro    , 
         output reg conta_contador_opcode,
-        output reg conta_contador_tiro  , // conta do contador que aponta para a posição do tiro na memoria
-        output reg especial_registrado  , // saida final que indica o fim da operação registra tiro
+        output reg conta_contador_tiro  , 
+        output reg especial_registrado  ,
         output reg select_mux_especial_opcode,
         output reg [3:0] db_estado_registra_tiro_especial
 );
@@ -46,7 +48,6 @@ module uc_registra_especial (
 
         // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
-
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin

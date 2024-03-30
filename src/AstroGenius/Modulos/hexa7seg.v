@@ -1,4 +1,9 @@
 
+/*
+
+    Modulo disponibilizado pelos professores
+
+*/
 
 module hexa7seg (hexa, display);
     input      [3:0] hexa;

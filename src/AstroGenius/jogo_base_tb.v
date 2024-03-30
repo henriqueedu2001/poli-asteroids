@@ -1,6 +1,6 @@
 `timescale 1ns / 1ns
 
-module astro_genius_tb;
+module jogo_base_tb;
 
     reg clock;
     reg reset;
@@ -17,12 +17,12 @@ module astro_genius_tb;
     wire [3:0] db_estado_registra_tiro;
 
     // Instantiate the astro_genius module
-    astro_genius dut (
+    jogo_base dut (
         .clock(clock),
         .reset(reset),
         .iniciar(iniciar),
         .chaves(chaves),
-        .pronto(pronto),
+        .gameover(pronto),
         .db_estado_jogo_principal(db_estado_jogo_principal),
         .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
         .db_estado_compara_tiros_e_asteroide(db_estado_compara_tiros_e_asteroide),
@@ -39,7 +39,7 @@ module astro_genius_tb;
 
     initial begin
         $dumpfile("wave.vcd");
-        $dumpvars(5, astro_genius_tb);
+        $dumpvars(5, jogo_base_tb);
         // valores iniciais
         clock = 1'b0;
         reset = 1'b1;

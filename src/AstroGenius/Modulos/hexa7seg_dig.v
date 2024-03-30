@@ -1,4 +1,3 @@
-
 module hexa7seg (hexa, display);
     input      [3:0] hexa;
     output reg [3:0] display;

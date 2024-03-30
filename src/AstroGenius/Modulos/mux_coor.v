@@ -1,3 +1,8 @@
+/*
+        Modulo de mux desenvolvido pelo grupo utilizado para selecionar a coordenada do asteroide / tiro que
+        irá sofrer incrementação ou decrementação (a depender do opcode)
+*/
+
 module mux_coor #(parameter N = 4)(
         input select_mux_coor,
         input [N-1:0] mem_coor_x,

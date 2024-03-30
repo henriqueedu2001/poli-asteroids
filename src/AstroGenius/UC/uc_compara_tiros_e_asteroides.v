@@ -44,7 +44,6 @@ module uc_compara_tiros_e_asteroides (
     parameter auxiliar_aste         = 5'b01011; // 11
     parameter erro                  = 5'b01111; // F
 
-
     // Variáveis de estado
     reg [4:0] estado_atual, proximo_estado;
 
@@ -55,7 +54,6 @@ module uc_compara_tiros_e_asteroides (
         else
             estado_atual <= proximo_estado;
     end
-
 
     // Lógica de transição de estados
     always @* begin

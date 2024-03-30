@@ -1,16 +1,15 @@
-//////////////////////////////////////////////////////////////////////
-// File Downloaded from http://www.nandland.com
-//////////////////////////////////////////////////////////////////////
-// This file contains the UART Transmitter.  This transmitter is able
-// to transmit 8 bits of serial data, one start bit, one stop bit,
-// and no parity bit.  When transmit is complete o_Tx_done will be
-// driven high for one clock cycle.
-//
-// Set Parameter CLKS_PER_BIT as follows:
-// CLKS_PER_BIT = (Frequency of i_Clock)/(Frequency of UART)
-// Example: 10 MHz Clock, 115200 baud UART
-// (10000000)/(115200) = 87
-  
+/*
+  Esse arquivo foi obtido em http://www.nandland.com. 
+  Modulo de transmissão UART, para o AstroGenius. Inicialmente um dado é colocado na entrada i_Tx_Byte, 
+  e o código envia bit a bit para a saida o_Tx_Serial, do LSB para o MSB. Quando o envio é concluido, então
+  o o_Tx_Done fica em alto. 
+  Como setar o baund:
+  CLKS_PER_BIT = (Frequência de i_Clock)/(Frequência da UART)
+  Exemplo: Clock de 10 MHz e 115200 baud UART
+  (10000000)/(115200) = 87
+
+*/
+
 module uart_tx 
   #(parameter CLKS_PER_BIT = 87)
   (

@@ -7,6 +7,7 @@
    Após isso, o tiro será registrado na memória de tiros.*/
 
 module uc_move_tiros (
+        /*input*/
         input clock                    ,
         input movimenta_tiro           ,
         input reset                    ,
@@ -17,16 +18,17 @@ module uc_move_tiros (
         input y_borda_max_tiro         , //true se a coord. Y do tiro estiver no MAXIMO da vetical
         input x_borda_min_tiro         , //true se a coord. Y do tiro estiver no MINIMO da horizontal
         input y_borda_min_tiro         , //true se a coord. Y do tiro estiver no MINIMO da vetical
-        output reg [1:0] select_mux_pos_tiro ,   //seletor do mux da posição 
-        output reg select_mux_coor_tiro,  //seletor do mux da posição 
+        /*output*/
+        output reg [1:0] select_mux_pos_tiro ,
+        output reg select_mux_coor_tiro,
         output reg select_soma_sub     ,  
         output reg reset_contador_tiro ,
         output reg conta_contador_tiro , 
         output reg reset_contador_movimenta_tiro,
-        output reg enable_mem_tiro     , // enable da memoria de tiros
+        output reg enable_mem_tiro     , 
         output reg enable_load_tiro    ,
-        output reg new_loaded,                 // valor do loaded que será salvo na nossa memoria (é 0 quando tiro sair da tela) 
-        output reg movimentacao_concluida_tiro, // sinal que indica o fim da movimentação dos tiros
+        output reg new_loaded,                
+        output reg movimentacao_concluida_tiro,
         output reg [4:0] db_estado_move_tiros
 
 );
@@ -49,7 +51,7 @@ module uc_move_tiros (
         parameter aux                    = 5'b01111; // F
         parameter erro                   = 5'b11111; // erro
 
-// Variáveis de estado
+        // Variáveis de estado
         reg [4:0] estado_atual, proximo_estado;
 
         // Memória de estado
@@ -60,7 +62,7 @@ module uc_move_tiros (
                         estado_atual <= proximo_estado;
         end
 
-        // mudança de estados
+        // Mudança de estados
         always @* begin
         case (estado_atual) 
                 inicio:                 proximo_estado = espera;

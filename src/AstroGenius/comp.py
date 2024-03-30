@@ -1,6 +1,7 @@
 # Lista de arquivos a serem adicionados
 arquivos = [
     "astro_genius.v",
+    "jogo_base.v",
     "asteroide.v",
     "tiro.v",
     "Modulos/comparador_85.v",
@@ -34,7 +35,8 @@ arquivos = [
     "UC/uc_move_asteroides.v",
     "UC/uc_move_tiros.v",
     "UC/uc_registra_tiro.v",
-    "UC/uc_renderiza.v"
+    "UC/uc_renderiza.v",
+    "UC/uc_menu.v"
 ]
 
 # Nome do arquivo de saída

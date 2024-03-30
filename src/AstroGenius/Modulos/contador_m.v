@@ -1,3 +1,7 @@
+/*
+  Modulo do contador_m disponibilizado pelos professores
+*/
+
 module contador_m #(parameter M=16, N=4)
   (
    input  wire          clock,

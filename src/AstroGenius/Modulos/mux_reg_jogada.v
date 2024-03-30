@@ -1,3 +1,9 @@
+/*
+
+        Modulo de mux responsável por decodificar a jogada realizada pelo jogador em um opcode para o salvamento dos tiros.
+
+*/
+
 module mux_reg_jogada (
         input [3:0] select_mux_jogada,
         output [1:0] saida_mux

@@ -89,7 +89,6 @@ module uc_coordena_asteroides_tiros (
             move_asteroides:                             proximo_estado = espera_move_asteroides;
             espera_move_asteroides:                      proximo_estado = fim_move_asteroides ? compara_asteroides_com_a_nave_e_tiro : espera_move_asteroides;
             inicia_gera_frame:                           proximo_estado = espera_gera_frame; 
-            // espera_gera_frame:                           proximo_estado = fim_gera_frame ? fim_movimentacao : espera_gera_frame; 
             espera_gera_frame:                           proximo_estado = fim_gera_frame ? inicia_transmissao_de_dados : espera_gera_frame; 
             inicia_transmissao_de_dados:                 proximo_estado = espera_transmissao_de_dados;
             espera_transmissao_de_dados:                 proximo_estado = fim_transmissao_de_dados ? fim_movimentacao : espera_transmissao_de_dados;
@@ -109,7 +108,6 @@ module uc_coordena_asteroides_tiros (
         gera_asteroide                   = (estado_atual == inicia_gera_aste)           ? 1'b1 : 1'b0;
         pausar_renderizacao              = (estado_atual == inicia_gera_frame || estado_atual == espera_gera_frame) ? 1'b1 : 1'b0;
         sinal_compara_asteroides_com_a_nave_e_tiro = (estado_atual == compara_asteroides_com_a_nave_e_tiro)          ? 1'b1 : 1'b0;
-
         enviar_dados                     = (estado_atual == inicia_transmissao_de_dados) ? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
@@ -131,10 +129,9 @@ module uc_coordena_asteroides_tiros (
             fim_movimentacao:                            db_estado_coordena_asteroides_tiros = 5'b01110; // 14
             inicia_transmissao_de_dados:                 db_estado_coordena_asteroides_tiros = 5'b01111; // 15
             espera_transmissao_de_dados:                 db_estado_coordena_asteroides_tiros = 5'b10000; // 16
-            default:                                     db_estado_coordena_asteroides_tiros = 5'b11111; 
+            default:                                     db_estado_coordena_asteroides_tiros = 5'b11111; // erro = 31 
         endcase
     end
-
 endmodule
 
 

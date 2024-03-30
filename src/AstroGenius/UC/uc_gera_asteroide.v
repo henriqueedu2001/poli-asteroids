@@ -23,6 +23,7 @@ module uc_gera_asteroide (
         output reg [3:0] db_uc_gera_asteroide
 );
 
+        /* declaração dos estados dessa UC */
         parameter inicial                = 4'b0000; // 0
         parameter espera                 = 4'b0001; // 1
         parameter zera_contador          = 4'b0010; // 2
@@ -85,5 +86,4 @@ module uc_gera_asteroide (
                 default:                 db_uc_gera_asteroide = 4'b1111;
         endcase
     end
-
 endmodule

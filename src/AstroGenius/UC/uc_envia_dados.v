@@ -87,44 +87,44 @@ module uc_envia_dados (
                 inicial:                   proximo_estado = espera;
                 espera:                    proximo_estado = enviar_dados ? zera_contadores : espera;
                 zera_contadores:           proximo_estado = inicia_envio_de_pontuacao;
-                
+                // envia a pontuação
                 inicia_envio_de_pontuacao: proximo_estado = espera_envio_de_pontuacao;
                 espera_envio_de_pontuacao: proximo_estado = acabou_transmissao_uart_tx ? envia_opcode_nave : espera_envio_de_pontuacao;
-                
+                // envia o opcode da nave, vidas e 3'b000
                 envia_opcode_nave:         proximo_estado = inicia_envia_opcode_nave;
                 inicia_envia_opcode_nave:  proximo_estado = espera_envia_opcode_nave;
                 espera_envia_opcode_nave:  proximo_estado = acabou_transmissao_uart_tx ? envia_posicao_aste : espera_envia_opcode_nave;
-                
+                // envia as posições dos asteroides
                 envia_posicao_aste:        proximo_estado = inicia_envia_posicao_aste;
                 inicia_envia_posicao_aste: proximo_estado = espera_envia_posicao_aste;
                 espera_envia_posicao_aste: proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_aste : espera_envia_posicao_aste;
                 verifica_rco_aste:         proximo_estado = rco_contador_aste ? envia_opcode_aste : incrementa_contador_asteroides;
                 incrementa_contador_asteroides: proximo_estado = espera_mem_aste;
                 espera_mem_aste:           proximo_estado = inicia_envia_posicao_aste;
-                
+                // envia os opcodes dos asteroides
                 envia_opcode_aste:         proximo_estado = inicia_envia_opcode_aste;
                 inicia_envia_opcode_aste:  proximo_estado = espera_envia_opcode_aste;
                 espera_envia_opcode_aste:  proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_byte_opcode_aste : espera_envia_opcode_aste;
                 verifica_rco_contador_byte_opcode_aste: proximo_estado = rco_contador_byte_opcode ? envia_posicao_tiros : incrementa_contador_byte_opcode_aste;
                 incrementa_contador_byte_opcode_aste: proximo_estado = inicia_envia_opcode_aste;
-                
+                // envia as posições dos tiros
                 envia_posicao_tiros:        proximo_estado = inicia_envia_posicao_tiros;
                 inicia_envia_posicao_tiros: proximo_estado = espera_envia_posicao_tiros;
                 espera_envia_posicao_tiros: proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_tiros : espera_envia_posicao_tiros;
                 verifica_rco_tiros:         proximo_estado = rco_contador_tiros ? envia_opcode_tiro : incrementa_contador_tiros;
                 incrementa_contador_tiros:  proximo_estado = espera_mem_tiros;
                 espera_mem_tiros:           proximo_estado = inicia_envia_posicao_tiros;
-                
+                // envia os opcodes dos tiros
                 envia_opcode_tiro:          proximo_estado = inicia_envia_opcode_tiro;
                 inicia_envia_opcode_tiro:   proximo_estado = espera_envia_opcode_tiro;
                 espera_envia_opcode_tiro:   proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_byte_opcode_tiro : espera_envia_opcode_tiro;
                 verifica_rco_contador_byte_opcode_tiro: proximo_estado = rco_contador_byte_opcode ? envia_jogada_especial : incrementa_contador_byte_opcode_tiro;
                 incrementa_contador_byte_opcode_tiro: proximo_estado = inicia_envia_opcode_tiro;
-
+                // envia a jogada_especial, especial_disponível,  jogada_tiro, tiro_disponivel, acabou_vidas e 3'b000
                 envia_jogada_especial:     proximo_estado = inicia_envia_jogada_especial;
                 inicia_envia_jogada_especial: proximo_estado = espera_envia_jogada_especial;
                 espera_envia_jogada_especial: proximo_estado = acabou_transmissao_uart_tx ? envia_rodape : espera_envia_jogada_especial;
-
+                // envia o rodape do bloco de dados
                 envia_rodape:                 proximo_estado = inicia_envia_rodape;
                 inicia_envia_rodape:          proximo_estado = espera_envia_rodape;
                 espera_envia_rodape:          proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_rodape : espera_envia_rodape;
@@ -151,7 +151,6 @@ module uc_envia_dados (
                 conta_contador_byte_opcode  = (estado_atual == incrementa_contador_byte_opcode_aste ||
                                                estado_atual == incrementa_contador_byte_opcode_tiro )      ? 1'b1 : 1'b0; 
                 reset_contador_byte_opcode  = (estado_atual == zera_contadores || estado_atual == inicial) ? 1'b1 : 1'b0; 
-
                 conta_contador_mux_byte_enviar = (estado_atual ==  envia_jogada_especial ||
                                                   estado_atual ==  envia_opcode_aste     ||
                                                   estado_atual == envia_opcode_nave      ||
@@ -167,16 +166,13 @@ module uc_envia_dados (
                 reset_contador_tiro            = (estado_atual == zera_contadores)                ? 1'b1: 1'b0; 
                 conta_contador_rodape          = (estado_atual == incrementa_contador_rodape)     ? 1'b1 : 1'b0; 
                 reset_contador_rodape          = (estado_atual == zera_contadores)                ? 1'b1 : 1'b0; 
-
                 esta_enviando_pos_asteroides   = (estado_atual == envia_posicao_tiros        ||  
                                                   estado_atual == inicia_envia_posicao_tiros ||
                                                   estado_atual == espera_envia_posicao_tiros || 
                                                   estado_atual == verifica_rco_tiros         || 
                                                   estado_atual == incrementa_contador_tiros  ||
-                                                  estado_atual == espera_mem_tiros           )? 1'b1 : 1'b0;  
-                                                  
+                                                  estado_atual == espera_mem_tiros           )? 1'b1 : 1'b0; 
                 terminou_de_enviar_dados = (estado_atual == sinaliza)? 1'b1 : 1'b0;
-                // Saída de depuração (estado)
 
         // Saída de depuração (estado)
         case (estado_atual)
@@ -222,12 +218,4 @@ module uc_envia_dados (
                 default:                                db_estado_uc_envia_dados = 6'b111111;
         endcase
     end
-
-
-
-
-
-
-
-
 endmodule
