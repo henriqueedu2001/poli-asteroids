@@ -177,20 +177,24 @@ class RenderEngine():
             self.draw_text('SCORE: NOT LOADED', font, self.colors['white'], x, y, 'topleft')
     
     
-    def render_lifes(self):
-        # n = self.lifes_quantity
-        life_img = self.images['life']
-        n = 3
-        
+    def render_lifes(self):      
         x_base = self.relative_units_x(3)
-        y_base = self.relative_units_x(6)
-        
+        y_base = self.relative_units_x(6)    
         x_spacing = self.relative_units_x(6)
         
-        for i in range(n):
-            x_i = x_base + i*x_spacing
+        try:
+            n = self.lifes_quantity
             
-            self.draw_image(life_img, x_i, y_base, 30, 30, 'topleft')
+            life_img = self.images['life']
+            
+            for i in range(n):
+                x_i = x_base + i*x_spacing
+                y_i = y_base
+                
+                self.draw_image(life_img, x_i, y_i, 30, 30, 'topleft')
+        except Exception as exeption:
+            self.draw_text('LIFES NOT LOADED', self.default_text_font, self.colors['white'], x_base, y_base, 'topleft')
+            pass
         
         return
     
