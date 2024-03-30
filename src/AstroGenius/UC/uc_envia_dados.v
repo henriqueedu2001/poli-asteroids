@@ -129,6 +129,7 @@ module uc_envia_dados (
                 inicia_envia_rodape:          proximo_estado = espera_envia_rodape;
                 espera_envia_rodape:          proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_rodape : espera_envia_rodape;
                 verifica_rco_contador_rodape: proximo_estado = rco_contador_rodape ? sinaliza : incrementa_contador_rodape;
+                incrementa_contador_rodape:   proximo_estado = inicia_envia_rodape;
                 sinaliza:                     proximo_estado = espera;
                 default:                      proximo_estado = erro;
         endcase

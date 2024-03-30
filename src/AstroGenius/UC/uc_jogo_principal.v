@@ -18,6 +18,7 @@ module uc_jogo_principal (
         input tiro,      
         input especial, 
         input rco_intervalo_especial,
+        input rco_intervalo_tiro,
         output reg enable_reg_jogada,
         output reg reset_reg_jogada, 
         output reg inicia_registra_tiros,
@@ -69,7 +70,7 @@ module uc_jogo_principal (
                 registra_jogada:      proximo_estado = espera_salvamento;
                 espera_salvamento:    proximo_estado = espera_salvamento2; 
                 espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
-                                                        (ocorreu_tiro || (ocorreu_especial  && rco_intervalo_especial))  ? termina_movimentacao_asteroides_e_tiros : espera_jogada;
+                                                        ((ocorreu_tiro && rco_intervalo_tiro) || (ocorreu_especial  && rco_intervalo_especial))  ? termina_movimentacao_asteroides_e_tiros : espera_jogada;
                 termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_asteroides_e_tiros && ~vidas            )? fim_jogo :
                                                                           (fim_movimentacao_asteroides_e_tiros && vidas && especial && rco_intervalo_especial)? inicia_state_registra_especial :
                                                                           (fim_movimentacao_asteroides_e_tiros && vidas && tiro    )? inicia_state_registra_tiros : termina_movimentacao_asteroides_e_tiros;

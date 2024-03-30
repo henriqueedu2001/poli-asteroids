@@ -165,7 +165,7 @@ module astro_genius_tb;
         #(2000*clockPeriod)
 
         chaves = 6'b000000;
-        #(2000*clockPeriod)
+        #(10000*clockPeriod)
 
         $finish;
     end

@@ -2,7 +2,6 @@ module astro_genius (
     input clock,
     input reset,
     input iniciar,
-    input [2:0] dificuldade,
     input [5:0] chaves,
     output pronto,
     /* sinais de depuracao */
@@ -18,6 +17,7 @@ module astro_genius (
     output [3:0] db_uc_gera_asteroide,
     output [14:0] matriz_x,
     output [3:0] matriz_y,
+    //displays
     output [6:0] db_vidas,
     output [6:0] db_pontos,
     output [6:0] db_tiro_x,
@@ -66,6 +66,14 @@ wire wire_tiro;
 wire wire_especial;
 wire wire_inicia_registra_especial;
 wire wire_wire_reset_pontuacao;
+wire wire_rco_intervalo_tiro;
+wire wire_reset_contador_tiro_uc_registra_especial;
+wire wire_reset_contador_especial_uc_registra_especial;
+wire wire_enable_mem_tiro_uc_registra_especial;
+wire wire_new_load_uc_registra_especial;
+wire wire_conta_contador_opcode;
+wire wire_conta_contador_tiro_uc_registra_especial;
+wire wire_select_mux_especial_opcode;
 
 
 /********************************************************************************************************************/
@@ -77,13 +85,14 @@ wire wire_reset_contador_aste_uc_envia_dados;
 wire wire_conta_contador_tiro_uc_envia_dados;
 wire wire_reset_contador_tiro_uc_envia_dados;
 wire wire_iniciar_transmissao_uart_tx;
-wire wire_terminou_de_enviar_dados;
+wire wire_terminou_de_enviar_dados_uc_envia_dados;
+wire wire_terminou_transmissao_de_byte;
 uc_envia_dados uc_envia_dados(
     /* inputs */
     .clock(clock),
     .reset(wire_reset_maquinas),
-    .enviar_dados(),
-    .acabou_transmissao_uart_tx(),
+    .enviar_dados(wire_enviar_dados_uc_coordena_asteroides_tiros),
+    .acabou_transmissao_uart_tx(wire_terminou_transmissao_de_byte),
     .rco_contador_aste(wire_rco_contador_asteroides),
     .rco_contador_tiros(wire_rco_contador_tiro),
     .rco_contador_byte_opcode(wire_rco_contador_byte_opcode),
@@ -102,7 +111,7 @@ uc_envia_dados uc_envia_dados(
     .reset_contador_tiro(wire_reset_contador_tiro_uc_envia_dados),
     .conta_contador_rodape(wire_conta_contador_rodape),
     .reset_contador_rodape(wire_reset_contador_rodape),
-    .terminou_de_enviar_dados(wire_terminou_de_enviar_dados),
+    .terminou_de_enviar_dados(wire_terminou_de_enviar_dados_uc_envia_dados),
     .esta_enviando_pos_asteroides(wire_esta_enviando_pos_asteroides),
     .db_estado_uc_envia_dados(db_estado_uc_envia_dados)
     );
@@ -130,7 +139,7 @@ wire wire_rco_contador_byte_opcode;
 contador_m #(4, 2) contador_byte_opcode
   (
    .clock(clock),
-   .zera_as(wire_reset_contador_byte_opcode),
+   .zera_as(wire_reset_contador_byte_opcode || wire_reset_maquinas),
    .zera_s(1'b0),
    .conta(wire_conta_contador_byte_opcode),
    .Q(select_mux_byte_opcode),
@@ -147,7 +156,7 @@ wire wire_conta_contador_mux_byte_enviar;
 wire wire_reset_contador_mux_byte_enviar;
 wire [3:0] select_mux_byte_enviar;
 /*contador utilizado como seletor do mux de byte enviar*/
-contador_m #(7, 4) contador_byte_enviar
+contador_m #(8, 4) contador_byte_enviar
   (
    .clock(clock),
    .zera_as(wire_reset_contador_mux_byte_enviar),
@@ -159,13 +168,14 @@ contador_m #(7, 4) contador_byte_enviar
   );
 
 wire [7:0] byte_enviar;
-assign byte_enviar = (select_mux_byte_enviar == 4'd0) ? wire_pontos_aux :
-                    (select_mux_byte_enviar == 4'd1) ? {wire_opcode_mux_out, wire_quantidade_vidas, dificuldade} :
-                    (select_mux_byte_enviar == 4'd2) ? {(wire_aste_renderizado ? {wire_aste_coor_x, wire_aste_coor_y} : 8'b0)} :
-                    (select_mux_byte_enviar == 4'd3) ? byte_opcode_enviar :
-                    (select_mux_byte_enviar == 4'd4) ? {(wire_tiro_renderizado ? {wire_tiro_coor_x, wire_tiro_coor_y} : 8'b0)} :
-                    (select_mux_byte_enviar == 4'd5) ? byte_opcode_enviar : 
-                    (select_mux_byte_enviar == 4'd6) ? {wire_saida_reg_jogada[1], wire_rco_contador_especial, wire_saida_reg_jogada[0], wire_vidas} : wire_pontos_aux;
+assign byte_enviar = (select_mux_byte_enviar == 4'd0) ? wire_pontos_aux[7:0] :
+                     (select_mux_byte_enviar == 4'd1) ? {wire_opcode_mux_out, wire_quantidade_vidas, 3'b000} :
+                     (select_mux_byte_enviar == 4'd2) ? {(wire_aste_renderizado ? {wire_aste_coor_x, wire_aste_coor_y} : 8'b0)} :
+                     (select_mux_byte_enviar == 4'd3) ? byte_opcode_enviar :
+                     (select_mux_byte_enviar == 4'd4) ? {(wire_tiro_renderizado ? {wire_tiro_coor_x, wire_tiro_coor_y} : 8'b0)} :
+                     (select_mux_byte_enviar == 4'd5) ? byte_opcode_enviar : 
+                     (select_mux_byte_enviar == 4'd6) ? {wire_saida_reg_jogada[1], wire_rco_intervalo_especial, wire_saida_reg_jogada[0], wire_rco_intervalo_tiro, wire_vidas, 3'b0} : 
+                     (select_mux_byte_enviar == 4'd7) ? {4'd4, 4'd1} : {wire_pontos_aux[7:0]};
 
 wire wire_conta_contador_rodape;
 wire wire_reset_contador_rodape;
@@ -183,76 +193,14 @@ contador_m #(2, 2) contador_rodape
    .meio()
   );
 
-uart_tx #(5208) UART_TX_INST (
+uart_tx #(3) UART_TX_INST (
 		.i_Clock(clock),
 		.i_Tx_DV(wire_iniciar_transmissao_uart_tx), // sinal de iniciar a transmissão
 		.i_Tx_Byte(byte_enviar),                    // dado
 		.o_Tx_Active(),                             // sinal que indica que a uart de transmitir dados está ocupada
 		.o_Tx_Serial(saida_serial),
-		.o_Tx_Done(wire_terminou_de_enviar_dados)   // pronto
+		.o_Tx_Done(wire_terminou_transmissao_de_byte)   // pronto
 	);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -277,6 +225,7 @@ uc_jogo_principal uc_jogo_principal(
     .tiro(wire_saida_reg_jogada[0]),
     .especial(wire_saida_reg_jogada[1]),
     .rco_intervalo_especial(wire_rco_intervalo_especial),
+    .rco_intervalo_tiro(wire_rco_intervalo_tiro),
     /* outputs */
     .enable_reg_jogada(wire_enable_reg_jogada),
     .reset_reg_jogada(wire_reset_reg_jogada),
@@ -291,6 +240,20 @@ uc_jogo_principal uc_jogo_principal(
     .pronto(pronto),
     .termina(wire_termina_uc_jogo_principal),
     .db_estado_jogo_principal(db_estado_jogo_principal)
+);
+
+contador_163 #(64) contador_intervalo_tiro  ( 
+    /* inputs */
+    .clock(clock),
+    .clr(wire_tiro_registrado || wire_reset_maquinas),
+    .ld(1'b0),
+    .ent(1'b1),
+    .enp(1'b1), 
+    .D(),
+    .Max(64'd250),
+    /*outputs*/
+    .Q(),
+    .rco(wire_rco_intervalo_tiro)
 );
 
 wire [1:0] wire_opcode_especial;
@@ -343,7 +306,7 @@ wire [1:0] wire_opcode_contador_especial;
 contador_m #(4, 2) contador_tiro_especial_opcode (
     /* inputs */
     .clock(clock),
-    .zera_as(wire_reset_contador_especial_uc_registra_especial),
+    .zera_as(wire_reset_contador_especial_uc_registra_especial || wire_reset_maquinas),
     .zera_s(1'b0),
     .conta(wire_conta_contador_opcode),
     /* outputs */
@@ -379,17 +342,7 @@ wire wire_rco_contador_movimenta_asteroide;
 wire wire_reset_contador_movimenta_tiro;
 wire wire_reset_contador_movimenta_asteroide;
 
-parameter tiro_easy = 64'd800;
-parameter tiro_medium = 64'd800;
-parameter tiro_hard = 64'd800;
 
-parameter tempo_move_asteroide_easy = 64'd5000;
-parameter tempo_move_asteroide_medium = 64'd3000;
-parameter tempo_move_asteroide_hard = 64'd1000;
-
-parameter tempo_gera_asteroide_easy = 64'd10000;
-parameter tempo_gera_asteroide_medium = 64'd3000;
-parameter tempo_gera_asteroide_hard = 64'd1000;
 
 parameter tempo_especial = 64'd20000;
 
@@ -397,14 +350,21 @@ wire [63:0] tempo_gera_aste;
 wire [63:0] tempo_move_aste;
 wire [63:0] tempo_move_tiro;
 
-assign tempo_gera_aste = (dificuldade == 3'b100) ? tempo_gera_asteroide_easy :
-                         (dificuldade == 3'b010) ? tempo_gera_asteroide_medium : tempo_gera_asteroide_hard;
-                          
-assign tempo_move_aste = (dificuldade == 3'b100) ? tempo_move_asteroide_easy:
-                         (dificuldade == 3'b010) ? tempo_move_asteroide_medium : tempo_move_asteroide_hard;
 
-assign tempo_move_tiro = (dificuldade == 3'b100) ? tiro_easy :
-                         (dificuldade == 3'b010) ? tiro_medium : tiro_hard;
+contador_163_dificuldades #(64, 10000) contador_163_dificuldades( 
+    .clock(clock), 
+    .clr(iniciar || wire_reset_maquinas), 
+    .ld(1'b0), 
+    .ent(1'b1), 
+    .enp(1'b1), 
+    .D(),
+    .Q(), 
+    .rco(),
+    .tempo_gera_aste(tempo_gera_aste),
+    .tempo_move_aste(tempo_move_aste),
+    .tempo_move_tiro(tempo_move_tiro)
+);
+
 
 contador_163 #(64) contador_gera_asteroide  ( 
     /* inputs */
@@ -453,7 +413,7 @@ wire wire_rco_intervalo_especial;
 contador_163 #(64) contador_especial_163  ( 
     /* inputs */
     .clock(clock), 
-    .clr(wire_reset_intervalo_especial), 
+    .clr(wire_reset_intervalo_especial || wire_reset_maquinas), 
     .ld(1'b0), 
     .ent(1'b1), 
     .enp(1'b1), 
@@ -463,13 +423,15 @@ contador_163 #(64) contador_especial_163  (
     .Q(),
     .rco(wire_rco_intervalo_especial)
 );
+
+
 assign db_especial = wire_rco_intervalo_especial;
 
 
 /********************************************************************************************************************/
 /*********************************************UC_COORDENA_ASTEROIDES*************************************************/
 /********************************************************************************************************************/
-
+wire wire_enviar_dados_uc_coordena_asteroides_tiros;
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
     .clock(clock),
@@ -483,6 +445,8 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .fim_comparacao_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
     .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
     .fim_gera_asteroide(wire_fim_gera_asteroide),
+    // .fim_transmissao_de_dados(wire_terminou_de_enviar_dados_uc_envia_dados), // com a uart tx
+    .fim_transmissao_de_dados(1'b1), // sem a uart tx
     .gera_aste(wire_rco_contador_gera_aste),
     .termina_operacao(wire_termina_uc_jogo_principal),
     /* outputs */
@@ -491,11 +455,12 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .sinal_compara_tiros_e_asteroides(wire_sinal_compara_tiros_e_asteroides_uc_coordena_asteroides_tiros ),
     .sinal_compara_asteroides_com_a_nave_e_tiro(wire_sinal_compara_asteroides_com_a_nave_e_tiro),
     .fim_move_tiro_e_asteroides(wire_fim_movimentacao_asteroides_e_tiros),
-    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
     .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
     .pausar_renderizacao(wire_pausar_renderizacao),
     .gera_asteroide(wire_gera_asteroide),
-    .reset_gerador_random(wire_reset_gerador_random)
+    .reset_gerador_random(wire_reset_gerador_random),
+    .enviar_dados(wire_enviar_dados_uc_coordena_asteroides_tiros),
+    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros)
 );
 
 wire wire_reset_contador_asteroides_uc_gera_asteroide;
@@ -550,7 +515,7 @@ wire [1:0] wire_select_mux_gera_frame;
 uc_gera_frame uc_gera_frame (
         /*inputs*/
         .clock(clock),
-        .reset(reset_maquinas),
+        .reset(wire_reset_maquinas),
         .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
         .rco_contador_asteroides(wire_rco_contador_asteroides),
         .rco_contador_tiro(wire_rco_contador_tiro),
@@ -581,16 +546,16 @@ assign wire_entrada_y_memoria_frame = (wire_select_mux_gera_frame == 2'b00) ? wi
                                       (wire_select_mux_gera_frame == 2'b10) ? 4'b0111          : wire_saida_contador_frame;
 
 memoria_frame memoria_frame(
-            /*inputs*/
-            .coor_x(wire_entrada_y_memoria_frame),
-            .coor_y(wire_entrada_x_memoria_frame),
-            .clk   (clock),
-            .clear(wire_clear_mem_frame),
-            .we   (wire_enable_mem_frame),
-            /*outputs*/
-            .saida_x(matriz_x),
-            .saida_y(matriz_y)
-            );
+    /*inputs*/
+    .coor_x(wire_entrada_y_memoria_frame),
+    .coor_y(wire_entrada_x_memoria_frame),
+    .clk   (clock),
+    .clear(wire_clear_mem_frame),
+    .we   (wire_enable_mem_frame),
+    /*outputs*/
+    .saida_x(matriz_x),
+    .saida_y(matriz_y)
+);
 
 wire wire_rco_contador_frame;
 wire wire_conta_contador_frame;

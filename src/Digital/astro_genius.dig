@@ -16,7 +16,7 @@
         </entry>
         <entry>
           <string>externalInputs</string>
-          <string>clock,reset,iniciar,dificuldade:3,chaves:6</string>
+          <string>clock,reset,iniciar,chaves:6</string>
         </entry>
         <entry>
           <string>Code</string>
@@ -24,10 +24,8 @@
     input clock,
     input reset,
     input iniciar,
-    input [2:0] dificuldade,
     input [5:0] chaves,
     output pronto,
-
     /* sinais de depuracao */
     output [4:0] db_estado_jogo_principal,
     output [4:0] db_estado_coordena_asteroides_tiros,
@@ -41,6 +39,7 @@
     output [3:0] db_uc_gera_asteroide,
     output [14:0] matriz_x,
     output [3:0] matriz_y,
+    //displays
     output [3:0] db_vidas,
     output [3:0] db_pontos,
     output [3:0] db_tiro_x,
@@ -52,7 +51,10 @@
     output db_left,
     output db_right,
     output [3:0] db_estado_registra_tiro_especial,
-    output db_especial
+    output db_especial,
+    output [5:0] db_estado_uc_envia_dados,
+
+    output saida_serial
 );
 
 
@@ -61,37 +63,168 @@ assign db_down = chaves[4];
 assign db_left = chaves[3];
 assign db_right = chaves[2];
 
-//wires da conexão da UC principal com outros modulos
 wire wire_vidas;
 wire wire_fim_movimentacao_asteroides_e_tiros;
 wire wire_inicia_registra_tiros;
 wire wire_inicia_movimentacao_asteroides_e_tiros;
 wire wire_reset_maquinas;
 wire wire_reset_contador_asteroides_uc_principal;
-wire wire_reset_contador_tiro_uc_principal; //sintaxe: o final indica de onde está saindo o fio
+wire wire_reset_contador_tiro_uc_principal; 
 wire wire_enable_decrementador; 
 wire wire_reset_contador_vidas;
-
 wire wire_ocorreu_tiro;
 wire wire_ocorreu_jogada;
 wire wire_reset_reg_jogada;
 wire wire_enable_reg_jogada;
-
 wire wire_destruido_aste;
-
 wire [3:0] wire_aste_coor_x;
 wire [3:0] wire_aste_coor_y;
 wire [1:0] wire_opcode_mux_out;
 wire wire_reset_pontuacao_uc_principal;
-
 wire wire_termina_uc_jogo_principal;
-// adicionados 
 wire wire_fim_registra_especial;
 wire wire_wire_ocorreu_tiro;
 wire wire_tiro;
 wire wire_especial;
 wire wire_inicia_registra_especial;
 wire wire_wire_reset_pontuacao;
+wire wire_rco_intervalo_tiro;
+wire wire_reset_contador_tiro_uc_registra_especial;
+wire wire_reset_contador_especial_uc_registra_especial;
+wire wire_enable_mem_tiro_uc_registra_especial;
+wire wire_new_load_uc_registra_especial;
+wire wire_conta_contador_opcode;
+wire wire_conta_contador_tiro_uc_registra_especial;
+wire wire_select_mux_especial_opcode;
+
+
+/********************************************************************************************************************/
+/*********************************************UC_ENVIA_DADOS.V******************************************************/
+/********************************************************************************************************************/
+
+wire wire_conta_contador_aste_uc_envia_dados;
+wire wire_reset_contador_aste_uc_envia_dados;
+wire wire_conta_contador_tiro_uc_envia_dados;
+wire wire_reset_contador_tiro_uc_envia_dados;
+wire wire_iniciar_transmissao_uart_tx;
+wire wire_terminou_de_enviar_dados_uc_envia_dados;
+wire wire_terminou_transmissao_de_byte;
+uc_envia_dados uc_envia_dados(
+    /* inputs */
+    .clock(clock),
+    .reset(wire_reset_maquinas),
+    .enviar_dados(wire_enviar_dados_uc_coordena_asteroides_tiros),
+    .acabou_transmissao_uart_tx(wire_terminou_transmissao_de_byte),
+    .rco_contador_aste(wire_rco_contador_asteroides),
+    .rco_contador_tiros(wire_rco_contador_tiro),
+    .rco_contador_byte_opcode(wire_rco_contador_byte_opcode),
+    .rco_contador_rodape(wire_rco_contador_rodape),
+    /* outputs */
+    .iniciar_transmissao_uart_tx(wire_iniciar_transmissao_uart_tx),
+    .enable_reg_opcode(wire_enable_reg_opcode),
+    .reset_reg_opcode(wire_reset_reg_opcode),
+    .conta_contador_byte_opcode(wire_conta_contador_byte_opcode),
+    .reset_contador_byte_opcode(wire_reset_contador_byte_opcode),
+    .conta_contador_mux_byte_enviar(wire_conta_contador_mux_byte_enviar),
+    .reset_contador_mux_byte_enviar(wire_reset_contador_mux_byte_enviar),
+    .conta_contador_aste(wire_conta_contador_aste_uc_envia_dados),
+    .reset_contador_aste(wire_reset_contador_aste_uc_envia_dados),
+    .conta_contador_tiro(wire_conta_contador_tiro_uc_envia_dados),
+    .reset_contador_tiro(wire_reset_contador_tiro_uc_envia_dados),
+    .conta_contador_rodape(wire_conta_contador_rodape),
+    .reset_contador_rodape(wire_reset_contador_rodape),
+    .terminou_de_enviar_dados(wire_terminou_de_enviar_dados_uc_envia_dados),
+    .esta_enviando_pos_asteroides(wire_esta_enviando_pos_asteroides),
+    .db_estado_uc_envia_dados(db_estado_uc_envia_dados)
+    );
+
+wire wire_reset_reg_opcode;
+wire wire_enable_reg_opcode;
+wire wire_esta_enviando_pos_asteroides;
+wire [31:0] wire_opcode_enviar;
+
+/*Registrador para os enivar os 4 bytes de opcode de tiros / asteroides*/
+registrador_n #(32) reg_opcode (
+    .clock(clock),
+    .clear(wire_reset_reg_opcode),
+    .enable(wire_enable_reg_opcode),
+    .D(wire_esta_enviando_pos_asteroides ? {wire_opcode_enviar[31:2], wire_opcode_aste} : {wire_opcode_enviar[31:2], wire_opcode_tiro}),
+    .Q(wire_opcode_enviar)
+);
+
+wire wire_conta_contador_byte_opcode;
+wire wire_reset_contador_byte_opcode;
+wire [1:0]  select_mux_byte_opcode;
+wire wire_rco_contador_byte_opcode;
+
+/*contador utilizado como seletor do mux de byte opcode*/
+contador_m #(4, 2) contador_byte_opcode
+  (
+   .clock(clock),
+   .zera_as(wire_reset_contador_byte_opcode || wire_reset_maquinas),
+   .zera_s(1&apos;b0),
+   .conta(wire_conta_contador_byte_opcode),
+   .Q(select_mux_byte_opcode),
+   .fim(wire_rco_contador_byte_opcode),
+   .meio()
+  );
+wire [7:0] byte_opcode_enviar;
+/*mux utilziado para selecionar o byte de opcode a ser enviado*/
+assign byte_opcode_enviar = select_mux_byte_opcode == 2&apos;b00 ? wire_opcode_enviar[31:24] :
+                            select_mux_byte_opcode == 2&apos;b01 ? wire_opcode_enviar[23:16] :
+                            select_mux_byte_opcode == 2&apos;b10 ? wire_opcode_enviar[15:8]  : wire_opcode_enviar[7:0];
+
+wire wire_conta_contador_mux_byte_enviar;
+wire wire_reset_contador_mux_byte_enviar;
+wire [3:0] select_mux_byte_enviar;
+/*contador utilizado como seletor do mux de byte enviar*/
+contador_m #(8, 4) contador_byte_enviar
+  (
+   .clock(clock),
+   .zera_as(wire_reset_contador_mux_byte_enviar),
+   .zera_s(1&apos;b0),
+   .conta(wire_conta_contador_mux_byte_enviar),
+   .Q(select_mux_byte_enviar),
+   .fim(),
+   .meio()
+  );
+
+wire [7:0] byte_enviar;
+assign byte_enviar = (select_mux_byte_enviar == 4&apos;d0) ? wire_pontos_aux[7:0] :
+                     (select_mux_byte_enviar == 4&apos;d1) ? {wire_opcode_mux_out, wire_quantidade_vidas, 3&apos;b000} :
+                     (select_mux_byte_enviar == 4&apos;d2) ? {(wire_aste_renderizado ? {wire_aste_coor_x, wire_aste_coor_y} : 8&apos;b0)} :
+                     (select_mux_byte_enviar == 4&apos;d3) ? byte_opcode_enviar :
+                     (select_mux_byte_enviar == 4&apos;d4) ? {(wire_tiro_renderizado ? {wire_tiro_coor_x, wire_tiro_coor_y} : 8&apos;b0)} :
+                     (select_mux_byte_enviar == 4&apos;d5) ? byte_opcode_enviar : 
+                     (select_mux_byte_enviar == 4&apos;d6) ? {wire_saida_reg_jogada[1], wire_rco_intervalo_especial, wire_saida_reg_jogada[0], wire_rco_intervalo_tiro, wire_vidas, 3&apos;b0} : 
+                     (select_mux_byte_enviar == 4&apos;d7) ? {4&apos;d4, 4&apos;d1} : {wire_pontos_aux[7:0]};
+
+wire wire_conta_contador_rodape;
+wire wire_reset_contador_rodape;
+wire wire_rco_contador_rodape;
+
+/*contador utilizado para mandar o rodapé*/
+contador_m #(2, 2) contador_rodape
+  (
+   .clock(clock),
+   .zera_as(wire_reset_contador_rodape),
+   .zera_s(1&apos;b0),
+   .conta(wire_conta_contador_rodape),
+   .Q(),
+   .fim(wire_rco_contador_rodape),
+   .meio()
+  );
+
+uart_tx #(3) UART_TX_INST (
+		.i_Clock(clock),
+		.i_Tx_DV(wire_iniciar_transmissao_uart_tx), // sinal de iniciar a transmissão
+		.i_Tx_Byte(byte_enviar),                    // dado
+		.o_Tx_Active(),                             // sinal que indica que a uart de transmitir dados está ocupada
+		.o_Tx_Serial(saida_serial),
+		.o_Tx_Done(wire_terminou_transmissao_de_byte)   // pronto
+	);
+
+
 
 
 
@@ -104,7 +237,7 @@ uc_jogo_principal uc_jogo_principal(
     .clock(clock),
     .iniciar(iniciar),
     .reset(reset),
-    .vidas(~wire_vidas), //rco do decrementador
+    .vidas(~wire_vidas),
     .fim_movimentacao_asteroides_e_tiros(wire_fim_movimentacao_asteroides_e_tiros), 
     .fim_registra_tiros(wire_tiro_registrado),
     .fim_registra_especial(wire_fim_registra_especial),
@@ -114,6 +247,7 @@ uc_jogo_principal uc_jogo_principal(
     .tiro(wire_saida_reg_jogada[0]),
     .especial(wire_saida_reg_jogada[1]),
     .rco_intervalo_especial(wire_rco_intervalo_especial),
+    .rco_intervalo_tiro(wire_rco_intervalo_tiro),
     /* outputs */
     .enable_reg_jogada(wire_enable_reg_jogada),
     .reset_reg_jogada(wire_reset_reg_jogada),
@@ -130,15 +264,24 @@ uc_jogo_principal uc_jogo_principal(
     .db_estado_jogo_principal(db_estado_jogo_principal)
 );
 
+contador_163 #(64) contador_intervalo_tiro  ( 
+    /* inputs */
+    .clock(clock),
+    .clr(wire_tiro_registrado || wire_reset_maquinas),
+    .ld(1&apos;b0),
+    .ent(1&apos;b1),
+    .enp(1&apos;b1), 
+    .D(),
+    .Max(64&apos;d250),
+    /*outputs*/
+    .Q(),
+    .rco(wire_rco_intervalo_tiro)
+);
 
 wire [1:0] wire_opcode_especial;
-// assign wire_opcode_especial = wire_select_mux_especial_opcode ? wire_opcode_contador_especial : ;
-
-
 wire wire_enable_load_tiro_uc_registra_especial;
 wire wire_select_mux_pos_uc_registra_especial;
 wire [1:0] wire_select_mux_pos_tiro_uc_registra_especial;
-
 
 
 /********************************************************************************************************************/
@@ -159,10 +302,8 @@ uc_registra_especial uc_registra_especial(
     .reset_intervalo_especial(wire_reset_intervalo_especial),
     .enable_mem_tiro(wire_enable_mem_tiro_uc_registra_especial), 
     .select_mux_pos(wire_select_mux_pos_tiro_uc_registra_especial),
-
     .new_load(wire_new_load_uc_registra_especial),
     .enable_load_tiro(wire_enable_load_tiro_uc_registra_especial),
-
     .conta_contador_opcode(wire_conta_contador_opcode),
     .conta_contador_tiro(wire_conta_contador_tiro_uc_registra_especial),
     .especial_registrado(wire_fim_registra_especial), 
@@ -177,11 +318,9 @@ mux_reg_jogada mux_jogada(
     .saida_mux       (wire_opcode_mux_out)
 );
 
-
+/**********mux para o seletor do opcode para registrar o tiro***************/
 wire [1:0] wire_opcode_registra_tiro;
-// mux para o seletor do opcode para registrar o tiro
 assign wire_opcode_registra_tiro = wire_select_mux_especial_opcode ?  wire_opcode_contador_especial : wire_opcode_mux_out;
-
 
 wire wire_rco_contador_especial;
 wire [1:0] wire_opcode_contador_especial;
@@ -189,7 +328,7 @@ wire [1:0] wire_opcode_contador_especial;
 contador_m #(4, 2) contador_tiro_especial_opcode (
     /* inputs */
     .clock(clock),
-    .zera_as(wire_reset_contador_especial_uc_registra_especial),
+    .zera_as(wire_reset_contador_especial_uc_registra_especial || wire_reset_maquinas),
     .zera_s(1&apos;b0),
     .conta(wire_conta_contador_opcode),
     /* outputs */
@@ -198,22 +337,12 @@ contador_m #(4, 2) contador_tiro_especial_opcode (
     .meio()
 );
 
-
-
-
-
-// wires genericos 
 wire wire_rco_contador_tiro;
 wire wire_rco_contador_asteroides;
-
-// wires da conexão da uc_coordena_asteroides_tiros com outros modulos
-// INPUT
 wire wire_fim_move_tiros;
 wire wire_fim_move_asteroides;
 wire wire_fim_comparacao_asteroides_com_a_nave_e_tiros;
 wire wire_fim_comparacao_tiros_e_asteroides;
-
-// OUTPUT
 wire wire_movimenta_tiro;
 wire wire_sinal_movimenta_asteroides;
 wire wire_sinal_compara_tiros_e_asteroides_uc_coordena_asteroides_tiros;
@@ -235,17 +364,7 @@ wire wire_rco_contador_movimenta_asteroide;
 wire wire_reset_contador_movimenta_tiro;
 wire wire_reset_contador_movimenta_asteroide;
 
-parameter tiro_easy = 64&apos;d800;
-parameter tiro_medium = 64&apos;d800;
-parameter tiro_hard = 64&apos;d800;
 
-parameter tempo_move_asteroide_easy = 64&apos;d5000;
-parameter tempo_move_asteroide_medium = 64&apos;d3000;
-parameter tempo_move_asteroide_hard = 64&apos;d1000;
-
-parameter tempo_gera_asteroide_easy = 64&apos;d10000;
-parameter tempo_gera_asteroide_medium = 64&apos;d3000;
-parameter tempo_gera_asteroide_hard = 64&apos;d1000;
 
 parameter tempo_especial = 64&apos;d20000;
 
@@ -253,15 +372,21 @@ wire [63:0] tempo_gera_aste;
 wire [63:0] tempo_move_aste;
 wire [63:0] tempo_move_tiro;
 
-assign tempo_gera_aste = (dificuldade == 3&apos;b100) ? tempo_gera_asteroide_easy :
-                              (dificuldade == 3&apos;b010) ? tempo_gera_asteroide_medium : tempo_gera_asteroide_hard;
-                          
-assign tempo_move_aste = (dificuldade == 3&apos;b100) ? tempo_move_asteroide_easy:
-                              (dificuldade == 3&apos;b010) ? tempo_move_asteroide_medium : tempo_move_asteroide_hard;
 
+contador_163_dificuldades #(64, 10000) contador_163_dificuldades( 
+    .clock(clock), 
+    .clr(iniciar || wire_reset_maquinas), 
+    .ld(1&apos;b0), 
+    .ent(1&apos;b1), 
+    .enp(1&apos;b1), 
+    .D(),
+    .Q(), 
+    .rco(),
+    .tempo_gera_aste(tempo_gera_aste),
+    .tempo_move_aste(tempo_move_aste),
+    .tempo_move_tiro(tempo_move_tiro)
+);
 
-assign tempo_move_tiro = (dificuldade == 3&apos;b100) ? tiro_easy :
-                              (dificuldade == 3&apos;b010) ? tiro_medium : tiro_hard;
 
 contador_163 #(64) contador_gera_asteroide  ( 
     /* inputs */
@@ -310,7 +435,7 @@ wire wire_rco_intervalo_especial;
 contador_163 #(64) contador_especial_163  ( 
     /* inputs */
     .clock(clock), 
-    .clr(wire_reset_intervalo_especial), 
+    .clr(wire_reset_intervalo_especial || wire_reset_maquinas), 
     .ld(1&apos;b0), 
     .ent(1&apos;b1), 
     .enp(1&apos;b1), 
@@ -320,13 +445,15 @@ contador_163 #(64) contador_especial_163  (
     .Q(),
     .rco(wire_rco_intervalo_especial)
 );
+
+
 assign db_especial = wire_rco_intervalo_especial;
 
 
 /********************************************************************************************************************/
 /*********************************************UC_COORDENA_ASTEROIDES*************************************************/
 /********************************************************************************************************************/
-
+wire wire_enviar_dados_uc_coordena_asteroides_tiros;
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
     .clock(clock),
@@ -340,6 +467,8 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .fim_comparacao_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
     .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
     .fim_gera_asteroide(wire_fim_gera_asteroide),
+    // .fim_transmissao_de_dados(wire_terminou_de_enviar_dados_uc_envia_dados), // com a uart tx
+    .fim_transmissao_de_dados(1&apos;b1), // sem a uart tx
     .gera_aste(wire_rco_contador_gera_aste),
     .termina_operacao(wire_termina_uc_jogo_principal),
     /* outputs */
@@ -348,11 +477,12 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .sinal_compara_tiros_e_asteroides(wire_sinal_compara_tiros_e_asteroides_uc_coordena_asteroides_tiros ),
     .sinal_compara_asteroides_com_a_nave_e_tiro(wire_sinal_compara_asteroides_com_a_nave_e_tiro),
     .fim_move_tiro_e_asteroides(wire_fim_movimentacao_asteroides_e_tiros),
-    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
     .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
     .pausar_renderizacao(wire_pausar_renderizacao),
     .gera_asteroide(wire_gera_asteroide),
-    .reset_gerador_random(wire_reset_gerador_random)
+    .reset_gerador_random(wire_reset_gerador_random),
+    .enviar_dados(wire_enviar_dados_uc_coordena_asteroides_tiros),
+    .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros)
 );
 
 wire wire_reset_contador_asteroides_uc_gera_asteroide;
@@ -370,14 +500,14 @@ wire wire_reset_contador_gera_asteroide;
 /********************************************************************************************************************/
 
 uc_gera_asteroide uc_gera_asteroide (
-    /* input */
+    /* inputs */
     .clock(clock)        ,
     .reset(wire_reset_maquinas),
     .gera_asteroide(wire_gera_asteroide),      
     .rco_contador_asteroide(wire_rco_contador_asteroides),
     .asteroide_renderizado(wire_aste_renderizado),
 
-    /* output */
+    /* outputs */
     .reset_contador_asteroide(wire_reset_contador_asteroides_uc_gera_asteroide),
     .conta_contador_asteroide(wire_conta_contador_asteroides_uc_gera_asteroide),
     .conta_contador_gera_asteroide(wire_conta_contador_gera_asteroide),
@@ -405,15 +535,15 @@ wire [1:0] wire_select_mux_gera_frame;
 /********************************************************************************************************************/
 
 uc_gera_frame uc_gera_frame (
-        /*input*/
+        /*inputs*/
         .clock(clock),
-        .reset(reset_maquinas),
+        .reset(wire_reset_maquinas),
         .gera_frame(wire_inicia_gera_frame_uc_coordena_asteroides_tiros),
         .rco_contador_asteroides(wire_rco_contador_asteroides),
         .rco_contador_tiro(wire_rco_contador_tiro),
         .loaded_tiro(wire_tiro_renderizado),
         .loaded_asteroide(wire_aste_renderizado),
-        /*output*/
+        /*outputs*/
         .conta_contador_asteroide(wire_conta_contador_asteroides_uc_gera_frame),
         .conta_contador_tiro(wire_conta_contador_tiro_uc_gera_frame),
         .reset_contador_tiro(wire_reset_contador_tiro_uc_gera_frame),
@@ -437,21 +567,17 @@ assign wire_entrada_y_memoria_frame = (wire_select_mux_gera_frame == 2&apos;b00)
                                       (wire_select_mux_gera_frame == 2&apos;b01) ? wire_tiro_coor_y :
                                       (wire_select_mux_gera_frame == 2&apos;b10) ? 4&apos;b0111          : wire_saida_contador_frame;
 
-// assign wire_entrada_x_memoria_frame = wire_tiro_coor_x;
- 
-// assign wire_entrada_y_memoria_frame = wire_tiro_coor_y;
-
 memoria_frame memoria_frame(
-            // input
-            .coor_x(wire_entrada_y_memoria_frame),
-            .coor_y(wire_entrada_x_memoria_frame),
-            .clk   (clock),
-            .clear(wire_clear_mem_frame),
-            .we   (wire_enable_mem_frame),
-            // output
-            .saida_x(matriz_x),
-            .saida_y(matriz_y)
-            );
+    /*inputs*/
+    .coor_x(wire_entrada_y_memoria_frame),
+    .coor_y(wire_entrada_x_memoria_frame),
+    .clk   (clock),
+    .clear(wire_clear_mem_frame),
+    .we   (wire_enable_mem_frame),
+    /*outputs*/
+    .saida_x(matriz_x),
+    .saida_y(matriz_y)
+);
 
 wire wire_rco_contador_frame;
 wire wire_conta_contador_frame;
@@ -467,21 +593,24 @@ wire [3:0] wire_saida_contador_frame;
 wire [3:0] entrada_y_mem_frame;
 
 uc_renderiza uc_renderiza (
+        /*inputs*/
         .clock(clock),
         .reset(wire_reset_maquinas),
         .pausar_renderizacao(wire_pausar_renderizacao),
         .rco_contador_frame(wire_rco_contador_frame),
-
+        /*outputs*/
         .reset_contador_frame(wire_reset_contador_frame),
         .conta_contador_frame(wire_conta_contador_frame),
         .db_estado_uc_renderiza(db_estado_uc_renderiza)
 );
 
  contador_m #(15, 4) contador_renderiza(
+    /*inputs*/
    .clock(clock),
    .zera_as(wire_reset_contador_frame),
    .zera_s(1&apos;b0),
    .conta(wire_conta_contador_frame),
+   /*outputs*/
    .Q(wire_saida_contador_frame),
    .fim(wire_rco_contador_frame),
    .meio()
@@ -657,7 +786,6 @@ wire wire_new_loaded_tiro_uc_registra_tiro;
 wire wire_reset_contador_tiro_uc_registra_tiro;
 wire wire_conta_contador_tiro_uc_registra_tiro;
 wire [1:0] wire_select_mux_pos_tiro_uc_registra_tiro;
-
 wire wire_tiro_registrado;
 
 /********************************************************************************************************************/
@@ -698,13 +826,15 @@ asteroide asteroide(
                          wire_conta_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
                          wire_conta_contador_aste_uc_move_asteroides | 
                          wire_conta_contador_asteroides_uc_gera_frame |
-                         wire_conta_contador_asteroides_uc_gera_asteroide ),
+                         wire_conta_contador_asteroides_uc_gera_asteroide |
+                         wire_conta_contador_aste_uc_envia_dados),
     .reset_contador_aste(wire_reset_contador_asteroides_uc_principal | 
                          wire_reset_contador_asteroides_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_asteroides_uc_compara_asteroides_com_nave_e_tiros |
                          wire_reset_contador_aste_uc_move_asteroides |
                          wire_reset_contador_asteroide_uc_gera_frame |
-                         wire_reset_contador_asteroides_uc_gera_asteroide ),
+                         wire_reset_contador_asteroides_uc_gera_asteroide |
+                         wire_reset_contador_aste_uc_envia_dados ),
     .select_mux_pos_aste(wire_select_mux_pos_aste_uc_move_asteroides),
     .select_mux_coor_aste(wire_select_mux_coor_aste_uc_move_asteroides),
     .select_soma_sub_aste(wire_select_soma_sub_uc_move_asteroides),
@@ -745,13 +875,15 @@ tiro tiro (
                          wire_conta_contador_tiro_uc_move_tiros    |
                          wire_conta_contador_tiro_uc_registra_tiro |
                          wire_conta_contador_tiro_uc_gera_frame    |
-                         wire_conta_contador_tiro_uc_registra_especial),
+                         wire_conta_contador_tiro_uc_registra_especial |
+                         wire_conta_contador_tiro_uc_envia_dados),
     .reset_contador_tiro(wire_reset_contador_tiro_uc_principal                   |
                          wire_reset_contador_tiros_uc_compara_tiros_e_asteroides |
                          wire_reset_contador_tiro_uc_move_tiros    |
                          wire_reset_contador_tiro_uc_registra_tiro |
                          wire_reset_contador_tiro_uc_gera_frame    |
-                         wire_reset_contador_tiro_uc_registra_especial),
+                         wire_reset_contador_tiro_uc_registra_especial |
+                         wire_reset_contador_tiro_uc_envia_dados),
     .select_mux_pos_tiro(wire_select_mux_pos_tiro_uc_move_tiros    |
                          wire_select_mux_pos_tiro_uc_registra_tiro |
                          wire_select_mux_pos_tiro_uc_registra_especial),
@@ -804,14 +936,14 @@ contador_m #(1024, 10) contador_pontuacao (
     .meio()
   );
 
-decrementador #(4) decrementador_de_vidas( 
+decrementador #(3) decrementador_de_vidas( 
     /* inputs */
     .clock(clock), 
     .clr(wire_reset_contador_vidas | reset), 
     .ld(1&apos;b0), 
     .ent(1&apos;b1), 
     .enp(wire_enable_decrementador), 
-    .D(4&apos;b0011), 
+    .D(3&apos;b011), 
     /* outputs */
     .Q(wire_quantidade_vidas), 
     .rco(wire_vidas)
@@ -831,44 +963,56 @@ wire jogada_tiro;
 wire [5:0] wire_saida_reg_jogada;
 
 edge_detector edge_detector_jogada_up(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(chaves[5]),
+    /*output*/
     .pulso(jogada_up)
 );
 
 edge_detector edge_detector_jogada_down(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(chaves[4]),
+    /*output*/
     .pulso(jogada_down)
 );
 
 edge_detector edge_detector_jogada_left(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(chaves[3]),
+    /*output*/
     .pulso(jogada_left)
 );
 
 edge_detector edge_detector_jogada_right(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(chaves[2]),
+    /*output*/
     .pulso(jogada_right)
 );
 
 edge_detector edge_detector_jogada_especial(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(chaves[1]),
+    /*output*/
     .pulso(jogada_especial)
 );
 
 edge_detector edge_detector_jogada_tiro(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(chaves[0]),
+    /*output*/
     .pulso(jogada_tiro)
 );
 
@@ -885,16 +1029,20 @@ registrador_n #(6) reg_jogada (
 or (wire_ocorreu_jogada, jogada_up, jogada_down, jogada_right, jogada_left, jogada_especial, jogada_tiro);
 
 edge_detector edge_detector_tiro(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(wire_saida_reg_jogada[0]),
+    /*output*/
     .pulso(wire_ocorreu_tiro)
 );
 
 edge_detector edge_detector_especial(
+    /*inputs*/
     .clock(clock),
     .reset(1&apos;b0),
     .sinal(wire_saida_reg_jogada[1]),
+    /*output*/
     .pulso(wire_ocorreu_especial)
 );
 
@@ -909,34 +1057,42 @@ wire [3:0] wire_tiro_coor_x_out;
 wire [3:0] wire_tiro_coor_y_out;
 
 registrador_n #(4) tiro_renderizado_x(
+    /*inputs*/
     .clock(clock),
     .clear(),
     .enable(wire_tiro_renderizado),
     .D(wire_tiro_coor_x),
+    /*output*/
     .Q(wire_tiro_coor_x_out)
 );
 
 registrador_n #(4) tiro_renderizado_y(
+    /*inputs*/
     .clock(clock),
     .clear(),
     .enable(wire_tiro_renderizado),
     .D(wire_tiro_coor_y),
+    /*output*/
     .Q(wire_tiro_coor_y_out)
 );
 
 registrador_n #(4) aste_renderizado_x(
+    /*inputs*/
     .clock(clock),
     .clear(),
     .enable(wire_aste_renderizado),
     .D(wire_aste_coor_x),
+    /*output*/
     .Q(wire_aste_coor_x_out)
 );
 
 registrador_n #(4) aste_renderizado_y(
+    /*inputs*/
     .clock(clock),
     .clear(),
     .enable(wire_aste_renderizado),
     .D(wire_aste_coor_y),
+    /*output*/
     .Q(wire_aste_coor_y_out)
 );
 
@@ -965,10 +1121,11 @@ hexa7seg HEX2 (
     .display (db_tiro_y)
 );
 
-wire [3:0] wire_quantidade_vidas;
+
+wire [2:0] wire_quantidade_vidas;
 /* display para as vidas */
 hexa7seg HEX1 (
-    .hexa    (wire_quantidade_vidas),
+    .hexa    ({1&apos;b0, wire_quantidade_vidas}),
     .display (db_vidas)
 );
 
@@ -978,9 +1135,6 @@ hexa7seg HEX0 (
     .hexa    (wire_pontos_aux[3:0]),
     .display (db_pontos)
 );
-
-
-
 endmodule
 
 
@@ -1978,6 +2132,154 @@ module random (
 
 endmodule
 
+//////////////////////////////////////////////////////////////////////
+// File Downloaded from http://www.nandland.com
+//////////////////////////////////////////////////////////////////////
+// This file contains the UART Transmitter.  This transmitter is able
+// to transmit 8 bits of serial data, one start bit, one stop bit,
+// and no parity bit.  When transmit is complete o_Tx_done will be
+// driven high for one clock cycle.
+//
+// Set Parameter CLKS_PER_BIT as follows:
+// CLKS_PER_BIT = (Frequency of i_Clock)/(Frequency of UART)
+// Example: 10 MHz Clock, 115200 baud UART
+// (10000000)/(115200) = 87
+  
+module uart_tx 
+  #(parameter CLKS_PER_BIT = 87)
+  (
+   input       i_Clock,
+   input       i_Tx_DV,
+   input [7:0] i_Tx_Byte, 
+   output      o_Tx_Active,
+   output reg  o_Tx_Serial,
+   output      o_Tx_Done
+   );
+  
+  parameter s_IDLE         = 3&apos;b000;
+  parameter s_TX_START_BIT = 3&apos;b001;
+  parameter s_TX_DATA_BITS = 3&apos;b010;
+  parameter s_TX_STOP_BIT  = 3&apos;b011;
+  parameter s_CLEANUP      = 3&apos;b100;
+   
+  reg [2:0]    r_SM_Main     = 0;
+  reg [12:0]    r_Clock_Count = 0;
+  reg [2:0]    r_Bit_Index   = 0;
+  reg [7:0]    r_Tx_Data     = 0;
+  reg          r_Tx_Done     = 0;
+  reg          r_Tx_Active   = 0;
+     
+  always @(posedge i_Clock)
+    begin
+       
+      case (r_SM_Main)
+        s_IDLE :
+          begin
+            o_Tx_Serial   &lt;= 1&apos;b1;         // Drive Line High for Idle
+            r_Tx_Done     &lt;= 1&apos;b0;
+            r_Clock_Count &lt;= 0;
+            r_Bit_Index   &lt;= 0;
+             
+            if (i_Tx_DV == 1&apos;b1)
+              begin
+                r_Tx_Active &lt;= 1&apos;b1;
+                r_Tx_Data   &lt;= i_Tx_Byte;
+                r_SM_Main   &lt;= s_TX_START_BIT;
+              end
+            else
+              r_SM_Main &lt;= s_IDLE;
+          end // case: s_IDLE
+         
+         
+        // Send out Start Bit. Start bit = 0
+        s_TX_START_BIT :
+          begin
+            o_Tx_Serial &lt;= 1&apos;b0;
+             
+            // Wait CLKS_PER_BIT-1 clock cycles for start bit to finish
+            if (r_Clock_Count &lt; CLKS_PER_BIT-1)
+              begin
+                r_Clock_Count &lt;= r_Clock_Count + 1;
+                r_SM_Main     &lt;= s_TX_START_BIT;
+              end
+            else
+              begin
+                r_Clock_Count &lt;= 0;
+                r_SM_Main     &lt;= s_TX_DATA_BITS;
+              end
+          end // case: s_TX_START_BIT
+         
+         
+        // Wait CLKS_PER_BIT-1 clock cycles for data bits to finish         
+        s_TX_DATA_BITS :
+          begin
+            o_Tx_Serial &lt;= r_Tx_Data[r_Bit_Index];
+             
+            if (r_Clock_Count &lt; CLKS_PER_BIT-1)
+              begin
+                r_Clock_Count &lt;= r_Clock_Count + 1;
+                r_SM_Main     &lt;= s_TX_DATA_BITS;
+              end
+            else
+              begin
+                r_Clock_Count &lt;= 0;
+                 
+                // Check if we have sent out all bits
+                if (r_Bit_Index &lt; 7)
+                  begin
+                    r_Bit_Index &lt;= r_Bit_Index + 1;
+                    r_SM_Main   &lt;= s_TX_DATA_BITS;
+                  end
+                else
+                  begin
+                    r_Bit_Index &lt;= 0;
+                    r_SM_Main   &lt;= s_TX_STOP_BIT;
+                  end
+              end
+          end // case: s_TX_DATA_BITS
+         
+         
+        // Send out Stop bit.  Stop bit = 1
+        s_TX_STOP_BIT :
+          begin
+            o_Tx_Serial &lt;= 1&apos;b1;
+             
+            // Wait CLKS_PER_BIT-1 clock cycles for Stop bit to finish
+            if (r_Clock_Count &lt; CLKS_PER_BIT-1)
+              begin
+                r_Clock_Count &lt;= r_Clock_Count + 1;
+                r_SM_Main     &lt;= s_TX_STOP_BIT;
+              end
+            else
+              begin
+                r_Tx_Done     &lt;= 1&apos;b1;
+                r_Clock_Count &lt;= 0;
+                r_SM_Main     &lt;= s_CLEANUP;
+                r_Tx_Active   &lt;= 1&apos;b0;
+              end
+          end // case: s_Tx_STOP_BIT
+         
+         
+        // Stay here 1 clock
+        s_CLEANUP :
+          begin
+            r_Tx_Done &lt;= 1&apos;b1;
+            r_SM_Main &lt;= s_IDLE;
+          end
+         
+         
+        default :
+          r_SM_Main &lt;= s_IDLE;
+         
+      endcase
+    end
+ 
+  assign o_Tx_Active = r_Tx_Active;
+  assign o_Tx_Done   = r_Tx_Done;
+   
+endmodule
+
+
 
 module hexa7seg (hexa, display);
     input      [3:0] hexa;
@@ -2018,7 +2320,382 @@ module hexa7seg (hexa, display);
     endcase
 endmodule
 
+module contador_163_dificuldades #(parameter N = 16, parameter tempo = 10000) ( 
+    input clock, 
+    input clr, 
+    input ld, 
+    input ent, 
+    input enp, 
+    input [N-1:0] D,
+    output reg [N-1:0] Q, 
+    output reg rco,
+    output reg [63:0] tempo_gera_aste,
+    output reg [63:0] tempo_move_aste,
+    output reg [63:0] tempo_move_tiro
+);
+
+    parameter tempo_move_tiro_easy1   = 64&apos;d10000;
+    parameter tempo_move_tiro_easy2   = 64&apos;d8000;
+    parameter tempo_move_tiro_easy3   = 64&apos;d8000;
+    parameter tempo_move_tiro_easy4   = 64&apos;d5120;
+    parameter tempo_move_tiro_medium1 = 64&apos;d4100;
+    parameter tempo_move_tiro_medium2 = 64&apos;d3280;
+    parameter tempo_move_tiro_medium3 = 64&apos;d2620;
+    parameter tempo_move_tiro_medium4 = 64&apos;d2100;
+    parameter tempo_move_tiro_hard1   = 64&apos;d1680;
+    parameter tempo_move_tiro_hard2   = 64&apos;d1340;
+    parameter tempo_move_tiro_hard3   = 64&apos;d1070;
+    parameter tempo_move_tiro_hard4   = 64&apos;d860;
+
+    parameter tempo_move_asteroide_easy1   = 64&apos;d50000;
+    parameter tempo_move_asteroide_easy2   = 64&apos;d40000;
+    parameter tempo_move_asteroide_easy3   = 64&apos;d32000;
+    parameter tempo_move_asteroide_easy4   = 64&apos;d25600;
+    parameter tempo_move_asteroide_medium1 = 64&apos;d20480;
+    parameter tempo_move_asteroide_medium2 = 64&apos;d16380;
+    parameter tempo_move_asteroide_medium3 = 64&apos;d13100;
+    parameter tempo_move_asteroide_medium4 = 64&apos;d10480;
+    parameter tempo_move_asteroide_hard1   = 64&apos;d8380;
+    parameter tempo_move_asteroide_hard2   = 64&apos;d70000;
+    parameter tempo_move_asteroide_hard3   = 64&apos;d60000;
+    parameter tempo_move_asteroide_hard4   = 64&apos;d5000;
+
+    parameter tempo_gera_asteroide_easy1   = 64&apos;d100000;
+    parameter tempo_gera_asteroide_easy2   = 64&apos;d80000;
+    parameter tempo_gera_asteroide_easy3   = 64&apos;d64000;
+    parameter tempo_gera_asteroide_easy4   = 64&apos;d51200;
+    parameter tempo_gera_asteroide_medium1 = 64&apos;d40960;
+    parameter tempo_gera_asteroide_medium2 = 64&apos;d32770;
+    parameter tempo_gera_asteroide_medium3 = 64&apos;d26220;
+    parameter tempo_gera_asteroide_medium4 = 64&apos;d20980;
+    parameter tempo_gera_asteroide_hard1   = 64&apos;d16780;
+    parameter tempo_gera_asteroide_hard2   = 64&apos;d13420;
+    parameter tempo_gera_asteroide_hard3   = 64&apos;d10740;
+    parameter tempo_gera_asteroide_hard4   = 64&apos;d8590;
+
+
+    initial begin
+        Q = 0;
+    end
+        
+    always @ (posedge clock)
+        if (clr)               Q &lt;= 0;
+        else if (ld)           Q &lt;= D;
+        else if (ent &amp;&amp; enp &amp;&amp; Q &lt;= 12*tempo)   Q &lt;= Q + 1;
+        else                   Q &lt;= Q;
+
+    always @ (Q or ent)
+        if (ent &amp;&amp; (Q &gt;= 12*tempo))     rco = 1;
+        else                       rco = 0;
+
+    always @ (posedge clock)
+        if (Q &lt; 1*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_easy1;
+            tempo_move_aste = tempo_move_asteroide_easy1;
+            tempo_move_tiro = tempo_move_tiro_easy1;
+        end
+        else if (Q &gt; 1*tempo &amp;&amp; Q &lt; 2*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_easy2;
+            tempo_move_aste = tempo_move_asteroide_easy2;
+            tempo_move_tiro = tempo_move_tiro_easy2;
+        end
+        else if (Q &gt; 2*tempo &amp;&amp; Q &lt; 3*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_easy3;
+            tempo_move_aste = tempo_move_asteroide_easy3;
+            tempo_move_tiro = tempo_move_tiro_easy3;
+        end
+        else if (Q &gt; 3*tempo &amp;&amp; Q &lt; 4*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_easy4;
+            tempo_move_aste = tempo_move_asteroide_easy4;
+            tempo_move_tiro = tempo_move_tiro_easy4;
+        end
+        else if (Q &gt; 4*tempo &amp;&amp; Q &lt; 5*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_medium1;
+            tempo_move_aste = tempo_move_asteroide_medium1;
+            tempo_move_tiro = tempo_move_tiro_medium1;
+        end
+        else if (Q &gt; 5*tempo &amp;&amp; Q &lt; 6*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_medium2;
+            tempo_move_aste = tempo_move_asteroide_medium2;
+            tempo_move_tiro = tempo_move_tiro_medium2;
+        end
+        else if (Q &gt; 6*tempo &amp;&amp; Q &lt; 7*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_medium3;
+            tempo_move_aste = tempo_move_asteroide_medium3;
+            tempo_move_tiro = tempo_move_tiro_medium3;
+        end
+        else if (Q &gt; 7*tempo &amp;&amp; Q &lt; 8*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_medium4;
+            tempo_move_aste = tempo_move_asteroide_medium4;
+            tempo_move_tiro = tempo_move_tiro_medium4;
+        end
+        else if (Q &gt; 8*tempo &amp;&amp; Q &lt; 9*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_hard1;
+            tempo_move_aste = tempo_move_asteroide_hard1;
+            tempo_move_tiro = tempo_move_tiro_hard1;
+        end
+        else if (Q &gt; 9*tempo &amp;&amp; Q &lt; 10*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_hard2;
+            tempo_move_aste = tempo_move_asteroide_hard2;
+            tempo_move_tiro = tempo_move_tiro_hard2;
+        end
+        else if (Q &gt; 10*tempo &amp;&amp; Q &lt; 11*tempo) begin
+            tempo_gera_aste = tempo_gera_asteroide_hard3;
+            tempo_move_aste = tempo_move_asteroide_hard3;
+            tempo_move_tiro = tempo_move_tiro_hard3;
+        end
+        else begin
+            tempo_gera_aste = tempo_gera_asteroide_hard4;
+            tempo_move_aste = tempo_move_asteroide_hard4;
+            tempo_move_tiro = tempo_move_tiro_hard4;
+        end
+endmodule
+
+
+module uc_envia_dados (
+        input clock,
+        input reset,
+        input enviar_dados,
+        input acabou_transmissao_uart_tx,
+        input rco_contador_aste,
+        input rco_contador_tiros,
+        input rco_contador_byte_opcode,
+        input rco_contador_rodape,
+
+        output reg iniciar_transmissao_uart_tx,
+        output reg enable_reg_opcode,
+        output reg reset_reg_opcode,
+        output reg conta_contador_byte_opcode,
+        output reg reset_contador_byte_opcode,
+        output reg conta_contador_mux_byte_enviar,
+        output reg reset_contador_mux_byte_enviar,
+        output reg conta_contador_aste,
+        output reg reset_contador_aste,
+        output reg conta_contador_tiro,
+        output reg reset_contador_tiro,
+        output reg conta_contador_rodape,
+        output reg reset_contador_rodape,
+
+        output reg terminou_de_enviar_dados,
+        output reg esta_enviando_pos_asteroides,
+        output reg [5:0] db_estado_uc_envia_dados
+        );
+
+        /* declaração dos estados dessa UC */
+        parameter inicial                                = 6&apos;b000000; // 0
+        parameter espera                                 = 6&apos;b000001; // 1
+        parameter zera_contadores                        = 6&apos;b000010; // 2
+        parameter inicia_envio_de_pontuacao              = 6&apos;b000011; // 3
+        parameter espera_envio_de_pontuacao              = 6&apos;b000100; // 4
+        parameter envia_opcode_nave                      = 6&apos;b000101; // 5
+        parameter inicia_envia_opcode_nave               = 6&apos;b000110; // 6
+        parameter espera_envia_opcode_nave               = 6&apos;b000111; // 7
+        parameter envia_posicao_aste                     = 6&apos;b001000; // 8
+        parameter inicia_envia_posicao_aste              = 6&apos;b001001; // 9
+        parameter espera_envia_posicao_aste              = 6&apos;b001010; // 10
+        parameter verifica_rco_aste                      = 6&apos;b001011; // 11
+        parameter incrementa_contador_asteroides         = 6&apos;b001100; // 12
+        parameter espera_mem_aste                        = 6&apos;b001101; // 13
+        parameter envia_opcode_aste                      = 6&apos;b001110; // 14
+        parameter inicia_envia_opcode_aste               = 6&apos;b001111; // 15
+        parameter espera_envia_opcode_aste               = 6&apos;b010000; // 16
+        parameter verifica_rco_contador_byte_opcode_aste = 6&apos;b010001; // 17
+        parameter incrementa_contador_byte_opcode_aste   = 6&apos;b010010; // 18
+        parameter envia_posicao_tiros                    = 6&apos;b010011; // 19
+        parameter inicia_envia_posicao_tiros             = 6&apos;b010100; // 20
+        parameter espera_envia_posicao_tiros             = 6&apos;b010101; // 21
+        parameter verifica_rco_tiros                     = 6&apos;b010110; // 22
+        parameter incrementa_contador_tiros              = 6&apos;b010111; // 23
+        parameter espera_mem_tiros                       = 6&apos;b011000; // 24
+        parameter envia_opcode_tiro                      = 6&apos;b011001; // 25
+        parameter inicia_envia_opcode_tiro               = 6&apos;b011010; // 26
+        parameter espera_envia_opcode_tiro               = 6&apos;b011011; // 27 
+        parameter verifica_rco_contador_byte_opcode_tiro = 6&apos;b011100; // 28
+        parameter incrementa_contador_byte_opcode_tiro   = 6&apos;b011101; // 29
+        parameter envia_jogada_especial                  = 6&apos;b011110; // 30
+        parameter inicia_envia_jogada_especial           = 6&apos;b011111; // 31 
+        parameter espera_envia_jogada_especial           = 6&apos;b100000; // 32 
+        parameter envia_rodape                           = 6&apos;b100001; // 33
+        parameter inicia_envia_rodape                    = 6&apos;b100010; // 34
+        parameter espera_envia_rodape                    = 6&apos;b100011; // 35
+        parameter verifica_rco_contador_rodape           = 6&apos;b100100; // 36
+        parameter incrementa_contador_rodape             = 6&apos;b100101; // 37
+        parameter sinaliza                               = 6&apos;b100110; // 38
+        parameter erro                                   = 6&apos;b111111; // 64
+
+        // Variáveis de estado
+        reg [5:0] estado_atual, proximo_estado;
+
+        // Memória de estado
+        always @(posedge clock or posedge reset) begin
+                if (reset)
+                        estado_atual &lt;= inicial;
+                else
+                        estado_atual &lt;= proximo_estado;
+        end
+
+        // mudança de estados
+        always @* begin
+        case (estado_atual)
+                inicial:                   proximo_estado = espera;
+                espera:                    proximo_estado = enviar_dados ? zera_contadores : espera;
+                zera_contadores:           proximo_estado = inicia_envio_de_pontuacao;
+                
+                inicia_envio_de_pontuacao: proximo_estado = espera_envio_de_pontuacao;
+                espera_envio_de_pontuacao: proximo_estado = acabou_transmissao_uart_tx ? envia_opcode_nave : espera_envio_de_pontuacao;
+                
+                envia_opcode_nave:         proximo_estado = inicia_envia_opcode_nave;
+                inicia_envia_opcode_nave:  proximo_estado = espera_envia_opcode_nave;
+                espera_envia_opcode_nave:  proximo_estado = acabou_transmissao_uart_tx ? envia_posicao_aste : espera_envia_opcode_nave;
+                
+                envia_posicao_aste:        proximo_estado = inicia_envia_posicao_aste;
+                inicia_envia_posicao_aste: proximo_estado = espera_envia_posicao_aste;
+                espera_envia_posicao_aste: proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_aste : espera_envia_posicao_aste;
+                verifica_rco_aste:         proximo_estado = rco_contador_aste ? envia_opcode_aste : incrementa_contador_asteroides;
+                incrementa_contador_asteroides: proximo_estado = espera_mem_aste;
+                espera_mem_aste:           proximo_estado = inicia_envia_posicao_aste;
+                
+                envia_opcode_aste:         proximo_estado = inicia_envia_opcode_aste;
+                inicia_envia_opcode_aste:  proximo_estado = espera_envia_opcode_aste;
+                espera_envia_opcode_aste:  proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_byte_opcode_aste : espera_envia_opcode_aste;
+                verifica_rco_contador_byte_opcode_aste: proximo_estado = rco_contador_byte_opcode ? envia_posicao_tiros : incrementa_contador_byte_opcode_aste;
+                incrementa_contador_byte_opcode_aste: proximo_estado = inicia_envia_opcode_aste;
+                
+                envia_posicao_tiros:        proximo_estado = inicia_envia_posicao_tiros;
+                inicia_envia_posicao_tiros: proximo_estado = espera_envia_posicao_tiros;
+                espera_envia_posicao_tiros: proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_tiros : espera_envia_posicao_tiros;
+                verifica_rco_tiros:         proximo_estado = rco_contador_tiros ? envia_opcode_tiro : incrementa_contador_tiros;
+                incrementa_contador_tiros:  proximo_estado = espera_mem_tiros;
+                espera_mem_tiros:           proximo_estado = inicia_envia_posicao_tiros;
+                
+                envia_opcode_tiro:          proximo_estado = inicia_envia_opcode_tiro;
+                inicia_envia_opcode_tiro:   proximo_estado = espera_envia_opcode_tiro;
+                espera_envia_opcode_tiro:   proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_byte_opcode_tiro : espera_envia_opcode_tiro;
+                verifica_rco_contador_byte_opcode_tiro: proximo_estado = rco_contador_byte_opcode ? envia_jogada_especial : incrementa_contador_byte_opcode_tiro;
+                incrementa_contador_byte_opcode_tiro: proximo_estado = inicia_envia_opcode_tiro;
+
+                envia_jogada_especial:     proximo_estado = inicia_envia_jogada_especial;
+                inicia_envia_jogada_especial: proximo_estado = espera_envia_jogada_especial;
+                espera_envia_jogada_especial: proximo_estado = acabou_transmissao_uart_tx ? envia_rodape : espera_envia_jogada_especial;
+
+                envia_rodape:                 proximo_estado = inicia_envia_rodape;
+                inicia_envia_rodape:          proximo_estado = espera_envia_rodape;
+                espera_envia_rodape:          proximo_estado = acabou_transmissao_uart_tx ? verifica_rco_contador_rodape : espera_envia_rodape;
+                verifica_rco_contador_rodape: proximo_estado = rco_contador_rodape ? sinaliza : incrementa_contador_rodape;
+                incrementa_contador_rodape:   proximo_estado = inicia_envia_rodape;
+                sinaliza:                     proximo_estado = espera;
+                default:                      proximo_estado = erro;
+        endcase
+    end
+
+    // Lógica de saída (maquina Moore)
+    always @* begin
+                iniciar_transmissao_uart_tx = (estado_atual == inicia_envio_de_pontuacao     ||
+                                               estado_atual ==  inicia_envia_jogada_especial ||
+                                               estado_atual ==  inicia_envia_opcode_aste     ||
+                                               estado_atual == inicia_envia_opcode_nave      ||
+                                               estado_atual == inicia_envia_opcode_tiro      ||
+                                               estado_atual == inicia_envia_posicao_aste     ||
+                                               estado_atual == inicia_envia_posicao_tiros    ||
+                                               estado_atual == inicia_envia_rodape           ) ? 1&apos;b1 : 1&apos;b0; 
+                enable_reg_opcode           = (estado_atual == inicia_envia_posicao_aste     ||
+                                               estado_atual == inicia_envia_posicao_tiros    ) ? 1&apos;b1 : 1&apos;b0; 
+                reset_reg_opcode            = (estado_atual == zera_contadores)                ? 1&apos;b1 : 1&apos;b0; 
+                conta_contador_byte_opcode  = (estado_atual == incrementa_contador_byte_opcode_aste ||
+                                               estado_atual == incrementa_contador_byte_opcode_tiro )      ? 1&apos;b1 : 1&apos;b0; 
+                reset_contador_byte_opcode  = (estado_atual == zera_contadores || estado_atual == inicial) ? 1&apos;b1 : 1&apos;b0; 
+
+                conta_contador_mux_byte_enviar = (estado_atual ==  envia_jogada_especial ||
+                                                  estado_atual ==  envia_opcode_aste     ||
+                                                  estado_atual == envia_opcode_nave      ||
+                                                  estado_atual == envia_opcode_tiro      ||
+                                                  estado_atual == envia_posicao_aste     ||
+                                                  estado_atual == envia_posicao_tiros    ||
+                                                  estado_atual == envia_rodape           ) ? 1&apos;b1 : 1&apos;b0; 
+
+                reset_contador_mux_byte_enviar = (estado_atual == zera_contadores)                ? 1&apos;b1 : 1&apos;b0; 
+                conta_contador_aste            = (estado_atual == incrementa_contador_asteroides) ? 1&apos;b1 : 1&apos;b0; 
+                reset_contador_aste            = (estado_atual == zera_contadores)                ? 1&apos;b1 : 1&apos;b0; 
+                conta_contador_tiro            = (estado_atual == incrementa_contador_tiros)      ? 1&apos;b1: 1&apos;b0; 
+                reset_contador_tiro            = (estado_atual == zera_contadores)                ? 1&apos;b1: 1&apos;b0; 
+                conta_contador_rodape          = (estado_atual == incrementa_contador_rodape)     ? 1&apos;b1 : 1&apos;b0; 
+                reset_contador_rodape          = (estado_atual == zera_contadores)                ? 1&apos;b1 : 1&apos;b0; 
+
+                esta_enviando_pos_asteroides   = (estado_atual == envia_posicao_tiros        ||  
+                                                  estado_atual == inicia_envia_posicao_tiros ||
+                                                  estado_atual == espera_envia_posicao_tiros || 
+                                                  estado_atual == verifica_rco_tiros         || 
+                                                  estado_atual == incrementa_contador_tiros  ||
+                                                  estado_atual == espera_mem_tiros           )? 1&apos;b1 : 1&apos;b0;  
+                                                  
+                terminou_de_enviar_dados = (estado_atual == sinaliza)? 1&apos;b1 : 1&apos;b0;
+                // Saída de depuração (estado)
+
+        // Saída de depuração (estado)
+        case (estado_atual)
+                inicial:                                db_estado_uc_envia_dados = 6&apos;b000000; // 0
+                espera:                                 db_estado_uc_envia_dados = 6&apos;b000001; // 1
+                zera_contadores:                        db_estado_uc_envia_dados = 6&apos;b000010; // 2
+                inicia_envio_de_pontuacao:              db_estado_uc_envia_dados = 6&apos;b000011; // 3
+                espera_envio_de_pontuacao:              db_estado_uc_envia_dados = 6&apos;b000100; // 4
+                envia_opcode_nave:                      db_estado_uc_envia_dados = 6&apos;b000101; // 5
+                inicia_envia_opcode_nave:               db_estado_uc_envia_dados = 6&apos;b000110; // 6
+                espera_envia_opcode_nave:               db_estado_uc_envia_dados = 6&apos;b000111; // 7
+                envia_posicao_aste:                     db_estado_uc_envia_dados = 6&apos;b001000; // 8
+                inicia_envia_posicao_aste:              db_estado_uc_envia_dados = 6&apos;b001001; // 9
+                espera_envia_posicao_aste:              db_estado_uc_envia_dados = 6&apos;b001010; // 10
+                verifica_rco_aste:                      db_estado_uc_envia_dados = 6&apos;b001011; // 11
+                incrementa_contador_asteroides:         db_estado_uc_envia_dados = 6&apos;b001100; // 12
+                espera_mem_aste:                        db_estado_uc_envia_dados = 6&apos;b001101; // 13
+                envia_opcode_aste:                      db_estado_uc_envia_dados = 6&apos;b001110; // 14
+                inicia_envia_opcode_aste:               db_estado_uc_envia_dados = 6&apos;b001111; // 15
+                espera_envia_opcode_aste:               db_estado_uc_envia_dados = 6&apos;b010000; // 16
+                verifica_rco_contador_byte_opcode_aste: db_estado_uc_envia_dados = 6&apos;b010001; // 17
+                incrementa_contador_byte_opcode_aste:   db_estado_uc_envia_dados = 6&apos;b010010; // 18
+                envia_posicao_tiros:                    db_estado_uc_envia_dados = 6&apos;b010011; // 19
+                inicia_envia_posicao_tiros:             db_estado_uc_envia_dados = 6&apos;b010100; // 20
+                espera_envia_posicao_tiros:             db_estado_uc_envia_dados = 6&apos;b010101; // 21
+                verifica_rco_tiros:                     db_estado_uc_envia_dados = 6&apos;b010110; // 22
+                incrementa_contador_tiros:              db_estado_uc_envia_dados = 6&apos;b010111; // 23
+                espera_mem_tiros:                       db_estado_uc_envia_dados = 6&apos;b011000; // 24
+                envia_opcode_tiro:                      db_estado_uc_envia_dados = 6&apos;b011001; // 25
+                inicia_envia_opcode_tiro:               db_estado_uc_envia_dados = 6&apos;b011010; // 26
+                espera_envia_opcode_tiro:               db_estado_uc_envia_dados = 6&apos;b011011; // 27 
+                verifica_rco_contador_byte_opcode_tiro: db_estado_uc_envia_dados = 6&apos;b011100; // 28
+                incrementa_contador_byte_opcode_tiro:   db_estado_uc_envia_dados = 6&apos;b011101; // 29
+                envia_jogada_especial:                  db_estado_uc_envia_dados = 6&apos;b011110; // 30
+                inicia_envia_jogada_especial:           db_estado_uc_envia_dados = 6&apos;b011111; // 31 
+                espera_envia_jogada_especial:           db_estado_uc_envia_dados = 6&apos;b100000; // 32 
+                envia_rodape:                           db_estado_uc_envia_dados = 6&apos;b100001; // 33
+                inicia_envia_rodape:                    db_estado_uc_envia_dados = 6&apos;b100010; // 34
+                espera_envia_rodape:                    db_estado_uc_envia_dados = 6&apos;b100011; // 35
+                verifica_rco_contador_rodape:           db_estado_uc_envia_dados = 6&apos;b100100; // 36
+                incrementa_contador_rodape:             db_estado_uc_envia_dados = 6&apos;b100101; // 37
+                sinaliza:                               db_estado_uc_envia_dados = 6&apos;b100110; // 38
+                default:                                db_estado_uc_envia_dados = 6&apos;b111111;
+        endcase
+    end
+
+
+
+
+
+
+
+
+endmodule
+
+
+/*
+*   Unidade de controle utilzada para comparar somente a posição de tiros e de asteroides,
+*   essa unidade de controle é chamada quando ocorre a operação de Incrementar a Posição dos Tiros.
+*   Primeiro é percorrido a memoria de tiros e a posição de cada tiro é comparado com a posição de 
+*   todos os asteroides renderizados e, quando iguais, a posição dos tiros e dos asteroides são desrenderizados
+*
+*/
+
 module uc_compara_asteroides_com_nave_e_tiros (
+        /*input*/
         input clock,
         input reset,
         input iniciar_comparacao_tiros_nave_asteroides,
@@ -2026,10 +2703,9 @@ module uc_compara_asteroides_com_nave_e_tiros (
         input ha_vidas,
         input rco_contador_asteroides,
         input fim_compara_tiros_e_asteroides,
-
         input loaded_asteroide,
         input destruido_asteroide,
-
+        /*output*/
         output reg enable_decrementador,
         output reg new_loaded_asteroide,
         output reg new_destruido_asteroide,
@@ -2038,7 +2714,6 @@ module uc_compara_asteroides_com_nave_e_tiros (
         output reg conta_contador_asteroides,
         output reg sinal_compara_tiros_e_asteroide,
         output reg reset_contador_asteroides,
-
         output reg [4:0] db_estado_compara_asteroides_com_nave_e_tiros
 );
 
@@ -2094,13 +2769,13 @@ module uc_compara_asteroides_com_nave_e_tiros (
     // Lógica de saída (maquina Moore)
     always @* begin
 
-        reset_contador_asteroides = (estado_atual == reset_contador)         ? 1&apos;b1 : 1&apos;b0;
-        enable_decrementador      = (estado_atual == decrementa_vida)        ? 1&apos;b1 : 1&apos;b0;
+        reset_contador_asteroides = (estado_atual == reset_contador    )? 1&apos;b1 : 1&apos;b0;
+        enable_decrementador      = (estado_atual == decrementa_vida   )? 1&apos;b1 : 1&apos;b0;
         new_loaded_asteroide      = (estado_atual == destroi_asteroide ||
-                                     estado_atual == salva_destruicao)       ? 1&apos;b0 : 1&apos;b1;
+                                     estado_atual == salva_destruicao  )? 1&apos;b0 : 1&apos;b1;
         new_destruido_asteroide   = (estado_atual == destroi_asteroide ||
-                                     estado_atual == salva_destruicao)       ? 1&apos;b1 : 1&apos;b0;
-        enable_load_asteroide      = (estado_atual == salva_destruicao)       ? 1&apos;b1 : 1&apos;b0;
+                                     estado_atual == salva_destruicao  )? 1&apos;b1 : 1&apos;b0;
+        enable_load_asteroide      = (estado_atual == salva_destruicao )? 1&apos;b1 : 1&apos;b0;
         fim_compara_asteroides_com_tiros_e_nave = (estado_atual == fim_comparacao)                        ? 1&apos;b1 : 1&apos;b0;
         conta_contador_asteroides               = (estado_atual == incrementa_contador_de_asteroides)     ? 1&apos;b1 : 1&apos;b0;
         sinal_compara_tiros_e_asteroide         = (estado_atual == compara_tiros_e_asteroides)            ? 1&apos;b1 : 1&apos;b0;
@@ -2121,14 +2796,21 @@ module uc_compara_asteroides_com_nave_e_tiros (
             aux:                                db_estado_compara_asteroides_com_nave_e_tiros = 5&apos;b01011; // 11
             erro:                               db_estado_compara_asteroides_com_nave_e_tiros = 5&apos;b01111; // F  
             default:                            db_estado_compara_asteroides_com_nave_e_tiros = 5&apos;b00000; 
-
         endcase
     end
 endmodule
 
 
 
+/*
+*   Unidade de controle utilzada para realizar a comparação da posição dos tiros e asteroides 
+*   quando essa comparação é verdadeira, essa unidade de controle desrenderiza o tiro e o asteroide.
+*   Primeiro se compara o primeiro tiro com a posição de todos os asteroides e, caso seja igual esse 
+*   asteroide e tiro são desrenderizados.
+*/
+
 module uc_compara_tiros_e_asteroides (
+        /*input*/
         input clock,
         input reset,
         input compara_tiros_e_asteroides,
@@ -2137,7 +2819,7 @@ module uc_compara_tiros_e_asteroides (
         input rco_contador_tiros,
         input tiro_renderizado,
         input aste_renderizado,
-
+        /*output*/
         output reg reset_contador_asteroides,
         output reg reset_contador_tiros,
         output reg enable_load_tiro,
@@ -2248,6 +2930,13 @@ endmodule
 
 
 
+/*
+
+*   Unidade de controle utilzada para coordenar o movimento, comparação de asteroides 
+*   e tiros e de coordenar a geração de asteroides, ela é pausada quando &quot;instância&quot; outras unidades
+*
+*/
+
 module uc_coordena_asteroides_tiros (
     /*input*/
     input clock,
@@ -2259,30 +2948,29 @@ module uc_coordena_asteroides_tiros (
     input fim_move_asteroides,
     input fim_comparacao_asteroides_com_a_nave_e_tiros, 
     input fim_comparacao_tiros_e_asteroides,
-
     input fim_gera_frame,
     input fim_gera_asteroide,
+    input fim_transmissao_de_dados,
     input gera_aste,
     input termina_operacao,
-
     /*output*/
     output reg movimenta_tiro,
     output reg sinal_movimenta_asteroides, 
     output reg sinal_compara_tiros_e_asteroides,
     output reg sinal_compara_asteroides_com_a_nave_e_tiro , 
     output reg fim_move_tiro_e_asteroides,             
-    output reg [4:0] db_estado_coordena_asteroides_tiros,
-
     output reg gera_frame,
     output reg pausar_renderizacao, 
     output reg gera_asteroide, 
-    output reg reset_gerador_random 
+    output reg reset_gerador_random,
+    output reg enviar_dados,
+    output reg [4:0] db_estado_coordena_asteroides_tiros
+
 );
 
     parameter inicio                                      = 5&apos;b00000; // 0
     parameter inicia_gera_aste                            = 5&apos;b00001; // 1
     parameter espera_gera_aste                            = 5&apos;b00010; // 2
-
     parameter espera                                      = 5&apos;b00011; // 3
     parameter compara_tiros_e_asteroides                  = 5&apos;b00100; // 4
     parameter espera_compara_tiros_e_asteroides           = 5&apos;b00101; // 5
@@ -2294,9 +2982,9 @@ module uc_coordena_asteroides_tiros (
     parameter espera_move_asteroides                      = 5&apos;b01011; // 11
     parameter inicia_gera_frame                           = 5&apos;b01100; // 12
     parameter espera_gera_frame                           = 5&apos;b01101; // 13
-    parameter fim_movimentacao                            = 5&apos;b01110; // 14
-
-
+    parameter fim_movimentacao                            = 5&apos;b01110; // 14     
+    parameter inicia_transmissao_de_dados                 = 5&apos;b01111; // 15
+    parameter espera_transmissao_de_dados                 = 5&apos;b10000; // 16
     parameter erro                                        = 5&apos;b11111; // 
 
 
@@ -2315,15 +3003,11 @@ module uc_coordena_asteroides_tiros (
     // Lógica de transição de estados
     always @* begin
         case (estado_atual)
-            // inicio:                                      proximo_estado = espera;
-
             inicio:                                      proximo_estado = inicia_gera_aste;
             inicia_gera_aste:                            proximo_estado = espera_gera_aste;
             espera_gera_aste:                            proximo_estado = fim_gera_asteroide ? espera : espera_gera_aste;
-            // espera:                                      proximo_estado = gera_aste ? inicia_gera_aste : 
-            //                                                               (move_tiro_e_asteroides &amp;&amp; ~gera_aste) ? compara_tiros_e_asteroides : espera;
             espera:                                      proximo_estado = gera_aste ? inicia_gera_aste : 
-                                                                (move_tiro_e_asteroides &amp;&amp; ~gera_aste) ? compara_tiros_e_asteroides : 
+                                                                          (move_tiro_e_asteroides &amp;&amp; ~gera_aste) ? compara_tiros_e_asteroides : 
                                                                           (termina_operacao) ?compara_tiros_e_asteroides : espera;                                                            
             compara_tiros_e_asteroides:                  proximo_estado = espera_compara_tiros_e_asteroides;
             espera_compara_tiros_e_asteroides:           proximo_estado = (fim_comparacao_tiros_e_asteroides &amp;&amp; ~rco_contador_movimenta_tiros) ? compara_asteroides_com_a_nave_e_tiro :
@@ -2336,8 +3020,11 @@ module uc_coordena_asteroides_tiros (
                                                                           espera_compara_asteroides_com_a_nave_e_tiro;
             move_asteroides:                             proximo_estado = espera_move_asteroides;
             espera_move_asteroides:                      proximo_estado = fim_move_asteroides ? compara_asteroides_com_a_nave_e_tiro : espera_move_asteroides;
-            inicia_gera_frame:                           proximo_estado = espera_gera_frame; //
-            espera_gera_frame:                           proximo_estado = fim_gera_frame ? fim_movimentacao : espera_gera_frame; //
+            inicia_gera_frame:                           proximo_estado = espera_gera_frame; 
+            // espera_gera_frame:                           proximo_estado = fim_gera_frame ? fim_movimentacao : espera_gera_frame; 
+            espera_gera_frame:                           proximo_estado = fim_gera_frame ? inicia_transmissao_de_dados : espera_gera_frame; 
+            inicia_transmissao_de_dados:                 proximo_estado = espera_transmissao_de_dados;
+            espera_transmissao_de_dados:                 proximo_estado = fim_transmissao_de_dados ? fim_movimentacao : espera_transmissao_de_dados;
             fim_movimentacao:                            proximo_estado = espera;
             default:                                     proximo_estado = inicio;
         endcase
@@ -2355,13 +3042,13 @@ module uc_coordena_asteroides_tiros (
         pausar_renderizacao              = (estado_atual == inicia_gera_frame || estado_atual == espera_gera_frame) ? 1&apos;b1 : 1&apos;b0;
         sinal_compara_asteroides_com_a_nave_e_tiro = (estado_atual == compara_asteroides_com_a_nave_e_tiro)          ? 1&apos;b1 : 1&apos;b0;
 
+        enviar_dados                     = (estado_atual == inicia_transmissao_de_dados) ? 1&apos;b1 : 1&apos;b0;
 
         // Saída de depuração (estado)
         case (estado_atual)
             inicio:                                      db_estado_coordena_asteroides_tiros = 5&apos;b00000; // 0
             inicia_gera_aste:                            db_estado_coordena_asteroides_tiros = 5&apos;b00001; // 1
             espera_gera_aste:                            db_estado_coordena_asteroides_tiros = 5&apos;b00010; // 2
-
             espera:                                      db_estado_coordena_asteroides_tiros = 5&apos;b00011; // 3
             compara_tiros_e_asteroides:                  db_estado_coordena_asteroides_tiros = 5&apos;b00100; // 4
             espera_compara_tiros_e_asteroides:           db_estado_coordena_asteroides_tiros = 5&apos;b00101; // 5
@@ -2374,6 +3061,8 @@ module uc_coordena_asteroides_tiros (
             inicia_gera_frame:                           db_estado_coordena_asteroides_tiros = 5&apos;b01100; // 12
             espera_gera_frame:                           db_estado_coordena_asteroides_tiros = 5&apos;b01101; // 13
             fim_movimentacao:                            db_estado_coordena_asteroides_tiros = 5&apos;b01110; // 14
+            inicia_transmissao_de_dados:                 db_estado_coordena_asteroides_tiros = 5&apos;b01111; // 15
+            espera_transmissao_de_dados:                 db_estado_coordena_asteroides_tiros = 5&apos;b10000; // 16
             default:                                     db_estado_coordena_asteroides_tiros = 5&apos;b11111; 
         endcase
     end
@@ -2385,15 +3074,19 @@ endmodule
 
 
 
-
+/*
+*       A unidade de controle responsável por gerar asteroides, é percorrido a memoria de asteroides e quando 
+*       um asteroide desrenderizado é encontrado, ele é substituido por um asteroide renderizado em uma 
+*       posição aleatoriamente
+*
+*/
 module uc_gera_asteroide (
         /* input */
-        input clock                    ,
-        input reset                    ,
-        input gera_asteroide        ,
+        input clock,
+        input reset,
+        input gera_asteroide,
         input rco_contador_asteroide,
         input asteroide_renderizado,
-
         /* output */
         output reg reset_contador_asteroide,
         output reg conta_contador_asteroide,
@@ -2404,7 +3097,6 @@ module uc_gera_asteroide (
         output reg new_loaded_aste,
         output reg fim_gera_asteroide,
         output reg [3:0] db_uc_gera_asteroide
-
 );
 
         parameter inicial                = 4&apos;b0000; // 0
@@ -2418,10 +3110,8 @@ module uc_gera_asteroide (
         parameter sinaliza               = 4&apos;b1000; // 8
         parameter erro                   = 4&apos;b1111; // F
 
-
         // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
-
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin
@@ -2443,7 +3133,6 @@ module uc_gera_asteroide (
                 espera_mem_aste:         proximo_estado = verifica_loaded;
                 salva:                   proximo_estado = sinaliza;
                 sinaliza:                proximo_estado = espera;
-   
                 default:                  proximo_estado = erro;
         endcase
     end
@@ -2456,7 +3145,6 @@ module uc_gera_asteroide (
         enable_load_aste         = (estado_atual == salva)               ? 1&apos;b1 : 1&apos;b0;
         new_loaded_aste          = (estado_atual == salva)               ? 1&apos;b1 : 1&apos;b0; 
         fim_gera_asteroide       = (estado_atual == sinaliza)            ? 1&apos;b1 : 1&apos;b0;
-
         reset_contador_gera_asteroide = (estado_atual == inicial || estado_atual == sinaliza) ? 1&apos;b1 : 1&apos;b0;
         conta_contador_gera_asteroide = (estado_atual == espera) ? 1&apos;b1 : 1&apos;b0;
         // Saída de depuração (estado)
@@ -2475,7 +3163,6 @@ module uc_gera_asteroide (
     end
 
 endmodule
-
 
 
 module uc_gera_frame (
@@ -2610,6 +3297,16 @@ endmodule
 
 
 
+/* Essa unidade de control é responsável pela lógica de registrar e gerar
+   os tiros da jogada especial. A jogada especial gera 4 tiros no tabuleiro,
+   um em cada direção. O funcionamento é o seguinte:  é varrida a memória de tiros
+   para verificar se a há algum tiro naquela posicão de memória. Se houver um tiro
+   ele não sera registrado, então um contador é aumentado para verificar a seguinte posicao de memoria.
+   Caso não haja um tiro naquela posição de memoria, o tiro sera registrado naquela posicao e então
+   a próxima posição de memória é verificada. Esse processo se repete até todos os 4 tiros 
+   serem gerados no jogo e na memória de tiros.*/
+
+   
 module uc_registra_especial (
         input clock                    ,
         input reset                    ,
@@ -2684,10 +3381,10 @@ module uc_registra_especial (
         enable_load_tiro           = (estado_atual == salva_tiro)    ? 1&apos;b1 : 1&apos;b0;
         select_mux_especial_opcode = (estado_atual == salva_tiro)    ? 1&apos;b1 : 1&apos;b0;
         especial_registrado        = (estado_atual == sinaliza)      ? 1&apos;b1 : 1&apos;b0;
+        reset_intervalo_especial   = (estado_atual == sinaliza)      ? 1&apos;b1 : 1&apos;b0;
         select_mux_pos             = (estado_atual == salva_tiro)    ? 2&apos;b00 : 2&apos;b00; 
         conta_contador_tiro        = (estado_atual == incrementa_contador_tiro)   ? 1&apos;b1 : 1&apos;b0;
         conta_contador_opcode      = (estado_atual == incrementa_contador_opcode) ? 1&apos;b1 : 1&apos;b0;
-        reset_intervalo_especial   = (estado_atual == sinaliza)      ? 1&apos;b1 : 1&apos;b0;
 
         // Saída de depuração (estado)
         case (estado_atual)
@@ -2703,51 +3400,41 @@ module uc_registra_especial (
             aux:                        db_estado_registra_tiro_especial = 4&apos;b1001; // 9
             sinaliza:                   db_estado_registra_tiro_especial = 4&apos;b1010; // A
             erro:                       db_estado_registra_tiro_especial = 4&apos;b1111; // F
-            default:                    db_estado_registra_tiro_especial = erro;
+            default:                    db_estado_registra_tiro_especial = 4&apos;b1111;
         endcase
     end
-
-
-
-
-
-
-
-
 endmodule
 
 
+/*
+*       Unidade de controle responsável pelo jogo principal, essa unidade tem a maior hierarquia
+*       entre as unidades de controles. Ela registra a jogada, e inicializa a operação das unidades de controles:
+*       coordena_asteroides_tiros.v, uc_registra_tiros.v, e uc_registra_especial.v
+*
+*/
 module uc_jogo_principal (
-
         input clock,
-        input iniciar, // entrada que inicia a máquina de estados
+        input iniciar,
         input reset,
         input vidas,
-
-
-        input fim_movimentacao_asteroides_e_tiros, // indica o fim da uc_coordena_asteroides_tiros.v
+        input fim_movimentacao_asteroides_e_tiros, 
         input fim_registra_tiros,
-        input fim_registra_especial, // adicionado 27/03 17h30
+        input fim_registra_especial, 
         input ocorreu_tiro,
         input ocorreu_jogada,
-
-        input ocorreu_especial, // adicionado 27/03 17h30
-        input tiro,      // adicionado 27/03 17h30
-        input especial, // adicionado 27/03 17h30
-
+        input ocorreu_especial, 
+        input tiro,      
+        input especial, 
         input rco_intervalo_especial,
-        // sinais do registrador
+        input rco_intervalo_tiro,
         output reg enable_reg_jogada,
         output reg reset_reg_jogada, 
         output reg inicia_registra_tiros,
-        output reg inicia_registra_especial, // adicionado 27/03 17h30
-        output reg inicia_movimentacao_asteroides_e_tiros, // saída para o inicio da máquina de estados uc_coordena_asteroides_tiros.v
-
-        // resets de contadores
+        output reg inicia_registra_especial, 
+        output reg inicia_movimentacao_asteroides_e_tiros, 
         output reg reset_contador_asteroides,
         output reg reset_contador_tiro,
         output reg reset_contador_vidas,
-        // resets de outras máquinas de estados
         output reg reset_maquinas,
         output reg reset_pontuacao,
         output reg pronto,
@@ -2766,14 +3453,14 @@ module uc_jogo_principal (
         parameter inicia_state_registra_tiros             = 5&apos;b00111; // 7
         parameter espera_salvamento                       = 5&apos;b01000; // 8
         parameter espera_salvamento2                      = 5&apos;b01001; // 9
-        parameter inicia_state_registra_especial          = 5&apos;b01010; // 10 // adicionado 27/03 17h30
-        parameter espera_registra_especial                = 5&apos;b01011; // 11 // adicionado 27/03 17h30
+        parameter inicia_state_registra_especial          = 5&apos;b01010; // 10 
+        parameter espera_registra_especial                = 5&apos;b01011; // 11 
         parameter erro                                    = 5&apos;b11111; // F
 
-// Variáveis de estado
+/* Variáveis de estado */
         reg [4:0] estado_atual, proximo_estado;
 
-        // Memória de estado
+        /* Memória de estado */
         always @(posedge clock or posedge reset) begin
                 if (reset)
                         estado_atual &lt;= inicial;
@@ -2781,39 +3468,22 @@ module uc_jogo_principal (
                         estado_atual &lt;= proximo_estado;
         end
 
-        // mudança de estados
+        /* Mudança de estados */
         always @* begin
         case (estado_atual)
                 inicial:              proximo_estado = iniciar ? inicializa_elementos : inicial;                                 
                 inicializa_elementos: proximo_estado = espera_jogada;
-                // espera_jogada:        proximo_estado = ~vidas ? fim_jogo :
-                //                                        (vidas &amp;&amp; ocorreu_jogada)  ? registra_jogada : 
-                //                                        (vidas &amp;&amp; ~ocorreu_jogada) ? espera_jogada   : erro;
-
                 espera_jogada:        proximo_estado = ~vidas ? fim_jogo :  
                                                         (ocorreu_jogada)  ? registra_jogada : espera_jogada;
-
                 registra_jogada:      proximo_estado = espera_salvamento;
                 espera_salvamento:    proximo_estado = espera_salvamento2; 
-                // espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
-                //                                        (vidas &amp;&amp; ocorreu_tiro)  ? termina_movimentacao_asteroides_e_tiros :
-                //                                        (vidas &amp;&amp; ~ocorreu_tiro) ? espera_jogada : erro; 
-
                 espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
-                                                (ocorreu_tiro || (ocorreu_especial  &amp;&amp; rco_intervalo_especial))  ? termina_movimentacao_asteroides_e_tiros : espera_jogada;
-
-                // termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_asteroides_e_tiros &amp;&amp; ~vidas            )? fim_jogo :
-                //                                                           (fim_movimentacao_asteroides_e_tiros &amp;&amp; vidas &amp;&amp; especial &amp;&amp; rco_intervalo_especial)? inicia_state_registra_especial :
-                //                                                           (fim_movimentacao_asteroides_e_tiros &amp;&amp; vidas &amp;&amp; tiro    )? inicia_state_registra_tiros : termina_movimentacao_asteroides_e_tiros;
-
-
-termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_asteroides_e_tiros &amp;&amp; ~vidas            )? fim_jogo :
-                                                          (fim_movimentacao_asteroides_e_tiros &amp;&amp; vidas &amp;&amp; especial &amp;&amp; rco_intervalo_especial)? inicia_state_registra_especial :
-                                                          (fim_movimentacao_asteroides_e_tiros &amp;&amp; vidas &amp;&amp; tiro    )? inicia_state_registra_tiros : termina_movimentacao_asteroides_e_tiros;
-
+                                                        ((ocorreu_tiro &amp;&amp; rco_intervalo_tiro) || (ocorreu_especial  &amp;&amp; rco_intervalo_especial))  ? termina_movimentacao_asteroides_e_tiros : espera_jogada;
+                termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_asteroides_e_tiros &amp;&amp; ~vidas            )? fim_jogo :
+                                                                          (fim_movimentacao_asteroides_e_tiros &amp;&amp; vidas &amp;&amp; especial &amp;&amp; rco_intervalo_especial)? inicia_state_registra_especial :
+                                                                          (fim_movimentacao_asteroides_e_tiros &amp;&amp; vidas &amp;&amp; tiro    )? inicia_state_registra_tiros : termina_movimentacao_asteroides_e_tiros;
                 inicia_state_registra_especial:    proximo_estado = espera_registra_especial;
                 espera_registra_especial:          proximo_estado = fim_registra_especial ? espera_jogada : espera_registra_especial;
-
                 inicia_state_registra_tiros:       proximo_estado = espera_registra_tiros;
                 espera_registra_tiros:             proximo_estado = fim_registra_tiros ? espera_jogada : espera_registra_tiros;                      
                 fim_jogo:                          proximo_estado = reset ? inicial : fim_jogo;   
@@ -2821,7 +3491,7 @@ termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_aste
         endcase
     end
 
-    // Lógica de saída (maquina Moore)
+    /* Lógica de saída (maquina Moore) */
     always @* begin
         reset_reg_jogada          = (estado_atual == inicializa_elementos ||
                                      estado_atual == espera_jogada        ||
@@ -2833,16 +3503,16 @@ termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_aste
         reset_maquinas            = (estado_atual == inicializa_elementos  ||
                                      estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
         reset_pontuacao           = (estado_atual == inicializa_elementos) ? 1&apos;b1 : 1&apos;b0;
-        reset_contador_vidas      = (estado_atual == inicializa_elementos ||
+        reset_contador_vidas      = (estado_atual == inicializa_elementos  ||
                                      estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
         enable_reg_jogada         = (estado_atual == registra_jogada)      ? 1&apos;b1 : 1&apos;b0;
+        pronto                    = (estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
         inicia_registra_tiros     = (estado_atual == inicia_state_registra_tiros) ? 1&apos;b1 : 1&apos;b0;
         inicia_registra_especial  = (estado_atual == inicia_state_registra_especial) ? 1&apos;b1 : 1&apos;b0;
-        pronto                    = (estado_atual == fim_jogo)             ? 1&apos;b1 : 1&apos;b0;
-        inicia_movimentacao_asteroides_e_tiros = (estado_atual == espera_jogada) ? 1&apos;b1 : 1&apos;b0;
         termina                   = (estado_atual == termina_movimentacao_asteroides_e_tiros) ? 1&apos;b1 : 1&apos;b0;
+        inicia_movimentacao_asteroides_e_tiros = (estado_atual == espera_jogada) ? 1&apos;b1 : 1&apos;b0;
 
-        // Saída de depuração (estado)
+        /* Saída de depuração (estado) */
         case (estado_atual)
                 inicial                                 : db_estado_jogo_principal = 5&apos;b00000; // 0
                 inicializa_elementos                    : db_estado_jogo_principal = 5&apos;b00001; // 1
@@ -2862,6 +3532,12 @@ termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_aste
 
 endmodule
 
+/* Esse unidade de controle realiza a movimentação dos asteroides de maneira muito similar
+   a dos asteroides, onde é verificada cada posição da memoria dos asteroides para verificar
+   se o mesmo está em jogo. Caso esteja, a próxima posição da memória é verificada até que todos
+   os asteroides sejam verificados. Quando um asteroide está em jogo, o mesmo será movido, verificando
+   o seu OPCODE para move-lo na direção correta.*/
+
 
 module uc_move_asteroides (
         input clock,
@@ -2870,8 +3546,6 @@ module uc_move_asteroides (
         input [1:0] opcode_aste,
         input loaded_aste,
         input rco_contador_aste,
-
-        //saidas 
         output reg [1:0] select_mux_pos_aste,   //seletor do mux da posição 
         output reg select_mux_coor_aste,  //seletor do mux da posição 
         output reg select_soma_sub,  
@@ -2951,7 +3625,7 @@ module uc_move_asteroides (
                                        estado_atual == vertical_decrescente)   ? 2&apos;b10 : 2&apos;b00;
         select_mux_coor_aste        = (estado_atual == vertical_crescente      ||
                                        estado_atual == vertical_decrescente)   ? 1&apos;b1 : 1&apos;b0;
-        reset_contador_movimenta_asteroide = (estado_atual == sinaliza) ? 1&apos;b1 : 1&apos;b0;
+        reset_contador_movimenta_asteroide = (estado_atual == sinaliza)        ? 1&apos;b1 : 1&apos;b0;
 
         // Saída de depuração (estado)
         case (estado_atual)
@@ -2977,6 +3651,13 @@ endmodule
 
 
 
+/* Essa unidade de controle é responsável pelo movimento dos tiros no jogo, o que é feito
+   é uma série de verificações para ver se o tiro que está sendo lido da memoria está atualmente
+   no jogo, e também se o tiro atingiou a borda do jogo, caso esteja na borda, ele é tirado do jogo.
+   Para movimentar o asteroide, é verificado o OPCODE do tiro, que contém a informação da direção
+   que o mesmo está se movendo e faz a operação respectiva de soma ou subtração para mover o tiro.
+   Após isso, o tiro será registrado na memória de tiros.*/
+
 module uc_move_tiros (
         input clock                    ,
         input movimenta_tiro           ,
@@ -2984,14 +3665,10 @@ module uc_move_tiros (
         input [1:0] opcode_tiro        ,
         input loaded_tiro              ,
         input rco_contador_tiro        ,
-
-        //entradas para verificar se o tiro saiu da tela
         input x_borda_max_tiro         , //true se a coord. X do tiro estiver no MAXIMO da horizontal
         input y_borda_max_tiro         , //true se a coord. Y do tiro estiver no MAXIMO da vetical
         input x_borda_min_tiro         , //true se a coord. Y do tiro estiver no MINIMO da horizontal
         input y_borda_min_tiro         , //true se a coord. Y do tiro estiver no MINIMO da vetical
-
-        //saidas 
         output reg [1:0] select_mux_pos_tiro ,   //seletor do mux da posição 
         output reg select_mux_coor_tiro,  //seletor do mux da posição 
         output reg select_soma_sub     ,  
@@ -3006,26 +3683,26 @@ module uc_move_tiros (
 
 );
 
-    parameter inicio                 = 5&apos;b00000; // 0
-    parameter espera                 = 5&apos;b00001; // 1
-    parameter reseta_contador        = 5&apos;b00010; // 2
-    parameter verifica_loaded        = 5&apos;b00011; // 3
-    parameter verifica_saiu_tela     = 5&apos;b00100; // 4
-    parameter altera_loaded          = 5&apos;b00101; // 5
-    parameter salva_loaded           = 5&apos;b00110; // 6
-    parameter incrementa_contador    = 5&apos;b00111; // 7
-    parameter verifica_opcode        = 5&apos;b01000; // 8 
-    parameter horizontal_crescente   = 5&apos;b01001; // 9 
-    parameter horizontal_decrescente = 5&apos;b01010; // A
-    parameter vertical_crescente     = 5&apos;b01011; // B
-    parameter vertical_decrescente   = 5&apos;b01100; // C
-    parameter salva_posicao          = 5&apos;b01101; // D
-    parameter sinaliza               = 5&apos;b01110; // E
-    parameter aux                    = 5&apos;b01111; // F
-    parameter erro                   = 5&apos;b11111; // erro
+        parameter inicio                 = 5&apos;b00000; // 0
+        parameter espera                 = 5&apos;b00001; // 1
+        parameter reseta_contador        = 5&apos;b00010; // 2
+        parameter verifica_loaded        = 5&apos;b00011; // 3
+        parameter verifica_saiu_tela     = 5&apos;b00100; // 4
+        parameter altera_loaded          = 5&apos;b00101; // 5
+        parameter salva_loaded           = 5&apos;b00110; // 6
+        parameter incrementa_contador    = 5&apos;b00111; // 7
+        parameter verifica_opcode        = 5&apos;b01000; // 8 
+        parameter horizontal_crescente   = 5&apos;b01001; // 9 
+        parameter horizontal_decrescente = 5&apos;b01010; // A
+        parameter vertical_crescente     = 5&apos;b01011; // B
+        parameter vertical_decrescente   = 5&apos;b01100; // C
+        parameter salva_posicao          = 5&apos;b01101; // D
+        parameter sinaliza               = 5&apos;b01110; // E
+        parameter aux                    = 5&apos;b01111; // F
+        parameter erro                   = 5&apos;b11111; // erro
 
 // Variáveis de estado
-        reg [3:0] estado_atual, proximo_estado;
+        reg [4:0] estado_atual, proximo_estado;
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin
@@ -3038,16 +3715,16 @@ module uc_move_tiros (
         // mudança de estados
         always @* begin
         case (estado_atual) 
-                inicio:                proximo_estado = espera;
-                espera:                proximo_estado = movimenta_tiro ? reseta_contador : espera;
-                reseta_contador:       proximo_estado = verifica_loaded;
-                verifica_loaded:       proximo_estado =   loaded_tiro                        ? verifica_saiu_tela  : 
-                                                        (~loaded_tiro &amp;&amp; ~rco_contador_tiro) ? incrementa_contador : 
-                                                        (~loaded_tiro &amp;&amp; rco_contador_tiro)  ? sinaliza : verifica_loaded;
-                verifica_saiu_tela:    proximo_estado = (opcode_tiro == 2&apos;b00 &amp;&amp; x_borda_max_tiro  ||
-                                                         opcode_tiro == 2&apos;b01 &amp;&amp; x_borda_min_tiro  ||
-                                                         opcode_tiro == 2&apos;b10 &amp;&amp; y_borda_max_tiro  ||
-                                                         opcode_tiro == 2&apos;b11 &amp;&amp; y_borda_min_tiro  )? altera_loaded : verifica_opcode;
+                inicio:                 proximo_estado = espera;
+                espera:                 proximo_estado = movimenta_tiro ? reseta_contador : espera;
+                reseta_contador:        proximo_estado = verifica_loaded;
+                verifica_loaded:        proximo_estado = loaded_tiro                         ? verifica_saiu_tela  : 
+                                                         (~loaded_tiro &amp;&amp; ~rco_contador_tiro) ? incrementa_contador : 
+                                                         (~loaded_tiro &amp;&amp; rco_contador_tiro)  ? sinaliza : verifica_loaded;
+                verifica_saiu_tela:     proximo_estado = (opcode_tiro == 2&apos;b00 &amp;&amp; x_borda_max_tiro ||
+                                                          opcode_tiro == 2&apos;b01 &amp;&amp; x_borda_min_tiro  ||
+                                                          opcode_tiro == 2&apos;b10 &amp;&amp; y_borda_max_tiro  ||
+                                                          opcode_tiro == 2&apos;b11 &amp;&amp; y_borda_min_tiro  )? altera_loaded : verifica_opcode;
                 altera_loaded:          proximo_estado = salva_loaded;
                 salva_loaded:           proximo_estado = rco_contador_tiro ? sinaliza : incrementa_contador;
                 verifica_opcode:        proximo_estado = opcode_tiro == 2&apos;b00 ? horizontal_crescente : 
@@ -3067,28 +3744,25 @@ module uc_move_tiros (
 
     // Lógica de saída (maquina Moore)
     always @* begin
-        reset_contador_tiro         = (estado_atual == reseta_contador) ? 1&apos;b1 : 1&apos;b0;
-        new_loaded                  = (estado_atual == altera_loaded || 
-                                       estado_atual == salva_loaded) ? 1&apos;b0 : 1&apos;b1;
-        enable_load_tiro             = (estado_atual == salva_loaded) ? 1&apos;b1 : 1&apos;b0;
-        enable_mem_tiro             = (estado_atual == horizontal_crescente || 
-                                        estado_atual == horizontal_decrescente ||
-                                        estado_atual == vertical_crescente ||
-                                        estado_atual == vertical_decrescente) ? 1&apos;b1 : 1&apos;b0;
-        conta_contador_tiro         = (estado_atual == incrementa_contador) ? 1&apos;b1 : 1&apos;b0;
-        select_soma_sub             = (estado_atual == horizontal_decrescente ||
-                                       estado_atual == vertical_decrescente      )? 1&apos;b1 : 1&apos;b0;
-
-        select_mux_pos_tiro         = (estado_atual == horizontal_crescente ||
-                                       estado_atual == horizontal_decrescente) ? 2&apos;b01 :  
-                                      (estado_atual == vertical_crescente ||
-                                       estado_atual == vertical_decrescente) ? 2&apos;b10 : 2&apos;b00;
-
-        select_mux_coor_tiro        = (estado_atual == vertical_crescente ||
-                                       estado_atual == vertical_decrescente) ? 1&apos;b1 : 1&apos;b0;
-        movimentacao_concluida_tiro = (estado_atual == sinaliza) ? 1&apos;b1 : 1&apos;b0;
-
-        reset_contador_movimenta_tiro = (estado_atual == sinaliza) ? 1&apos;b1 : 1&apos;b0;
+        reset_contador_tiro           = (estado_atual == reseta_contador)        ? 1&apos;b1 : 1&apos;b0;
+        new_loaded                    = (estado_atual == altera_loaded           || 
+                                         estado_atual == salva_loaded)           ? 1&apos;b0 : 1&apos;b1;
+        enable_load_tiro              = (estado_atual == salva_loaded)           ? 1&apos;b1 : 1&apos;b0;
+        enable_mem_tiro               = (estado_atual == horizontal_crescente    || 
+                                         estado_atual == horizontal_decrescente  ||
+                                         estado_atual == vertical_crescente      ||
+                                         estado_atual == vertical_decrescente)   ? 1&apos;b1 : 1&apos;b0;
+        conta_contador_tiro           = (estado_atual == incrementa_contador)    ? 1&apos;b1 : 1&apos;b0;
+        select_soma_sub               = (estado_atual == horizontal_decrescente  ||
+                                         estado_atual == vertical_decrescente)   ? 1&apos;b1 : 1&apos;b0;
+        select_mux_pos_tiro           = (estado_atual == horizontal_crescente    ||
+                                         estado_atual == horizontal_decrescente) ? 2&apos;b01 :  
+                                        (estado_atual == vertical_crescente      ||
+                                         estado_atual == vertical_decrescente)   ? 2&apos;b10 : 2&apos;b00;
+        select_mux_coor_tiro          = (estado_atual == vertical_crescente      ||
+                                         estado_atual == vertical_decrescente)   ? 1&apos;b1 : 1&apos;b0;
+        movimentacao_concluida_tiro   = (estado_atual == sinaliza)               ? 1&apos;b1 : 1&apos;b0;
+        reset_contador_movimenta_tiro = (estado_atual == sinaliza)               ? 1&apos;b1 : 1&apos;b0;
 
         // Saída de depuração (estado)
         case (estado_atual)
@@ -3116,7 +3790,6 @@ endmodule
 
 
 
-
 module uc_registra_tiro (
         input clock                    ,
         input registra_tiro            , // entrada que inicia a máquina de estados
@@ -3132,7 +3805,6 @@ module uc_registra_tiro (
         output reg [1:0] select_mux_pos , // mux que seleciona a posição que será salva na memoria (salva a posição da nave e o opcode)
         output reg tiro_registrado      , // saida final que indica o fim da operação registra tiro
         output reg [3:0] db_estado_registra_tiro
-
 );
 
         /* declaração dos estados dessa UC */
@@ -3150,7 +3822,6 @@ module uc_registra_tiro (
         // Variáveis de estado
         reg [3:0] estado_atual, proximo_estado;
 
-
         // Memória de estado
         always @(posedge clock or posedge reset) begin
                 if (reset)
@@ -3164,9 +3835,7 @@ module uc_registra_tiro (
         case (estado_atual)
                 inicial:                  proximo_estado = espera;
                 espera:                   proximo_estado = registra_tiro ? zera_contador : espera;
-                
                 zera_contador:            proximo_estado = verifica;
-
                 verifica:                 proximo_estado = (loaded_tiro &amp;&amp; ~rco_contador_tiro) ? incrementa_contador_tiro : 
                                                            (loaded_tiro &amp;&amp; rco_contador_tiro)  ? sinaliza   : salva_tiro;
                 incrementa_contador_tiro: proximo_estado = aux;
@@ -3202,14 +3871,8 @@ module uc_registra_tiro (
         endcase
     end
 
-
-
-
-
-
-
-
 endmodule
+
 
 
 
@@ -3288,7 +3951,7 @@ endmodule</string>
         </entry>
         <entry>
           <string>externalOutputs</string>
-          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_estado_uc_gera_frame:4,db_estado_uc_renderiza:4,db_uc_gera_asteroide:4,matriz_x:15,matriz_y:4,db_vidas:4,db_pontos:4,db_tiro_x:4,db_tiro_y:4,db_asteroide_x:4,db_asteroide_y:4,db_up,db_down,db_left,db_right,db_estado_registra_tiro_especial:4,db_especial</string>
+          <string>pronto,db_estado_jogo_principal:5,db_estado_coordena_asteroides_tiros:5,db_estado_compara_tiros_e_asteroide:5,db_estado_move_tiros:5,db_estado_compara_asteroides_com_nave_e_tiros:5,db_estado_move_asteroides:5,db_estado_registra_tiro:4,db_estado_uc_gera_frame:4,db_estado_uc_renderiza:4,db_uc_gera_asteroide:4,matriz_x:15,matriz_y:4,db_vidas:4,db_pontos:4,db_tiro_x:4,db_tiro_y:4,db_asteroide_x:4,db_asteroide_y:4,db_up,db_down,db_left,db_right,db_estado_registra_tiro_especial:4,db_especial,db_estado_uc_envia_dados:6,saida_serial</string>
         </entry>
         <entry>
           <string>Width</string>
@@ -3383,7 +4046,7 @@ endmodule</string>
           <string>6</string>
         </entry>
       </elementAttributes>
-      <pos x="520" y="600"/>
+      <pos x="520" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
@@ -3516,11 +4179,11 @@ endmodule</string>
         </entry>
         <entry>
           <string>Label</string>
-          <string>1000 Hz</string>
+          <string>10000 Hz</string>
         </entry>
         <entry>
           <string>Frequency</string>
-          <int>1000</int>
+          <int>10000</int>
         </entry>
       </elementAttributes>
       <pos x="400" y="220"/>
@@ -3664,59 +4327,7 @@ endmodule</string>
           <string>SHIFT</string>
         </entry>
       </elementAttributes>
-      <pos x="520" y="620"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>easy</string>
-        </entry>
-      </elementAttributes>
-      <pos x="240" y="440"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>medium</string>
-        </entry>
-      </elementAttributes>
-      <pos x="240" y="480"/>
-    </visualElement>
-    <visualElement>
-      <elementName>In</elementName>
-      <elementAttributes>
-        <entry>
-          <string>Label</string>
-          <string>hard</string>
-        </entry>
-      </elementAttributes>
-      <pos x="240" y="520"/>
-    </visualElement>
-    <visualElement>
-      <elementName>Splitter</elementName>
-      <elementAttributes>
-        <entry>
-          <string>mirror</string>
-          <boolean>true</boolean>
-        </entry>
-        <entry>
-          <string>splitterSpreading</string>
-          <int>2</int>
-        </entry>
-        <entry>
-          <string>Input Splitting</string>
-          <string>1,1,1</string>
-        </entry>
-        <entry>
-          <string>Output Splitting</string>
-          <string>3</string>
-        </entry>
-      </elementAttributes>
-      <pos x="260" y="520"/>
+      <pos x="520" y="540"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
@@ -3734,7 +4345,7 @@ endmodule</string>
           <string>UP</string>
         </entry>
       </elementAttributes>
-      <pos x="320" y="600"/>
+      <pos x="320" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
@@ -3752,7 +4363,7 @@ endmodule</string>
           <string>DOWN</string>
         </entry>
       </elementAttributes>
-      <pos x="360" y="600"/>
+      <pos x="360" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
@@ -3770,7 +4381,7 @@ endmodule</string>
           <string>LEFT</string>
         </entry>
       </elementAttributes>
-      <pos x="400" y="600"/>
+      <pos x="400" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Button</elementName>
@@ -3788,7 +4399,7 @@ endmodule</string>
           <string>RIGHT</string>
         </entry>
       </elementAttributes>
-      <pos x="440" y="600"/>
+      <pos x="440" y="520"/>
     </visualElement>
     <visualElement>
       <elementName>Seven-Seg-Hex</elementName>
@@ -3922,7 +4533,7 @@ endmodule</string>
           <string>S</string>
         </entry>
       </elementAttributes>
-      <pos x="480" y="620"/>
+      <pos x="480" y="540"/>
     </visualElement>
     <visualElement>
       <elementName>Out</elementName>
@@ -3957,14 +4568,6 @@ endmodule</string>
       <p2 x="1300" y="580"/>
     </wire>
     <wire>
-      <p1 x="240" y="520"/>
-      <p2 x="260" y="520"/>
-    </wire>
-    <wire>
-      <p1 x="280" y="520"/>
-      <p2 x="480" y="520"/>
-    </wire>
-    <wire>
       <p1 x="1040" y="460"/>
       <p2 x="1240" y="460"/>
     </wire>
@@ -3981,7 +4584,7 @@ endmodule</string>
       <p2 x="1260" y="400"/>
     </wire>
     <wire>
-      <p1 x="480" y="400"/>
+      <p1 x="520" y="400"/>
       <p2 x="540" y="400"/>
     </wire>
     <wire>
@@ -4029,16 +4632,8 @@ endmodule</string>
       <p2 x="1220" y="480"/>
     </wire>
     <wire>
-      <p1 x="240" y="480"/>
-      <p2 x="260" y="480"/>
-    </wire>
-    <wire>
       <p1 x="1040" y="420"/>
       <p2 x="1300" y="420"/>
-    </wire>
-    <wire>
-      <p1 x="520" y="420"/>
-      <p2 x="540" y="420"/>
     </wire>
     <wire>
       <p1 x="440" y="360"/>
@@ -4093,10 +4688,6 @@ endmodule</string>
       <p2 x="1060" y="1080"/>
     </wire>
     <wire>
-      <p1 x="240" y="440"/>
-      <p2 x="260" y="440"/>
-    </wire>
-    <wire>
       <p1 x="400" y="440"/>
       <p2 x="460" y="440"/>
     </wire>
@@ -4133,12 +4724,12 @@ endmodule</string>
       <p2 x="1220" y="580"/>
     </wire>
     <wire>
-      <p1 x="520" y="600"/>
-      <p2 x="520" y="620"/>
+      <p1 x="520" y="520"/>
+      <p2 x="520" y="540"/>
     </wire>
     <wire>
-      <p1 x="520" y="420"/>
-      <p2 x="520" y="580"/>
+      <p1 x="520" y="400"/>
+      <p2 x="520" y="500"/>
     </wire>
     <wire>
       <p1 x="1160" y="640"/>
@@ -4185,12 +4776,8 @@ endmodule</string>
       <p2 x="1180" y="340"/>
     </wire>
     <wire>
-      <p1 x="480" y="600"/>
-      <p2 x="480" y="620"/>
-    </wire>
-    <wire>
-      <p1 x="480" y="400"/>
-      <p2 x="480" y="520"/>
+      <p1 x="480" y="520"/>
+      <p2 x="480" y="540"/>
     </wire>
     <wire>
       <p1 x="480" y="220"/>

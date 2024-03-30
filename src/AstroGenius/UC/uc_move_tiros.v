@@ -50,7 +50,7 @@ module uc_move_tiros (
         parameter erro                   = 5'b11111; // erro
 
 // Variáveis de estado
-        reg [3:0] estado_atual, proximo_estado;
+        reg [4:0] estado_atual, proximo_estado;
 
         // Memória de estado
         always @(posedge clock or posedge reset) begin
