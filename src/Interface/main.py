@@ -1,4 +1,5 @@
 import pygame
+import random
 import time # for debbuging
 import utilitary.uart as uart
 from utilitary.buffer import Buffer as Buffer
@@ -68,7 +69,7 @@ class Game():
 
       pygame.display.flip()
       
-      time.sleep(0.01)
+      # time.sleep(0.01)
       
     # sair do jogo
     pygame.quit()
@@ -81,7 +82,14 @@ class Game():
     chunk = self.chunk
     
     # temporário, para depuração
-    received_byte = MEM[self.db_index]
+    characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$&!"#%()*+,-./:;<=>?@[\]^_`{|}~áàäéèêâôöóò\''
+    
+    received_byte = random.choice(characters)
+    
+    if self.db_index == self.chunk.chunk_size - 2:
+      received_byte = '$'
+    elif self.db_index == self.chunk.chunk_size - 1:
+      received_byte = '&'
     
     buffer.write_buffer(received_byte)
     
@@ -92,7 +100,7 @@ class Game():
       self.received_game_data = chunk.decoded_data
     
     # temporário, para depuração
-    self.db_index = (self.db_index + 1) % len(MEM)
+    self.db_index = (self.db_index + 1) % self.chunk.chunk_size
     
     return
   
