@@ -1,20 +1,20 @@
 # Chunk de transmissão FPGA -> PC 
 - [PT] Pontuação: 1 byte de pontuação 
 - [G1] Grupo 1: 1 byte de informações agrupadas {direção, vidas, dificuldade}
-    - Direção da nave: 2 bits
-    - Vidas: 3 bits
-    - Dificuldade: 3 bits
+    - G1[0:2] = Direção da nave: 2 bits
+    - G1[2:5] = Vidas: 3 bits
+    - G1[5:8] = Dificuldade: 3 bits
 - [AS] 16 bytes de posições de asteroides
 - [DA] 4 bytes de direção dos asteroides (OBS: verificar a ordem dos opcodes)
 - [TI] 16 bytes de posições de tiros
 - [DT] 4 bytes de direção dos tiros (OBS: verificar a ordem dos opcodes)
 - [G2] Grupo 2 de {jogada_especial, especial_disponível,  jogada_tiro, acabou_vidas, 2'b00}
-    - Jogada Especial: 1 bit
-    - Especial Disponível: 1 bit
-    - Jogada Tiro: 1 bit
-    - Tiro Disponível: 1 bit
-    - Acabou vidas: 1 bit
-    - blank_space: 3 bits
+    - G2[0] = Jogada Especial: 1 bit
+    - G2[1] = Especial Disponível: 1 bit
+    - G2[2] = Jogada Tiro: 1 bit
+    - G2[3] = Tiro Disponível: 1 bit
+    - G2[4] = Acabou vidas: 1 bit
+    - G2[5:8] = blank_space: 3 bits
 - [BP] 2 bytes de break point
 
 ordem:
