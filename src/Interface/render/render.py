@@ -24,8 +24,9 @@ class RenderEngine():
         self.asteroids = None
         self.asteroids_positions = None
         self.asteroids_directions = None
-        self.shooting_positions = None
-        self.shooting_directions = None
+        self.shots = None
+        self.shots_positions = None
+        self.shots_directions = None
         self.played_special_shooting = None
         self.available_special_shooting = None
         self.played_shooting = None
@@ -39,6 +40,7 @@ class RenderEngine():
         self.images = {
             'life': None,
             'space_ship': None,
+            'shot': None,
             'asteroid': None,
             'asteroid_01': None,
             'asteroid_02': None,
@@ -50,6 +52,7 @@ class RenderEngine():
             'life': 'heart.svg',
             'space_ship': 'space_ship.svg',
             'asteroid': 'asteroid_01.svg',
+            'shot': 'asteroid_01.svg',
             'asteroid_01': 'foto.jpeg',
             'asteroid_02': 'foto.jpeg',
             'asteroid_03': 'foto.jpeg',
@@ -111,8 +114,8 @@ class RenderEngine():
             self.game_difficulty = data['game_difficulty']
             self.asteroids_positions = data['asteroids_positions']
             self.asteroids_directions = data['asteroids_directions']
-            self.shooting_positions = data['shooting_positions']
-            self.shooting_directions = data['shooting_directions']
+            self.shots_positions = data['shots_positions'] # TODO fix typo
+            self.shots_directions = data['shots_directions'] # TODO fix typo
             self.played_special_shooting = data['played_special_shooting']
             self.available_special_shooting = data['available_special_shooting']
             self.played_shooting = data['played_shooting']
@@ -120,8 +123,9 @@ class RenderEngine():
         except:
             pass
         
-        # carrega os asteroides
+        # carrega tiros e asteroides
         self.load_asteroids()
+        self.load_shots()
         
         return
     
@@ -151,27 +155,29 @@ class RenderEngine():
         return
     
     
-    def load_shootings(self):
-        asteroids = []
+    def load_shots(self):
+        shots = []
         
         if self.loaded_data:
             try:
-                for index, asteroid_position in enumerate(self.asteroids_positions):
+                for index, shot_position in enumerate(self.shots_positions):
                     try:
-                        # verifica se o asteroide está carregado ou não
-                        if asteroid_position != NOT_LOADED_ASTEROID_POSITION:
-                            new_asteroid = {
-                                'x': asteroid_position[0],
-                                'y': asteroid_position[1],
-                                'direction': self.asteroids_directions[index]
+                        # verifica se o tiro está carregado ou não
+                        if shot_position != NOT_LOADED_ASTEROID_POSITION:
+                            new_shot = {
+                                'x': shot_position[0],
+                                'y': shot_position[1],
+                                'direction': self.shots_directions[index]
                             }
-                            asteroids.append(new_asteroid)
+                            shots.append(new_shot)
+                        else:
+                            print('bacati')
                     except Exception as exception:
-                        self.log_message(f'error in loading asteroid n = {index}\n{exception}')
+                        self.log_message(f'error in loading shot n = {index}\n{exception}')
             except Exception as exception:
-                        self.log_message(f'error in loading asteroids\n{exception}')
-                    
-        self.asteroids = asteroids 
+                        self.log_message(f'error in loading shots\n{exception}')
+        
+        self.shots = shots
         
         return
     
@@ -184,6 +190,7 @@ class RenderEngine():
         self.render_lifes()
         self.render_player()
         self.render_asteroids()
+        self.render_shots()
         
         return
     
@@ -261,6 +268,28 @@ class RenderEngine():
                 x, y = self.transform_coordinates(x, y)
                 self.render_asteroid(x, y)
 
+        return
+    
+    
+    def render_shots(self):
+        shots = self.shots
+        
+        if shots != None:
+            # renderiza cada asteroide
+            for shot in shots:
+                x, y = shot['x'], shot['y']
+                x, y = self.transform_coordinates(x, y)
+                self.render_shot(x, y)
+
+        return
+    
+    
+    def render_shot(self, x, y):
+        print(f'rendering shot at {(x,y)}')
+        shot_img = self.images['shot']
+        
+        self.draw_image(shot_img, x, y, 40, 40, 'center')
+        
         return
     
     

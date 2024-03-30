@@ -15,8 +15,8 @@ class ChunkDecoder():
         game_difficulty = ChunkDecoder.get_game_difficulty(G1)
         asteroids_positions = ChunkDecoder.get_asteroids_positions(AS)
         asteroids_directions = ChunkDecoder.get_asteroids_directions(DA)
-        shooting_positions = ChunkDecoder.get_shooting_positions(TI)
-        shooting_directions = ChunkDecoder.get_shooting_directions(DT)
+        shots_positions = ChunkDecoder.get_shots_positions(TI)
+        shots_directions = ChunkDecoder.get_shots_directions(DT)
         played_special_shooting = ChunkDecoder.get_played_special_shooting(G2)
         available_special_shooting = ChunkDecoder.get_available_special_shooting(G2)
         played_shooting = ChunkDecoder.get_played_shooting(G2)
@@ -29,8 +29,8 @@ class ChunkDecoder():
             'game_difficulty': game_difficulty,
             'asteroids_positions': asteroids_positions,
             'asteroids_directions': asteroids_directions,
-            'shooting_positions': shooting_positions,
-            'shooting_directions': shooting_directions,
+            'shots_positions': shots_positions,
+            'shots_directions': shots_directions,
             'played_special_shooting': played_special_shooting, 
             'available_special_shooting': available_special_shooting,
             'played_shooting': played_shooting,
@@ -114,7 +114,7 @@ class ChunkDecoder():
         return asteroids_directions
 
 
-    def get_shooting_positions(TI_slice: str):
+    def get_shots_positions(TI_slice: str):
         shooting_positions = []
         
         for byte in TI_slice:
@@ -130,7 +130,7 @@ class ChunkDecoder():
         return shooting_positions
 
 
-    def get_shooting_directions(DT_slice: str):
+    def get_shots_directions(DT_slice: str):
         shooting_directions = 0
         
         shooting_directions = []
