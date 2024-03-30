@@ -7,7 +7,7 @@ class ChunkDecoder():
         DA = encoded_data['DA'] 
         TI = encoded_data['TI'] 
         DT = encoded_data['DT'] 
-        G2 = encoded_data['G2'] 
+        G2 = encoded_data['G2']
         
         score = ChunkDecoder.get_score(PT)
         player_direction = ChunkDecoder.get_player_direction(G1)
@@ -50,19 +50,27 @@ class ChunkDecoder():
 
 
     def get_player_direction(G1_slice: str):
-        player_direction = 0
+        bin_code = get_binary_code(G1_slice)
+        bits = bin_code[0:2]
+        player_direction = ChunkDecoder.decode_direction(bits)
 
         return player_direction
 
 
     def get_lifes_quantity(G1_slice: str):
-        lifes_quantity = 0
+        bin_code = get_binary_code(G1_slice)
+        bits = bin_code[2:5]
+        
+        lifes_quantity = get_number(bits)
 
         return lifes_quantity
 
 
     def get_game_difficulty(G1_slice: str):
-        game_difficulty = 0
+        bin_code = get_binary_code(G1_slice)
+        bits = bin_code[5:8]
+        
+        game_difficulty = get_number(bits)
 
         return game_difficulty
 
