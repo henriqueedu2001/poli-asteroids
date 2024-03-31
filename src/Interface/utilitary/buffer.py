@@ -67,7 +67,7 @@ class Buffer():
         first_chunk_byte_index = self.get_absolute_index(pivot_index=self.index,relative_index=1 - self.chunk_size)
         first_chunk_byte = self.buffer[first_chunk_byte_index]
         
-        actual_byte = self.buffer[self.index]
+        actual_byte = self.buffer[self.get_absolute_index(self.index, 0)]
         
         if actual_byte != first_chunk_byte:
             return True
