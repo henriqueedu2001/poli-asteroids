@@ -64,9 +64,12 @@ class Buffer():
         Returns:
             bool: verdadeiro, se houve recepção de um chunk completo e falso caso contrário
         """
+        first_chunk_byte_index = self.get_absolute_index(pivot_index=self.index,relative_index=1 - self.chunk_size)
+        first_chunk_byte = self.buffer[first_chunk_byte_index]
         
-        # verifica coerência da distância entre os breakpoints
-        if self.index - self.last_break_point == self.chunk_size:
+        actual_byte = self.buffer[self.index]
+        
+        if actual_byte != first_chunk_byte:
             return True
         
         return False
@@ -159,9 +162,17 @@ class Buffer():
         
         for i in range(n):
             for j in range(m):
-                print(self.buffer[i * m + j], end='')
+                byte = self.buffer[i * m + j]
+                hex = get_hex(byte)
+                print(hex, end=' ')
             print('')
     
+    
+def get_hex(byte):
+    codigo_ascii = ord(str(byte))
+    codigo_hex = hex(codigo_ascii)
+    
+    return codigo_hex
 
 def test():
     buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='ab')
