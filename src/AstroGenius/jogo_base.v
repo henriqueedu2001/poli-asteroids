@@ -445,8 +445,8 @@ uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     .fim_comparacao_tiros_e_asteroides(wire_fim_comparacao_tiros_e_asteroides),
     .fim_gera_frame(wire_fim_gera_frame_uc_gera_frame),
     .fim_gera_asteroide(wire_fim_gera_asteroide),
-    // .fim_transmissao_de_dados(wire_terminou_de_enviar_dados_uc_envia_dados), // com a uart tx
-    .fim_transmissao_de_dados(1'b1), // sem a uart tx
+    .fim_transmissao_de_dados(wire_terminou_de_enviar_dados_uc_envia_dados), // com a uart tx
+    // .fim_transmissao_de_dados(1'b1), // sem a uart tx
     .gera_aste(wire_rco_contador_gera_aste),
     .termina_operacao(wire_termina_uc_jogo_principal),
     /* outputs */

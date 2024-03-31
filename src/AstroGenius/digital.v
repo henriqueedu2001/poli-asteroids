@@ -26,8 +26,8 @@ uc_menu uc_menu (
     .ocorreu_jogada(wire_ocorreu_jogada),
     .tiro(wire_saida_reg_jogada[0]),
     .especial(wire_saida_reg_jogada[1]),
-    // .fim_envia_dados(wire_fim_envia_dados), // sem serializacao
-    .fim_envia_dados(1'b1), // com serialização
+    // .fim_envia_dados(wire_fim_envia_dados), // com serialização
+    .fim_envia_dados(1'b1), // sem serializacao
     .pronto(wire_gameover),
         /*output*/
     .reset_reg_jogada(wire_reset_reg_jogada),

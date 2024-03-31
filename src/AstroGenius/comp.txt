@@ -1,7 +1,7 @@
 # Para compilar: iverilog -c comp.txt
 jogo_base_tb.v
 
-astro_genius.v
+# astro_genius.v
 asteroide.v
 tiro.v
 jogo_base.v
@@ -37,9 +37,7 @@ UC/uc_move_tiros.v
 UC/uc_registra_tiro.v
 UC/uc_renderiza.v
 UC/uc_registra_especial.v
-UC/uc_menu.v
-
-
+# UC/uc_menu.v
 
 
 
