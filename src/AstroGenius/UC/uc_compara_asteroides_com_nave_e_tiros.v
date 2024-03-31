@@ -66,7 +66,8 @@ module uc_compara_asteroides_com_nave_e_tiros (
             compara:                             proximo_estado = (posicao_asteroide_igual_nave && loaded_asteroide && ~destruido_asteroide) ? decrementa_vida : 
                                                                   rco_contador_asteroides ? compara_tiros_e_asteroides : incrementa_contador_de_asteroides;
             
-            decrementa_vida:                     proximo_estado = ha_vidas ? destroi_asteroide : fim_comparacao;
+            // decrementa_vida:                     proximo_estado = ha_vidas ? destroi_asteroide : fim_comparacao;
+            decrementa_vida:                     proximo_estado = destroi_asteroide;
             destroi_asteroide:                   proximo_estado = salva_destruicao;
             salva_destruicao:                    proximo_estado = rco_contador_asteroides ? compara_tiros_e_asteroides : incrementa_contador_de_asteroides;
             compara_tiros_e_asteroides:          proximo_estado = espera_compara_tiros_e_asteroides;

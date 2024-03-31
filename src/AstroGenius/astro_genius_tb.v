@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module astro_genius_tb();
 
     // DUT (Device Under Test)
@@ -6,8 +8,8 @@ module astro_genius_tb();
         .reset(reset),
         .chaves(chaves),
         .saida_serial(saida_serial),
-        .matriz_x(matriz_x),
-        .matriz_y(matriz_y),
+        .matriz_x(),
+        .matriz_y(),
         .db_vidas(db_vidas),
         .db_pontos(db_pontos),
         .db_uc_menu(db_uc_menu),
@@ -25,28 +27,30 @@ module astro_genius_tb();
     wire [4:0] db_uc_menu;
     wire [5:0] wire_saida_reg_jogada;
 
+    parameter clockPeriod = 20; // in ns, f=50MHz
+
+    // Gerador de clock
+    always #((clockPeriod / 2)) clock = ~clock;
 
     initial begin
-        // Initialize Inputs
-        clock = 0;
-        reset = 1;
-        chaves = 0;
+        $dumpfile("wave.vcd");
+        $dumpvars(5, astro_genius_tb);
+        // valores iniciais
+        clock = 1'b0;
+        reset = 1'b1;
+        chaves = 6'b000000;
+        #(5*clockPeriod)
+        reset = 1'b0;
 
-        #10 reset = 0;
+        // Iniciar o jogo
+        chaves = 6'b000001; // tiro
+        #(10*clockPeriod)
 
-        #100
-            chaves = 6'b000011;
-            #50 chaves = 6'b000010;
-            #50 chaves = 6'b000001;
-            #50 chaves = 6'b100001;
-            #50 chaves = 6'b000001;
 
-        #1000
-            chaves = 6'b000000;
-
-        #10000 $finish;
+        #(1000000*clockPeriod)
+        $finish;
     end
 
-    always #5 clock = ~clock;
+
 
 endmodule

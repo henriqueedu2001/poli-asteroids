@@ -88,15 +88,24 @@ module uc_jogo_principal (
         reset_reg_jogada          = (estado_atual == inicializa_elementos ||
                                      estado_atual == espera_jogada        ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
-        reset_contador_asteroides = (estado_atual == inicializa_elementos ||
-                                     estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
-        reset_contador_tiro       = (estado_atual == inicializa_elementos ||
-                                     estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
-        reset_maquinas            = (estado_atual == inicializa_elementos  ||
-                                     estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+        // reset_contador_asteroides = (estado_atual == inicializa_elementos ||
+        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+        reset_contador_asteroides = (estado_atual == inicializa_elementos )? 1'b1 : 1'b0;
+
+        // reset_contador_tiro       = (estado_atual == inicializa_elementos ||
+        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+        reset_contador_tiro       = (estado_atual == inicializa_elementos )? 1'b1 : 1'b0;
+
+        // reset_maquinas            = (estado_atual == inicializa_elementos  ||
+        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+        reset_maquinas            = (estado_atual == inicializa_elementos  )? 1'b1 : 1'b0;
+
         reset_pontuacao           = (estado_atual == inicializa_elementos) ? 1'b1 : 1'b0;
-        reset_contador_vidas      = (estado_atual == inicializa_elementos  ||
-                                     estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+
+        // reset_contador_vidas      = (estado_atual == inicializa_elementos  ||
+        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+        reset_contador_vidas      = (estado_atual == inicializa_elementos) ? 1'b1 : 1'b0;
+
         enable_reg_jogada         = (estado_atual == registra_jogada)      ? 1'b1 : 1'b0;
         pronto                    = (estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         inicia_registra_tiros     = (estado_atual == inicia_state_registra_tiros) ? 1'b1 : 1'b0;

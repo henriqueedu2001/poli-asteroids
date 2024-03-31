@@ -59,118 +59,118 @@ module jogo_base_tb;
         iniciar = 1'b0;
         #(10*clockPeriod)
 
-        chaves = 6'b100001;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b100001;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000010;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000010;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000101;
-        #(10*clockPeriod)
-        chaves = 6'b000000;
-        #(2000*clockPeriod)
+        // chaves = 6'b000101;
+        // #(10*clockPeriod)
+        // chaves = 6'b000000;
+        // #(2000*clockPeriod)
 
-        chaves = 6'b000000;
-        #(10000*clockPeriod)
+        // chaves = 6'b000000;
+        #(1000000*clockPeriod)
 
         $finish;
     end
