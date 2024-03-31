@@ -9,6 +9,7 @@
 !*.zip
 !.gitignore
 !*.py
+!h.gtkw
 
 # Exceto os seguintes diretórios e arquivos
 work/*
