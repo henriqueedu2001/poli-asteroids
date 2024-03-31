@@ -19,6 +19,7 @@ module uc_menu (
         output reg envia_dados,
         output reg iniciar,
         output reg jogo_base_em_andamento,
+        output reg reset_jogo_base,
         output reg [7:0] tela_renderizada,
         output reg [4:0] db_estado_uc_menu
 );
@@ -51,6 +52,7 @@ module uc_menu (
         parameter aux_registra_jogada_tela_final         = 5'b11000; // 24
         parameter aux_registra_jogada_registra_pontuacao = 5'b11001; // 25
         parameter aux_registra_jogada_ver_pontuacao      = 5'b11010; // 26
+        parameter reinicia_jogo_base                     = 5'b11011; // 27
         parameter erro                                   = 5'b11111; // F
 
         // Variáveis de estado
@@ -72,7 +74,8 @@ module uc_menu (
                 registra_jogada_menu_principal:         proximo_estado = aux_registra_jogada_menu_principal;
                 aux_registra_jogada_menu_principal:     proximo_estado = tiro ? envia_dados_menu_principal_tiro : envia_dados_menu_principal_especial;
                 envia_dados_menu_principal_tiro:        proximo_estado = espera_envia_menu_principal_tiro;
-                espera_envia_menu_principal_tiro:       proximo_estado = fim_envia_dados ? iniciar_jogo : espera_envia_menu_principal_tiro;
+                espera_envia_menu_principal_tiro:       proximo_estado = fim_envia_dados ? reinicia_jogo_base : espera_envia_menu_principal_tiro;
+                reinicia_jogo_base:                     proximo_estado = iniciar_jogo;
                 iniciar_jogo:                           proximo_estado = espera_jogo;
                 espera_jogo:                            proximo_estado = pronto ? tela_final : espera_jogo;
                 tela_final:                             proximo_estado = ocorreu_jogada ? registra_jogada_tela_final : tela_final;
@@ -113,7 +116,7 @@ module uc_menu (
                              estado_atual == envia_dados_registra_pontuacao      ||
                              estado_atual == envia_dados_ver_pontuacao           ) ? 1'b1 : 1'b0;
 
-
+        reset_jogo_base = (estado_atual == reinicia_jogo_base) ? 1'b1 : 1'b0;
         tela_renderizada = (estado_atual == menu_principal                       ||
                             estado_atual == registra_jogada_menu_principal       ||
                             estado_atual == aux_registra_jogada_menu_principal   ||

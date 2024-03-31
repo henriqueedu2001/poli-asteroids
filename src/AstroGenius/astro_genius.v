@@ -19,11 +19,9 @@ wire wire_iniciar_jogo;
 wire wire_gameover;
 wire wire_jogo_base_em_andamento;
 
-assign wire_reset = reset;
-
 uc_menu uc_menu (
     /*input*/
-    .reset(wire_reset),
+    .reset(reset),
     .clock(clock),
     .ocorreu_jogada(wire_ocorreu_jogada),
     .tiro(wire_saida_reg_jogada[0]),
@@ -37,6 +35,7 @@ uc_menu uc_menu (
     .envia_dados(wire_envia_dados),
     .iniciar(wire_iniciar_jogo),
     .jogo_base_em_andamento(wire_jogo_base_em_andamento),
+    .reset_jogo_base(wire_reset),
     .tela_renderizada(wire_tela_renderizada), // 8 b bits
     .db_estado_uc_menu(db_uc_menu)
 );
