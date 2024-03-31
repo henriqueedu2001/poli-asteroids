@@ -13,6 +13,7 @@ SCREEN_HEIGHT = 800
 
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45
+BREAK_POINT_STR = 'AA'
 
 # MEM = 'pç1111222233334444qwer9999888877776666asdfè$&hç4444888844448888ghjk9999888877776666asdfè$&'
 MEM = get_byte_tape()
@@ -24,7 +25,7 @@ class Game():
   def __init__(self) -> None:
     self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     self.clock = pygame.time.Clock()
-    self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str='$&')
+    self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str=BREAK_POINT_STR)
     self.chunk = Chunk(chunk_size=CHUNK_SIZE)
     self.received_game_data = None
     self.text_font = None
