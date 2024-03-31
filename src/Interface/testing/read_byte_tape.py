@@ -4,7 +4,8 @@ def get_byte_tape():
     byte_tape = ''
 
     # obtendo o diretório atual do script
-    file_name = 'byte_tape.out'
+    # file_name = 'byte_tape.out'
+    file_name = 'fita.txt'
     absolute_path = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(absolute_path, file_name)
 
