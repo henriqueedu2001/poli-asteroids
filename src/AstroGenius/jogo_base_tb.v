@@ -15,6 +15,7 @@ module jogo_base_tb;
     wire [4:0] db_estado_compara_asteroides_com_nave_e_tiros;
     wire [4:0] db_estado_move_asteroides;
     wire [3:0] db_estado_registra_tiro;
+    wire [7:0] saida_serial;
 
     // Instantiate the astro_genius module
     jogo_base dut (
@@ -34,7 +35,8 @@ module jogo_base_tb;
         .db_estado_move_tiros(db_estado_move_tiros),
         .db_estado_compara_asteroides_com_nave_e_tiros(db_estado_compara_asteroides_com_nave_e_tiros),
         .db_estado_move_asteroides(db_estado_move_asteroides),
-        .db_estado_registra_tiro(db_estado_registra_tiro)
+        .db_estado_registra_tiro(db_estado_registra_tiro),
+        .saida_serial(saida_serial)
     );
 
    parameter clockPeriod = 20; // in ns, f=50MHz
@@ -42,9 +44,14 @@ module jogo_base_tb;
     // Gerador de clock
     always #((clockPeriod / 2)) clock = ~clock;
 
+    always #((clockPeriod)) begin
+        $write("%b", saida_serial[7:0]);  
+    end
+    
     initial begin
         $dumpfile("wave.vcd");
         $dumpvars(5, jogo_base_tb);
+
         // valores iniciais
         clock = 1'b0;
         reset = 1'b1;
@@ -119,58 +126,8 @@ module jogo_base_tb;
         // chaves = 6'b000000;
         // #(2000*clockPeriod)
 
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000101;
-        // #(10*clockPeriod)
-        // chaves = 6'b000000;
-        // #(2000*clockPeriod)
-
-        // chaves = 6'b000000;
-        #(1000000*clockPeriod)
+        chaves = 6'b000000;
+        #(2000*clockPeriod)
 
         $finish;
     end

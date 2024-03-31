@@ -35,7 +35,7 @@ module jogo_base (
     output db_especial,
     output [5:0] db_estado_uc_envia_dados,
     output acabou_transmissao,
-    output saida_serial
+    output [7:0]saida_serial
 );
 
 
@@ -196,12 +196,14 @@ contador_m #(2, 2) contador_rodape
    .meio()
   );
 
+assign saida_serial = jogo_base_em_andamento ? byte_enviar : tela_renderizar;
+
 uart_tx #(3) UART_TX_INST (
     .i_Clock(clock),
     .i_Tx_DV(jogo_base_em_andamento ? wire_iniciar_transmissao_uart_tx : iniciar_transmissao), // sinal de iniciar a transmissão
     .i_Tx_Byte(jogo_base_em_andamento ? byte_enviar : tela_renderizar),                    // dado
     .o_Tx_Active(),                             // sinal que indica que a uart de transmitir dados está ocupada
-    .o_Tx_Serial(saida_serial),
+    .o_Tx_Serial(),
     .o_Tx_Done(wire_terminou_transmissao_de_byte)   // pronto
 );
 assign acabou_transmissao = wire_terminou_transmissao_de_byte;

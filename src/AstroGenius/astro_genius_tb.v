@@ -33,19 +33,21 @@ module astro_genius_tb();
     always #((clockPeriod / 2)) clock = ~clock;
 
     initial begin
-        $dumpfile("wave.vcd");
-        $dumpvars(5, astro_genius_tb);
-        // valores iniciais
-        clock = 1'b0;
-        reset = 1'b1;
-        chaves = 6'b000000;
-        #(5*clockPeriod)
-        reset = 1'b0;
+        // Initialize Inputs
+        clock = 0;
+        reset = 1;
+        chaves = 0;
+        #10 reset = 0;
 
-        // Iniciar o jogo
-        chaves = 6'b000001; // tiro
-        #(10*clockPeriod)
+        #100
+            chaves = 6'b000011;
+            #50 chaves = 6'b000010;
+            #50 chaves = 6'b000001;
+            #50 chaves = 6'b100001;
+            #50 chaves = 6'b000001;
 
+        #1000
+            chaves = 6'b000000;
 
         #(1000000*clockPeriod)
         $finish;
