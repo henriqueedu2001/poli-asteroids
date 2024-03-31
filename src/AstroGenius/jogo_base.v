@@ -35,7 +35,7 @@ module jogo_base (
     output db_especial,
     output [5:0] db_estado_uc_envia_dados,
     output acabou_transmissao,
-    output [7:0]saida_serial
+    output [7:0] saida_serial
 );
 
 
