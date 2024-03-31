@@ -129,7 +129,7 @@ registrador_n #(32) reg_opcode (
     .clock(clock),
     .clear(wire_reset_reg_opcode),
     .enable(wire_enable_reg_opcode),
-    .D(wire_esta_enviando_pos_asteroides ? {wire_opcode_enviar[31:2], wire_opcode_aste} : {wire_opcode_enviar[31:2], wire_opcode_tiro}),
+    .D((wire_esta_enviando_pos_asteroides ? {wire_opcode_enviar[29:0], wire_opcode_aste} : {wire_opcode_enviar[29:0], wire_opcode_tiro})),
     .Q(wire_opcode_enviar)
 );
 

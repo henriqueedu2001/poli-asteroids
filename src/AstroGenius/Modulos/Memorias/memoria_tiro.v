@@ -16,10 +16,10 @@ module memoria_tiro(
     // a partir da leitura de arquivo usando $readmemb
     initial begin
         ram[4'b0] =  10'b0000_0000_00;
-        ram[4'd1] =  10'b0000_0000_00;
-        ram[4'd2] =  10'b0000_0000_00;
-        ram[4'd3] =  10'b0000_0000_00;
-        ram[4'd4] =  10'b0000_0000_00;
+        ram[4'd1] =  10'b0000_0000_11;
+        ram[4'd2] =  10'b0000_0000_10;
+        ram[4'd3] =  10'b0000_0000_01;
+        ram[4'd4] =  10'b0000_0000_11;
         ram[4'd5] =  10'b0000_0000_00;
         ram[4'd6] =  10'b0000_0000_00;
         ram[4'd7] =  10'b0000_0000_00;

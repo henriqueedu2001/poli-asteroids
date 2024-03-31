@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
-[*] Fri Mar 29 21:06:36 2024
+[*] Sun Mar 31 18:44:31 2024
 [*]
 [dumpfile] "C:\Users\joao2\Desktop\lab_dig\poli-asteroids\src\AstroGenius\wave.vcd"
-[dumpfile_mtime] "Fri Mar 29 21:03:15 2024"
-[dumpfile_size] 23553917
+[dumpfile_mtime] "Sun Mar 31 18:43:07 2024"
+[dumpfile_size] 21027084
 [savefile] "C:\Users\joao2\Desktop\lab_dig\poli-asteroids\src\AstroGenius\h.gtkw"
-[timestart] 491700
+[timestart] 29070
 [size] 1536 801
 [pos] -191 -191
-*-17.418941 1000310 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-12.418941 36240 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] jogo_base_tb.
 [treeopen] jogo_base_tb.dut.
 [sst_width] 318
-[signals_width] 493
+[signals_width] 583
 [sst_expanded] 1
 [sst_vpaned_height] 473
 @24
@@ -35,9 +35,8 @@ jogo_base_tb.dut.uc_jogo_principal.vidas
 jogo_base_tb.dut.uc_jogo_principal.inicia_movimentacao_asteroides_e_tiros
 @200
 -contador_dificuldade
-@25
-jogo_base_tb.dut.contador_163_dificuldades.Q[63:0]
 @24
+jogo_base_tb.dut.contador_163_dificuldades.Q[63:0]
 jogo_base_tb.dut.contador_163_dificuldades.tempo_gera_aste[63:0]
 @200
 -UART_tx
@@ -48,11 +47,24 @@ jogo_base_tb.dut.UART_TX_INST.i_Tx_Byte[7:0]
 jogo_base_tb.dut.UART_TX_INST.r_Tx_Done
 jogo_base_tb.dut.UART_TX_INST.o_Tx_Serial
 @200
+-contador_movimenta_asteroide
+@24
+jogo_base_tb.dut.contador_movimenta_asteroide.Max[63:0]
+jogo_base_tb.dut.contador_movimenta_asteroide.Q[63:0]
+@200
 -contador_intervalo_tiro
 @24
 jogo_base_tb.dut.contador_intervalo_tiro.Q[63:0]
 @28
 jogo_base_tb.dut.contador_intervalo_tiro.rco
+@200
+-reg_byte_opcode
+@29
+jogo_base_tb.dut.reg_opcode.IQ[31:0]
+jogo_base_tb.dut.reg_opcode.D[31:0]
+@28
+jogo_base_tb.dut.reg_opcode.enable
+jogo_base_tb.dut.reg_opcode.clear
 @200
 -uc_envia_dados
 @28

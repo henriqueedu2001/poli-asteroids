@@ -150,7 +150,7 @@ module uc_envia_dados (
                 reset_reg_opcode            = (estado_atual == zera_contadores)                ? 1'b1 : 1'b0; 
                 conta_contador_byte_opcode  = (estado_atual == incrementa_contador_byte_opcode_aste ||
                                                estado_atual == incrementa_contador_byte_opcode_tiro )      ? 1'b1 : 1'b0; 
-                reset_contador_byte_opcode  = (estado_atual == zera_contadores || estado_atual == inicial) ? 1'b1 : 1'b0; 
+                reset_contador_byte_opcode  = (estado_atual == zera_contadores || estado_atual == inicial || estado_atual == inicia_envia_posicao_tiros) ? 1'b1 : 1'b0; 
                 conta_contador_mux_byte_enviar = (estado_atual ==  envia_jogada_especial ||
                                                   estado_atual ==  envia_opcode_aste     ||
                                                   estado_atual == envia_opcode_nave      ||
@@ -166,12 +166,12 @@ module uc_envia_dados (
                 reset_contador_tiro            = (estado_atual == zera_contadores)                ? 1'b1: 1'b0; 
                 conta_contador_rodape          = (estado_atual == incrementa_contador_rodape)     ? 1'b1 : 1'b0; 
                 reset_contador_rodape          = (estado_atual == zera_contadores)                ? 1'b1 : 1'b0; 
-                esta_enviando_pos_asteroides   = (estado_atual == envia_posicao_tiros        ||  
-                                                  estado_atual == inicia_envia_posicao_tiros ||
-                                                  estado_atual == espera_envia_posicao_tiros || 
-                                                  estado_atual == verifica_rco_tiros         || 
-                                                  estado_atual == incrementa_contador_tiros  ||
-                                                  estado_atual == espera_mem_tiros           )? 1'b1 : 1'b0; 
+                esta_enviando_pos_asteroides   = (estado_atual == envia_posicao_aste              ||  
+                                                  estado_atual == inicia_envia_posicao_aste       ||
+                                                  estado_atual == espera_envia_posicao_aste       || 
+                                                  estado_atual == verifica_rco_aste               || 
+                                                  estado_atual == incrementa_contador_asteroides  ||
+                                                  estado_atual == espera_mem_aste           )? 1'b1 : 1'b0; 
                 terminou_de_enviar_dados = (estado_atual == sinaliza)? 1'b1 : 1'b0;
 
         // Saída de depuração (estado)
