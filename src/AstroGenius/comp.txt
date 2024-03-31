@@ -1,8 +1,8 @@
 # Para compilar: iverilog -c comp.txt
-jogo_base_tb.v
-# astro_genius_tb.v
+# jogo_base_tb.v
+astro_genius_tb.v
 
-# astro_genius.v
+astro_genius.v
 jogo_base.v
 asteroide.v
 tiro.v

@@ -47,6 +47,7 @@ module uc_jogo_principal (
         parameter espera_salvamento2                      = 5'b01001; // 9
         parameter inicia_state_registra_especial          = 5'b01010; // 10 
         parameter espera_registra_especial                = 5'b01011; // 11 
+        parameter espera_enviar_dados                     = 5'b01100; // 12
         parameter erro                                    = 5'b11111; // F
 
         /* Variáveis de estado */
@@ -65,8 +66,9 @@ module uc_jogo_principal (
         case (estado_atual)
                 inicial:              proximo_estado = iniciar ? inicializa_elementos : inicial;                                 
                 inicializa_elementos: proximo_estado = espera_jogada;
-                espera_jogada:        proximo_estado = ~vidas ? fim_jogo :  
+                espera_jogada:        proximo_estado = ~vidas ? espera_enviar_dados :  
                                                         (ocorreu_jogada)  ? registra_jogada : espera_jogada;
+                espera_enviar_dados:  proximo_estado = fim_movimentacao_asteroides_e_tiros ? fim_jogo : espera_enviar_dados;
                 registra_jogada:      proximo_estado = espera_salvamento;
                 espera_salvamento:    proximo_estado = espera_salvamento2; 
                 espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
@@ -110,7 +112,7 @@ module uc_jogo_principal (
         pronto                    = (estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         inicia_registra_tiros     = (estado_atual == inicia_state_registra_tiros) ? 1'b1 : 1'b0;
         inicia_registra_especial  = (estado_atual == inicia_state_registra_especial) ? 1'b1 : 1'b0;
-        termina                   = (estado_atual == termina_movimentacao_asteroides_e_tiros) ? 1'b1 : 1'b0;
+        termina                   = (estado_atual == termina_movimentacao_asteroides_e_tiros || estado_atual == espera_enviar_dados) ? 1'b1 : 1'b0;
         inicia_movimentacao_asteroides_e_tiros = (estado_atual == espera_jogada) ? 1'b1 : 1'b0;
 
         /* Saída de depuração (estado) */
@@ -127,6 +129,7 @@ module uc_jogo_principal (
                 espera_salvamento2                      : db_estado_jogo_principal = 5'b01001; // 9
                 inicia_state_registra_especial          : db_estado_jogo_principal = 5'b01010; // 10 
                 espera_registra_especial                : db_estado_jogo_principal = 5'b01011; // 11 
+                espera_enviar_dados                     : db_estado_jogo_principal = 5'b01100; // 12
                 default                                 : db_estado_jogo_principal = 5'b11111;
         endcase
     end
