@@ -5,6 +5,7 @@ import utilitary.uart as uart
 from utilitary.buffer import Buffer as Buffer
 from utilitary.chunk import Chunk
 from render.render import RenderEngine
+from testing.read_byte_tape import get_byte_tape
 
 # tamanho da tela
 SCREEN_WIDTH = 800
@@ -13,7 +14,8 @@ SCREEN_HEIGHT = 800
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45
 
-MEM = 'pç1111222233334444qwer9999888877776666asdfè$&hç4444888844448888ghjk9999888877776666asdfè$&'
+# MEM = 'pç1111222233334444qwer9999888877776666asdfè$&hç4444888844448888ghjk9999888877776666asdfè$&'
+MEM = get_byte_tape()
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -82,14 +84,7 @@ class Game():
     chunk = self.chunk
     
     # temporário, para depuração
-    characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$&!"#%()*+,-./:;<=>?@[\]^_`{|}~áàäéèêâôöóò\''
-    
-    received_byte = random.choice(characters)
-    
-    if self.db_index == self.chunk.chunk_size - 2:
-      received_byte = '$'
-    elif self.db_index == self.chunk.chunk_size - 1:
-      received_byte = '&'
+    received_byte = MEM[self.db_index]
     
     buffer.write_buffer(received_byte)
     
@@ -100,7 +95,7 @@ class Game():
       self.received_game_data = chunk.decoded_data
     
     # temporário, para depuração
-    self.db_index = (self.db_index + 1) % self.chunk.chunk_size
+    self.db_index = (self.db_index + 1) % len(MEM)
     
     return
   
