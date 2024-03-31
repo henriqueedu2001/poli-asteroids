@@ -36,7 +36,7 @@ module uc_envia_dados (
         parameter espera_envio_de_pontuacao              = 6'b000100; // 4
         parameter envia_opcode_nave                      = 6'b000101; // 5
         parameter inicia_envia_opcode_nave               = 6'b000110; // 6
-        parameter espera_envia_opcode_nave               = 6'b000111; // 7
+        parameter espera_envia_opcode_nave               = 6'b000111; // 7 {opcode_nave (2 bits), vidas (3 bits), 3'b000}
         parameter envia_posicao_aste                     = 6'b001000; // 8
         parameter inicia_envia_posicao_aste              = 6'b001001; // 9
         parameter espera_envia_posicao_aste              = 6'b001010; // 10

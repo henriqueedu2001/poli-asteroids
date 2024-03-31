@@ -18,10 +18,15 @@ module jogo_base_tb;
 
     // Instantiate the astro_genius module
     jogo_base dut (
+        /*inputs*/
         .clock(clock),
         .reset(reset),
         .iniciar(iniciar),
         .chaves(chaves),
+        .jogo_base_em_andamento(1'b1),
+        .tela_renderizar(8'd5),
+        .iniciar_transmissao(1'b0),
+        /*outputs*/
         .gameover(pronto),
         .db_estado_jogo_principal(db_estado_jogo_principal),
         .db_estado_coordena_asteroides_tiros(db_estado_coordena_asteroides_tiros),
