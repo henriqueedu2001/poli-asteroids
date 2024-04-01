@@ -119,28 +119,28 @@ module uc_menu (
         reset_jogo_base = (estado_atual == reinicia_jogo_base) ? 1'b1 : 1'b0;
         tela_renderizada = (estado_atual == menu_principal                       ||
                             estado_atual == registra_jogada_menu_principal       ||
-                            estado_atual == aux_registra_jogada_menu_principal   )? 8'h30 : // menu principal
+                            estado_atual == aux_registra_jogada_menu_principal   )? 8'b11110000  : // menu principal
                            (estado_atual == envia_dados_menu_principal_tiro      ||
-                            estado_atual == espera_envia_menu_principal_tiro     )? 8'h34 : //  tela do jogo em andamento (com os asteroides, tiros e a nave)
+                            estado_atual == espera_envia_menu_principal_tiro     )? 8'b11110100  : //  tela do jogo em andamento (com os asteroides, tiros e a nave)
                            (estado_atual == envia_dados_menu_principal_especial  ||
-                            estado_atual == espera_envia_menu_principal_especial) ? 8'h31 : // ver scores de outros jogadores
+                            estado_atual == espera_envia_menu_principal_especial) ? 8'b11110001  : // ver scores de outros jogadores
 
                            (estado_atual == ver_pontuacao                     ||
                             estado_atual == registra_jogada_ver_pontuacao     ||
                             estado_atual == aux_registra_jogada_ver_pontuacao ||
                             estado_atual == envia_dados_ver_pontuacao         ||
-                            estado_atual == espera_envia_dados_ver_pontuacao ) ? 8'h30 : // menu principal
+                            estado_atual == espera_envia_dados_ver_pontuacao ) ? 8'b11110000  : // menu principal
 
                            (estado_atual == tela_final                       || 
                             estado_atual == registra_jogada_tela_final       || 
-                            estado_atual == aux_registra_jogada_tela_final   )? 8'h32 : // tela de game over
+                            estado_atual == aux_registra_jogada_tela_final   )? 8'b11110010  : // tela de game over
                            (estado_atual == envia_dados_tela_final_tiro      || 
-                            estado_atual == espera_envia_tela_final_tiro     )? 8'h33: // tela de registrar a pontuação
+                            estado_atual == espera_envia_tela_final_tiro     )? 8'b11110011 : // tela de registrar a pontuação
                            (estado_atual == envia_dados_tela_final_especial  ||
-                            estado_atual == espera_envia_dados_tela_final_especial) ? 8'h30: // menu principal
+                            estado_atual == espera_envia_dados_tela_final_especial) ? 8'b11110000 : // menu principal
 
                            (estado_atual == envia_dados_registra_pontuacao         ||
-                            estado_atual == espera_envia_pontuacao                 ) ? 8'h30  /*menu principal*/ : 8'h30;
+                            estado_atual == espera_envia_pontuacao                 ) ? 8'b11110000   /*menu principal*/ : 8'b11110000 ;
                    
 
         // Saída de depuração (estado)

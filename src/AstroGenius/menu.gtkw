@@ -2,10 +2,10 @@
 [*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
 [*] Sun Mar 31 21:04:28 2024
 [*]
-[dumpfile] "C:\Users\joao2\Desktop\lab_dig\poli-asteroids\src\AstroGenius\wave.vcd"
+[dumpfile] "D:\Studies\materiais\LabDigi\poli-asteroids\src\AstroGenius"
 [dumpfile_mtime] "Sun Mar 31 20:46:39 2024"
 [dumpfile_size] 45770370
-[savefile] "C:\Users\joao2\Desktop\lab_dig\poli-asteroids\src\AstroGenius\menu.gtkw"
+[savefile] "D:\Studies\materiais\LabDigi\poli-asteroids\src\AstroGenius"
 [timestart] 837110
 [size] 1536 801
 [pos] -35 -35
