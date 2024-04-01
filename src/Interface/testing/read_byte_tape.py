@@ -10,7 +10,7 @@ def get_byte_tape():
     path = os.path.join(absolute_path, file_name)
 
     # abrindo o arquivo para leitura
-    with open(path, 'r') as file:
+    with open(path, 'r', encoding="utf8") as file:
         # lendo o arquivo linha por linha
         for line in file:
             byte_tape = byte_tape + line

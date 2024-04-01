@@ -7,6 +7,8 @@ BLACK = (0, 0, 0)
 NOT_LOADED_ASTEROID_POSITION = (0, 0)
 NOT_LOADED_SHOOT_POSITION = (0, 0)
 
+GRID_SIZE = 20 # em unidades relativas
+
 class RenderEngine():
     def __init__(self, screen) -> None:
         self.data = None
@@ -193,7 +195,9 @@ class RenderEngine():
     
     def render(self):
         self.clear_screen()
-        
+
+        print(f'data {self.data}')
+
         # telas possíveis: initial_menu, gameplay, gameover e players_scores
         actual_screen = 'gameplay'
         
@@ -324,6 +328,9 @@ class RenderEngine():
         x_base = self.relative_units_x(3)
         y_base = self.relative_units_x(6)    
         x_spacing = self.relative_units_x(6)
+
+        size_x = self.relative_units_x(GRID_SIZE)
+        size_y = self.relative_units_y(GRID_SIZE)
         
         try:
             n = self.lifes_quantity
@@ -334,7 +341,7 @@ class RenderEngine():
                 x_i = x_base + i*x_spacing
                 y_i = y_base
                 
-                self.draw_image(life_img, x_i, y_i, 50, 50, 'topleft')
+                self.draw_image(life_img, x_i, y_i, size_x, size_y, 'topleft')
         except Exception as exeption:
             self.draw_text('LIFES NOT LOADED', self.default_text_font, self.colors['white'], x_base, y_base, 'topleft')
             pass
@@ -347,6 +354,9 @@ class RenderEngine():
         space_ship_img = self.images['space_ship']
         x_center = self.relative_units_x(50)
         y_center = self.relative_units_y(50)
+
+        size_x = self.relative_units_x(GRID_SIZE)
+        size_y = self.relative_units_y(GRID_SIZE)
         
         # definição do ângulo, em função da direção
         angle = 0
@@ -364,7 +374,7 @@ class RenderEngine():
         # rotação da imagem
         space_ship_img = pygame.transform.rotate(space_ship_img, angle)
         
-        self.draw_image(space_ship_img, x_center, y_center, 50, 50, 'center')
+        self.draw_image(space_ship_img, x_center, y_center, size_x, size_y, 'center')
         
         return
     
@@ -397,16 +407,21 @@ class RenderEngine():
     
     def render_shot(self, x, y):
         shot_img = self.images['shot']
+
+        size_x = self.relative_units_x(15)
+        size_y = self.relative_units_y(15)
         
-        self.draw_image(shot_img, x, y, 10, 10, 'center')
+        self.draw_image(shot_img, size_x, size_y, 10, 10, 'center')
         
         return
     
     
     def render_asteroid(self, x, y, asset_index=0):
         asteroid_img = self.get_asteroid_asset(asset_index)
-        
-        self.draw_image(asteroid_img, x, y, 40, 40, 'center')
+        size_x = self.relative_units_x(GRID_SIZE)
+        size_y = self.relative_units_y(GRID_SIZE)
+
+        self.draw_image(asteroid_img, size_x, size_y, 120, 120, 'center')
         
         return
     
