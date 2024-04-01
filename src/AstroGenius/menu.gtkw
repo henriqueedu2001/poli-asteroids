@@ -1,0 +1,43 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Sun Mar 31 21:04:28 2024
+[*]
+[dumpfile] "C:\Users\joao2\Desktop\lab_dig\poli-asteroids\src\AstroGenius\wave.vcd"
+[dumpfile_mtime] "Sun Mar 31 20:46:39 2024"
+[dumpfile_size] 45770370
+[savefile] "C:\Users\joao2\Desktop\lab_dig\poli-asteroids\src\AstroGenius\menu.gtkw"
+[timestart] 837110
+[size] 1536 801
+[pos] -35 -35
+*-12.000000 840490 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] astro_genius_tb.
+[treeopen] astro_genius_tb.DUT.
+[treeopen] astro_genius_tb.DUT.jogo_base.
+[sst_width] 311
+[signals_width] 309
+[sst_expanded] 1
+[sst_vpaned_height] 473
+@200
+-vidas
+@24
+astro_genius_tb.DUT.jogo_base.decrementador_de_vidas.Q[2:0]
+@22
+astro_genius_tb.DUT.db_pontos[3:0]
+@28
+astro_genius_tb.DUT.clock
+@200
+-uc_menu
+@22
+astro_genius_tb.DUT.uc_menu.tela_renderizada[7:0]
+@24
+astro_genius_tb.DUT.uc_menu.db_estado_uc_menu[4:0]
+@200
+-uart_tx
+@29
+astro_genius_tb.DUT.jogo_base.UART_TX_INST.i_Tx_Byte[7:0]
+@28
+astro_genius_tb.DUT.jogo_base.UART_TX_INST.i_Tx_DV
+astro_genius_tb.DUT.jogo_base.UART_TX_INST.o_Tx_Done
+astro_genius_tb.DUT.jogo_base.UART_TX_INST.o_Tx_Serial
+[pattern_trace] 1
+[pattern_trace] 0
