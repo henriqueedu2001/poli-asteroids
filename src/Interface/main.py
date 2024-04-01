@@ -8,20 +8,14 @@ from render.render import RenderEngine
 from testing.read_byte_tape import get_byte_tape
 
 # tamanho da tela
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 600
+SCREEN_HEIGHT = 600
 
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45
 BREAK_POINT_STR = 'AA'
 
-DEFAULT_PORT_NAME = 'COM6'
-
-# MEM = 'pç1111222233334444qwer9999888877776666asdfè$&hç4444888844448888ghjk9999888877776666asdfè$&'
-MEM = get_byte_tape()
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+DEFAULT_PORT_NAME = 'COM15'
 
 class Game():
   def __init__(self) -> None:
@@ -32,7 +26,7 @@ class Game():
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
-    self.log_messages = False
+    self.log_messages = True
     self.db_index = 0
     self.port = None
     self.port_opened = False
@@ -54,7 +48,7 @@ class Game():
         self.port_opened = True
         self.log_message('uart port started with sucess!')
       except Exception as exeption:
-        self.log_message('failed to start the uart')
+        self.log_message(f'failed to start the uart.\n{exeption}')
         time.sleep(2)
 
     try:
@@ -89,8 +83,6 @@ class Game():
 
       pygame.display.flip()
       
-      # time.sleep(0.01)
-      
     # sair do jogo
     pygame.quit()
   
@@ -100,39 +92,36 @@ class Game():
     """
     buffer = self.buffer
     chunk = self.chunk
-    
-    # temporário, para depuração
-    # received_byte = MEM[self.db_index]
 
+    # receber o byte da comunicação serial com a uart
     received_byte = self.receive_uart_byte(self.port)
 
-    # print(received_byte, end='')
-
-    if received_byte is not None:
-      byte_char = convert_to_char(received_byte)
-
-      if byte_char is not None:
-        print(byte_char, end='')
-        pass
-
-      # buffer.write_buffer(byte_char)
+    if received_byte != None:
+      buffer.write_buffer(received_byte)
 
     if buffer.chunk_loading:
       chunk.load_chunk(buffer.chunk)
-      chunk.decode_data()
+
+      try:
+        chunk.decode_data()
+      except Exception as exeption:
+        self.log_message(f'error while loading chunk\n{exeption}')
       
       self.received_game_data = chunk.decoded_data
-    
-    # temporário, para depuração
-    self.db_index = (self.db_index + 1) % len(MEM)
     
     return
   
 
   def receive_uart_byte(self, port):
-    byte = uart.receive_data(port)
+    try:
+      byte = uart.receive_data(port)
+      byte = byte[0]
+      byte_char = chr(byte)
 
-    return byte
+      return byte_char
+    
+    except:
+      return None
   
   
   def render(self):
@@ -140,42 +129,14 @@ class Game():
     self.render_engine.load_data(data)
     self.render_engine.render()
     
-    pass
+    return
   
   
   def log_message(self, log_message):
     if self.log_messages:
         print(log_message)
-
-
-def get_hex(byte):
-    try:
-      codigo_ascii = ord(str(byte))
-      codigo_hex = hex(codigo_ascii)
-      return codigo_hex
-    except:
-      pass
     
-    return 'null'
-
-
-def get_bin(byte):
-    try:
-      codigo_ascii = ord(str(byte))
-      return codigo_ascii
-    except:
-      pass
-    
-    return 'null'
-
-def convert_to_char(byte):
-  try:
-    byte_char = byte.decode('utf-8')
-    return byte_char
-  
-  except:
-    return None
-  
+    return
 
 
 game = Game()

@@ -1,7 +1,7 @@
 import serial
 import time
 
-DEFAULT_PORT_NAME = 'COM6'
+DEFAULT_PORT_NAME = 'COM15'
 
 def show_ports():
     """Imprime as portas disponíveis
