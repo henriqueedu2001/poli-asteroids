@@ -17,44 +17,44 @@ module contador_163_dificuldades #(parameter N = 16, parameter tempo = 10000) (
     output reg [63:0] tempo_move_tiro
 );
 
-    parameter tempo_move_tiro_easy1   = 64'd800;
-    parameter tempo_move_tiro_easy2   = 64'd800;
-    parameter tempo_move_tiro_easy3   = 64'd800;
-    parameter tempo_move_tiro_easy4   = 64'd800;
-    parameter tempo_move_tiro_medium1 = 64'd800;
-    parameter tempo_move_tiro_medium2 = 64'd800;
-    parameter tempo_move_tiro_medium3 = 64'd800;
-    parameter tempo_move_tiro_medium4 = 64'd800;
-    parameter tempo_move_tiro_hard1   = 64'd800;
-    parameter tempo_move_tiro_hard2   = 64'd800;
-    parameter tempo_move_tiro_hard3   = 64'd800;
-    parameter tempo_move_tiro_hard4   = 64'd800;
+    parameter tempo_move_tiro_easy1   = 64'd20000000;
+    parameter tempo_move_tiro_easy2   = 64'd20000000;
+    parameter tempo_move_tiro_easy3   = 64'd20000000;
+    parameter tempo_move_tiro_easy4   = 64'd20000000;
+    parameter tempo_move_tiro_medium1 = 64'd20000000;
+    parameter tempo_move_tiro_medium2 = 64'd20000000;
+    parameter tempo_move_tiro_medium3 = 64'd20000000;
+    parameter tempo_move_tiro_medium4 = 64'd20000000;
+    parameter tempo_move_tiro_hard1   = 64'd20000000;
+    parameter tempo_move_tiro_hard2   = 64'd20000000;
+    parameter tempo_move_tiro_hard3   = 64'd20000000;
+    parameter tempo_move_tiro_hard4   = 64'd20000000;
 
-    parameter tempo_move_asteroide_easy1   = 64'd4000;
-    parameter tempo_move_asteroide_easy2   = 64'd4000;
-    parameter tempo_move_asteroide_easy3   = 64'd4000;
-    parameter tempo_move_asteroide_easy4   = 64'd4000;
-    parameter tempo_move_asteroide_medium1 = 64'd4000;
-    parameter tempo_move_asteroide_medium2 = 64'd4000;
-    parameter tempo_move_asteroide_medium3 = 64'd4000;
-    parameter tempo_move_asteroide_medium4 = 64'd4000;
-    parameter tempo_move_asteroide_hard1   = 64'd4000;
-    parameter tempo_move_asteroide_hard2   = 64'd4000;
-    parameter tempo_move_asteroide_hard3   = 64'd4000;
-    parameter tempo_move_asteroide_hard4   = 64'd4000;
+    parameter tempo_move_asteroide_easy1   = 64'd200000000;
+    parameter tempo_move_asteroide_easy2   = 64'd200000000;
+    parameter tempo_move_asteroide_easy3   = 64'd200000000;
+    parameter tempo_move_asteroide_easy4   = 64'd200000000;
+    parameter tempo_move_asteroide_medium1 = 64'd200000000;
+    parameter tempo_move_asteroide_medium2 = 64'd200000000;
+    parameter tempo_move_asteroide_medium3 = 64'd200000000;
+    parameter tempo_move_asteroide_medium4 = 64'd200000000;
+    parameter tempo_move_asteroide_hard1   = 64'd200000000;
+    parameter tempo_move_asteroide_hard2   = 64'd200000000;
+    parameter tempo_move_asteroide_hard3   = 64'd200000000;
+    parameter tempo_move_asteroide_hard4   = 64'd200000000;
 
-    parameter tempo_gera_asteroide_easy1   = 64'd7000;
-    parameter tempo_gera_asteroide_easy2   = 64'd7000;
-    parameter tempo_gera_asteroide_easy3   = 64'd7000;
-    parameter tempo_gera_asteroide_easy4   = 64'd7000;
-    parameter tempo_gera_asteroide_medium1 = 64'd7000;
-    parameter tempo_gera_asteroide_medium2 = 64'd7000;
-    parameter tempo_gera_asteroide_medium3 = 64'd7000;
-    parameter tempo_gera_asteroide_medium4 = 64'd7000;
-    parameter tempo_gera_asteroide_hard1   = 64'd7000;
-    parameter tempo_gera_asteroide_hard2   = 64'd7000;
-    parameter tempo_gera_asteroide_hard3   = 64'd7000;
-    parameter tempo_gera_asteroide_hard4   = 64'd7000;
+    parameter tempo_gera_asteroide_easy1   = 64'd350000000;
+    parameter tempo_gera_asteroide_easy2   = 64'd350000000;
+    parameter tempo_gera_asteroide_easy3   = 64'd350000000;
+    parameter tempo_gera_asteroide_easy4   = 64'd350000000;
+    parameter tempo_gera_asteroide_medium1 = 64'd350000000;
+    parameter tempo_gera_asteroide_medium2 = 64'd350000000;
+    parameter tempo_gera_asteroide_medium3 = 64'd350000000;
+    parameter tempo_gera_asteroide_medium4 = 64'd350000000;
+    parameter tempo_gera_asteroide_hard1   = 64'd350000000;
+    parameter tempo_gera_asteroide_hard2   = 64'd350000000;
+    parameter tempo_gera_asteroide_hard3   = 64'd350000000;
+    parameter tempo_gera_asteroide_hard4   = 64'd350000000;
 
 
     initial begin

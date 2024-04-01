@@ -8,10 +8,28 @@ module astro_genius (
     output [14:0] matriz_x,
     output [3:0] matriz_y,
     // displays
-    output [3:0] db_vidas,
-    output [3:0] db_pontos,
+    output [6:0] db_vidas,
+    output [6:0] db_pontos,
     output [4:0] db_uc_menu,
-    output [5:0] wire_saida_reg_jogada
+    output [6:0] db_menu1,
+    output [6:0] db_menu2,
+	output db_up,
+    output db_down,
+    output db_left,
+    output db_right,
+    output db_especial,
+    output db_tiro
+);
+
+
+hexa7seg HEX5 (
+    .hexa    ({3'b0, db_uc_menu[4]}),
+    .display (db_menu1)
+);
+
+hexa7seg HEX4 (
+    .hexa    (db_uc_menu[3:0]),
+    .display (db_menu2)
 );
 
 wire wire_reset;
@@ -21,7 +39,7 @@ wire wire_jogo_base_em_andamento;
 
 uc_menu uc_menu (
     /*input*/
-    .reset(reset),
+    .reset(~reset),
     .clock(clock),
     .ocorreu_jogada(wire_ocorreu_jogada),
     .tiro(wire_saida_reg_jogada[0]),
@@ -63,6 +81,15 @@ registrador_n #(6) reg_jogada (
 wire wire_ocorreu_jogada;
 
 or (wire_ocorreu_jogada, wire_ocorreu_tiro, wire_ocorreu_especial);
+
+
+
+assign db_up = chaves[5];
+assign db_down = chaves[4];
+assign db_left = chaves[3];
+assign db_right = chaves[2];
+assign db_especial = chaves[1];
+assign db_tiro = chaves[0];
 
 wire wire_ocorreu_tiro, wire_ocorreu_especial; 
 

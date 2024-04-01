@@ -12,8 +12,7 @@ module astro_genius_tb();
         .matriz_y(),
         .db_vidas(db_vidas),
         .db_pontos(db_pontos),
-        .db_uc_menu(db_uc_menu),
-        .wire_saida_reg_jogada(wire_saida_reg_jogada)
+        .db_uc_menu(db_uc_menu)
     );
 
     // Testbench signals
@@ -22,8 +21,8 @@ module astro_genius_tb();
     wire saida_serial;
     wire [14:0] matriz_x;
     wire [3:0] matriz_y;
-    wire [3:0] db_vidas;
-    wire [3:0] db_pontos;
+    wire [6:0] db_vidas;
+    wire [6:0] db_pontos;
     wire [4:0] db_uc_menu;
     wire [5:0] wire_saida_reg_jogada;
 
@@ -33,23 +32,20 @@ module astro_genius_tb();
     always #((clockPeriod / 2)) clock = ~clock;
 
     initial begin
+        $dumpfile("wave.vcd");
+        $dumpvars(5, astro_genius_tb);
+
         // Initialize Inputs
-        clock = 0;
+        clock = 1'b0;
+        reset = 1'b0;
+        chaves = 6'b000000;
+        #(5*clockPeriod)
+
         reset = 1;
-        chaves = 0;
-        #10 reset = 0;
+        #(5*clockPeriod)
 
-        #100
-            chaves = 6'b000011;
-            #50 chaves = 6'b000010;
-            #50 chaves = 6'b000001;
-            #50 chaves = 6'b100001;
-            #50 chaves = 6'b000001;
-
-        #1000
-            chaves = 6'b000000;
-
-        #(10000*clockPeriod)
+        chaves = 6'b000001;
+        #(1000000*clockPeriod)
         $finish;
     end
 

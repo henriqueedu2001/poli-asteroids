@@ -83,6 +83,8 @@ module uc_menu (
                 aux_registra_jogada_tela_final:         proximo_estado = tiro ? envia_dados_tela_final_tiro : envia_dados_tela_final_especial;
                 envia_dados_tela_final_tiro:            proximo_estado = espera_envia_tela_final_tiro;                
                 espera_envia_tela_final_tiro:           proximo_estado = fim_envia_dados ? registra_pontuacao : espera_envia_tela_final_tiro;
+                envia_dados_tela_final_especial:        proximo_estado = espera_envia_dados_tela_final_especial;
+                espera_envia_dados_tela_final_especial: proximo_estado = fim_envia_dados ? menu_principal : espera_envia_dados_tela_final_especial; 
                 registra_pontuacao:                     proximo_estado = ocorreu_jogada ? registra_jogada_registra_pontuacao : registra_pontuacao;
                 registra_jogada_registra_pontuacao:     proximo_estado = aux_registra_jogada_registra_pontuacao;
                 aux_registra_jogada_registra_pontuacao: proximo_estado = tiro ? envia_dados_registra_pontuacao : registra_pontuacao;
@@ -173,7 +175,7 @@ module uc_menu (
                 aux_registra_jogada_registra_pontuacao: db_estado_uc_menu = 5'b11001; // 25
                 aux_registra_jogada_ver_pontuacao:      db_estado_uc_menu = 5'b11010; // 26
                 reinicia_jogo_base:                     db_estado_uc_menu = 5'b11011; // 27
-        default:                                        db_estado_uc_menu = 5'b11111; // erro
+                default:                                db_estado_uc_menu = 5'b11111; // erro
         endcase
     end
 endmodule

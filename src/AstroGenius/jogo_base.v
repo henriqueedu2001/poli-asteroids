@@ -21,12 +21,12 @@ module jogo_base (
     output [14:0] matriz_x,
     output [3:0] matriz_y,
     //displays
-    output [3:0] db_vidas,
-    output [3:0] db_pontos,
-    output [3:0] db_tiro_x,
-    output [3:0] db_tiro_y,
-    output [3:0] db_asteroide_x,
-    output [3:0] db_asteroide_y,
+    output [6:0] db_vidas,
+    output [6:0] db_pontos,
+    output [6:0] db_tiro_x,
+    output [6:0] db_tiro_y,
+    output [6:0] db_asteroide_x,
+    output [6:0] db_asteroide_y,
     output db_up,
     output db_down,
     output db_left,
@@ -201,7 +201,7 @@ contador_m #(2, 2) contador_rodape
 
 assign db_byte_saida_serial = jogo_base_em_andamento ? byte_enviar : tela_renderizar;
 
-uart_tx #(3) UART_TX_INST (
+uart_tx #(5208) UART_TX_INST (
     .i_Clock(clock),
     .i_Tx_DV(jogo_base_em_andamento ? wire_iniciar_transmissao_uart_tx : iniciar_transmissao), // sinal de iniciar a transmissão
     .i_Tx_Byte(jogo_base_em_andamento ? byte_enviar : tela_renderizar),                    // dado
@@ -256,7 +256,7 @@ contador_163 #(64) contador_intervalo_tiro  (
     .ent(1'b1),
     .enp(1'b1), 
     .D(),
-    .Max(64'd250),
+    .Max(64'd12500000),
     /*outputs*/
     .Q(),
     .rco(wire_rco_intervalo_tiro)
