@@ -15,6 +15,8 @@ BUFFER_SIZE = 256
 CHUNK_SIZE = 45
 BREAK_POINT_STR = 'AA'
 
+DEFAULT_PORT_NAME = 'COM6'
+
 # MEM = 'pç1111222233334444qwer9999888877776666asdfè$&hç4444888844448888ghjk9999888877776666asdfè$&'
 MEM = get_byte_tape()
 
@@ -33,6 +35,7 @@ class Game():
     self.log_messages = True
     self.db_index = 0
     self.port = None
+    self.port_opened = False
     
 
   def start_game(self):
@@ -42,19 +45,24 @@ class Game():
     # inicia o jogo
     self.log_message('starting game...')
     
+    # abre a porta serial
+    uart.show_ports()
+
+    while self.port_opened == False:
+      try:
+        self.port = uart.open_port(port_name=DEFAULT_PORT_NAME)
+        self.port_opened = True
+        self.log_message('uart port started with sucess!')
+      except Exception as exeption:
+        self.log_message('failed to start the uart')
+        time.sleep(2)
+
     try:
       pygame.init()
       self.log_message('game started with sucess!')
     except Exception as exeption:
       self.log_message('failed to start the game')
     
-    while self.port == None:
-      try:
-        self.port = uart.UART()
-        self.log_message('uart port started with sucess!')
-      except Exception as exeption:
-        self.log_message('failed to start the uart')
-        time.sleep(2)
     
     self.render_engine = RenderEngine(self.screen)
     
@@ -97,6 +105,10 @@ class Game():
     # received_byte = MEM[self.db_index]
 
     received_byte = self.receive_uart_byte(self.port)
+
+    bin = get_bin(received_byte)
+    hex = get_hex(received_byte)
+    print(f'{hex} {bin}')
     
     buffer.write_buffer(received_byte)
     
@@ -114,6 +126,7 @@ class Game():
 
   def receive_uart_byte(self, port):
     byte = uart.receive_data(port)
+
     return byte
   
   
@@ -128,6 +141,27 @@ class Game():
   def log_message(self, log_message):
     if self.log_messages:
         print(log_message)
+
+
+def get_hex(byte):
+    try:
+      codigo_ascii = ord(str(byte))
+      codigo_hex = hex(codigo_ascii)
+      return codigo_hex
+    except:
+      pass
+    
+    return 'null'
+
+
+def get_bin(byte):
+    try:
+      codigo_ascii = ord(str(byte))
+      return codigo_ascii
+    except:
+      pass
+    
+    return 'null'
 
 
 game = Game()
