@@ -31,6 +31,12 @@ class RenderEngine():
         self.available_special_shooting = None
         self.played_shooting = None
         self.end_of_lifes = None
+        self.players_scores = [
+            {'name': 'player_01', 'score': 201},
+            {'name': 'player_02', 'score': 168},
+            {'name': 'player_03', 'score': 95},
+            {'name': 'player_04', 'score': 85},
+            ]
         
         self.colors = {
             'white': (255, 255, 255),
@@ -61,6 +67,8 @@ class RenderEngine():
             'asteroid_07': 'asteroid_07.svg',
             'asteroid_08': 'asteroid_08.svg'
         }
+        
+        self.db_index = 0
         
         # carregamento de imagens
         self.load_assets()
@@ -172,7 +180,7 @@ class RenderEngine():
                             }
                             shots.append(new_shot)
                         else:
-                            print('bacati')
+                            self.log_message(f'shot not loaded')
                     except Exception as exception:
                         self.log_message(f'error in loading shot n = {index}\n{exception}')
             except Exception as exception:
@@ -186,12 +194,114 @@ class RenderEngine():
     def render(self):
         self.clear_screen()
         
-        # render the graphic elements
+        # telas possíveis: initial_menu, gameplay, gameover e players_scores
+        actual_screen = 'players_scores'
+        
+        render_engines = {
+            'initial_menu': self.render_initial_menu,  
+            'gameplay': self.render_gameplay,  
+            'gameover': self.render_gameover,  
+            'players_scores': self.render_players_scores
+        }
+        
+        render_engines[actual_screen]()
+        
+        return
+    
+    
+    def render_gameplay(self):
         self.render_score()
         self.render_lifes()
         self.render_player()
         self.render_asteroids()
         self.render_shots()
+        
+        return
+    
+    
+    def render_gameover(self, selected_option='enter_score'):
+        gameover_x = self.relative_units_x(50)
+        gameover_y = self.relative_units_x(20)
+        
+        self.draw_text('G A M E O V E R', pygame.font.SysFont(None, 52), self.colors['white'], gameover_x, gameover_y, 'center')
+        
+        vertical_spacing = self.relative_units_x(15)
+        button_width = self.relative_units_x(60)
+        button_height = self.relative_units_x(12)
+        
+        enter_score_x = self.relative_units_x(50)
+        enter_score_y = self.relative_units_y(50)
+        
+        back_to_menu_x = self.relative_units_x(50)
+        back_to_menu_y = self.relative_units_y(50) + vertical_spacing
+        
+        
+        enter_score_selected = True if selected_option == 'enter_score' else False
+        back_to_menu_selected = True if selected_option == 'back_to_menu' else False
+        self.draw_button('enter score', enter_score_x, enter_score_y, button_width, button_height, enter_score_selected, 'center')
+        self.draw_button('back to menu', back_to_menu_x, back_to_menu_y, button_width, button_height, back_to_menu_selected, 'center')
+        
+        return
+    
+    
+    def render_initial_menu(self):
+        self.render_brand()
+        
+        return
+    
+    
+    def render_brand(self):
+        x = self.relative_units_x(50)
+        y = self.relative_units_y(20)
+        self.draw_text('A S T R O G E N I U S', pygame.font.SysFont(None, 52), self.colors['white'], x, y, 'center')
+        self.render_initial_menu_buttons(selected_option='start')
+        
+        return
+    
+    
+    def render_initial_menu_buttons(self, selected_option='start'):
+        x = self.relative_units_x(50)
+        y = self.relative_units_y(50)
+        
+        width = self.relative_units_x(60)
+        height = self.relative_units_x(12)
+        vertical_spacing = self.relative_units_x(15)
+        
+        # destacar botão selecionado pelo jogador
+        start_selected = True if selected_option == 'start' else False
+        scores_selected = True if selected_option == 'scores' else False
+        
+        self.draw_button('start', x, y, width, height, start_selected, 'center')
+        self.draw_button('scores', x, y + vertical_spacing, width, height, scores_selected, 'center')
+        
+    
+    def render_players_scores(self):
+        center_x, center_y = self.relative_units_x(50), self.relative_units_y(50)
+        scores_text_x = center_x
+        scores_text_y = self.relative_units_y(20)
+        
+        column_start_y = center_y
+        column_margin_y = self.relative_units_y(5)
+        column_spacing_x = self.relative_units_x(20)
+        column_spacing_y = self.relative_units_y(5)
+        left_column_x = center_x - column_spacing_x
+        right_column_x = center_x + column_spacing_x
+        
+        
+        self.draw_text('S C O R E S', pygame.font.SysFont(None, 52), self.colors['white'], scores_text_x, scores_text_y, 'center')
+        self.draw_text('player', pygame.font.SysFont(None, 52), self.colors['white'], left_column_x, column_start_y, 'center')
+        self.draw_text('score', pygame.font.SysFont(None, 52), self.colors['white'], right_column_x, column_start_y, 'center')
+        
+        for i, player in enumerate(self.players_scores):
+            name, score = player['name'], str(player['score'])
+            line_y = column_start_y + column_margin_y + i*column_spacing_y
+            player_name_x = left_column_x
+            player_name_y = line_y
+            
+            player_score_x = right_column_x
+            player_score_y = line_y
+            self.draw_text(name, pygame.font.SysFont(None, 36), self.colors['white'], player_name_x, player_name_y, 'center')
+            self.draw_text(score, pygame.font.SysFont(None, 36), self.colors['white'], player_score_x, player_score_y, 'center')
         
         return
     
@@ -317,7 +427,7 @@ class RenderEngine():
         w, h, hm, vm = width, height, horizontal_margin, vertical_margin
         
         new_x = int(hm + ((w - 2*hm)/14)*x)
-        new_y = int(vm + ((h - 2*vm)/14)*(15-y))
+        new_y = int(vm + ((h - 2*vm)/14)*(14-y))
         
         return new_x, new_y
     
@@ -370,6 +480,26 @@ class RenderEngine():
             rect.bottomright = (x, y)
             
         self.screen.blit(resized_img, rect)
+        
+        return
+    
+    
+    def draw_button(self, text, x, y, width, height, pressed='false', alignment='center'):
+        pressed_border_size = 6
+        unpressed_border_size = 2
+        
+        x_min = x - (width//2)
+        y_max = y - (height//2)
+        
+        rect = pygame.Rect(x_min, y_max, width, height)
+                
+        if pressed == True:
+            self.draw_text(text, self.default_text_font, self.colors['white'], x, y, 'center')
+            pygame.draw.rect(self.screen, self.colors['white'], rect, pressed_border_size)
+        
+        else:
+            self.draw_text(text, self.default_text_font, self.colors['white'], x, y, 'center')
+            pygame.draw.rect(self.screen, self.colors['white'], rect, unpressed_border_size)
         
         return
     
