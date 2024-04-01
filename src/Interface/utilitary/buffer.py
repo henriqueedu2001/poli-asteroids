@@ -22,7 +22,7 @@ class Buffer():
         # índice módulo n = buffer_size que retorna para o início, depois de atingir o limite
         index = self.index % self.buffer_size
         self.buffer[index] = byte
-        
+        # print(index)
         if self.is_break_point(byte):
             if self.complete_chunk():
                 self.load_chunk()
@@ -85,11 +85,11 @@ class Buffer():
             bool: verdadeiro se o buffer recebeu um break point
         """
         last_break_point_str_byte = self.break_point_str[-1]
+        # print("last_break_point_str_byte: ", last_break_point_str_byte)
         break_point_str_size = len(self.break_point_str)
         
         # detecção de byte final de parada
         if last_byte == last_break_point_str_byte:
-            
             # caso o último byte do buffer seja o último byte da str do breakpoint
             # percorra o buffer para trás e verifique se a string é de fato de um breakpoint
             for i in range(break_point_str_size):
@@ -169,10 +169,14 @@ class Buffer():
     
     
 def get_hex(byte):
-    codigo_ascii = ord(str(byte))
-    codigo_hex = hex(codigo_ascii)
-    
-    return codigo_hex
+    try:
+        codigo_ascii = ord(str(byte))
+        codigo_hex = hex(codigo_ascii)[2:4]
+        return codigo_hex
+    except:
+        pass
+
+    return 'null'
 
 def test():
     buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='ab')

@@ -35,8 +35,9 @@ def receive_data(serial_port: serial.Serial):
     """
     try:
         received_byte = serial_port.read(1)
-        hex_received_byte = received_byte.hex()
-        return hex_received_byte
+        if received_byte:
+            # print(received_byte.hex())
+            return received_byte
     except:
         pass
 

@@ -32,7 +32,7 @@ class Game():
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
-    self.log_messages = True
+    self.log_messages = False
     self.db_index = 0
     self.port = None
     self.port_opened = False
@@ -106,12 +106,17 @@ class Game():
 
     received_byte = self.receive_uart_byte(self.port)
 
-    bin = get_bin(received_byte)
-    hex = get_hex(received_byte)
-    print(f'{hex} {bin}')
-    
-    buffer.write_buffer(received_byte)
-    
+    # print(received_byte, end='')
+
+    if received_byte is not None:
+      byte_char = convert_to_char(received_byte)
+
+      if byte_char is not None:
+        print(byte_char, end='')
+        pass
+
+      # buffer.write_buffer(byte_char)
+
     if buffer.chunk_loading:
       chunk.load_chunk(buffer.chunk)
       chunk.decode_data()
@@ -162,6 +167,15 @@ def get_bin(byte):
       pass
     
     return 'null'
+
+def convert_to_char(byte):
+  try:
+    byte_char = byte.decode('utf-8')
+    return byte_char
+  
+  except:
+    return None
+  
 
 
 game = Game()
