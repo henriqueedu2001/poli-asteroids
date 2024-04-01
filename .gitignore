@@ -11,6 +11,9 @@
 !*.py
 !h.gtkw
 !menu.gtkw
+!*.txt
+!.svg
+!.jpeg
 
 # Exceto os seguintes diretórios e arquivos
 work/*
