@@ -30,8 +30,9 @@ class Game():
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
-    self.log_messages = False
+    self.log_messages = True
     self.db_index = 0
+    self.port = None
     
 
   def start_game(self):
@@ -46,6 +47,14 @@ class Game():
       self.log_message('game started with sucess!')
     except Exception as exeption:
       self.log_message('failed to start the game')
+    
+    while self.port == None:
+      try:
+        self.port = uart.UART()
+        self.log_message('uart port started with sucess!')
+      except Exception as exeption:
+        self.log_message('failed to start the uart')
+        time.sleep(2)
     
     self.render_engine = RenderEngine(self.screen)
     
@@ -85,7 +94,9 @@ class Game():
     chunk = self.chunk
     
     # temporário, para depuração
-    received_byte = MEM[self.db_index]
+    # received_byte = MEM[self.db_index]
+
+    received_byte = self.receive_uart_byte(self.port)
     
     buffer.write_buffer(received_byte)
     
@@ -100,6 +111,11 @@ class Game():
     
     return
   
+
+  def receive_uart_byte(self, port):
+    byte = uart.receive_data(port)
+    return byte
+  
   
   def render(self):
     data = self.received_game_data
@@ -107,18 +123,6 @@ class Game():
     self.render_engine.render()
     
     pass
-
-
-  def transmit_data(send_data: str):
-    port = uart.open_port(uart.DEFAULT_PORT_NAME)
-
-    # recebimento de dados
-    received_data = uart.receive_data(port)
-
-    # transmissão de dados
-    uart.send_data(port, send_data)
-
-    return received_data
   
   
   def log_message(self, log_message):

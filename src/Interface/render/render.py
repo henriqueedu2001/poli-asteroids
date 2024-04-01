@@ -7,7 +7,7 @@ BLACK = (0, 0, 0)
 NOT_LOADED_ASTEROID_POSITION = (0, 0)
 NOT_LOADED_SHOOT_POSITION = (0, 0)
 
-GRID_SIZE = 20 # em unidades relativas
+GRID_SIZE = 15 # em unidades relativas
 
 class RenderEngine():
     def __init__(self, screen) -> None:
@@ -195,8 +195,6 @@ class RenderEngine():
     
     def render(self):
         self.clear_screen()
-
-        print(f'data {self.data}')
 
         # telas possíveis: initial_menu, gameplay, gameover e players_scores
         actual_screen = 'gameplay'
