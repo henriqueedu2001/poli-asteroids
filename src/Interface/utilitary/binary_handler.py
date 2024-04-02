@@ -2,6 +2,10 @@ from typing import List
 from typing import Union
 
 class BinaryHandler():
+    hex_digits_chars = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F']
+    
     def get_byte(byte: Union[bytes, int]) -> bytes:
         real_byte = byte
         
@@ -9,6 +13,26 @@ class BinaryHandler():
             real_byte = bytes([byte])
         
         return real_byte
+    
+    
+    def get_bytes_from_str(str_content: str) -> List[bytes]:
+        content_bytes = []
+        hex_digits = []
+        
+        for character in str_content:
+            if character in BinaryHandler.hex_digits_chars:
+                hex_digits.append(character)
+        
+        if len(hex_digits) % 2 == 0:
+            bytes_quantity = len(hex_digits)//2
+            
+            for i in range(bytes_quantity):
+                hex_str = f'{hex_digits[2*i]}{hex_digits[2*i+1]}'
+                decimal_int = int(hex_str, 16)
+                byte = BinaryHandler.get_byte(decimal_int)
+                content_bytes.append(byte)
+        
+        return content_bytes
     
     
     def get_int(byte: bytes) -> int:
@@ -78,6 +102,9 @@ class BinaryHandler():
     
     
     def print_byte(byte: Union[bytes, int], str_format: str = 'hex') -> None:
+        if byte is None:
+            return
+        
         byte_str = BinaryHandler.get_byte_str(byte, str_format=str_format)
         
         print(byte_str)
@@ -86,10 +113,18 @@ class BinaryHandler():
     
     
     def print_byte_data(data: Union[bytes, List[int]] , bytes_per_line: int = 16, str_format: str = 'hex') -> None:
+        byte_data_str = BinaryHandler.get_byte_data_str(data, bytes_per_line=bytes_per_line, str_format=str_format)
+        print(byte_data_str)
+        
+        return
+    
+    
+    def get_byte_data_str(data: Union[bytes, List[int]] , bytes_per_line: int = 16, str_format: str = 'hex') -> str:
         block_size = len(data)
         lines = (block_size // bytes_per_line)
         tail_size = block_size % bytes_per_line
         spacing_char = ' '
+        byte_data_str = ''
 
         # imprimir bloco, com exceção da cauda
         for i in range(lines):
@@ -97,8 +132,9 @@ class BinaryHandler():
                 index = i*bytes_per_line + j
                 byte = data[index]
                 byte_char = BinaryHandler.get_byte_str(byte=byte, str_format=str_format)
-                print(byte_char, end=spacing_char)
-            print()
+                byte_data_str = byte_data_str + byte_char + spacing_char
+            
+            byte_data_str = byte_data_str + '\n'
         
         # imprimir cauda
         if tail_size != 0:
@@ -106,20 +142,18 @@ class BinaryHandler():
                 index = lines*bytes_per_line + j
                 byte = data[index]
                 byte_char = BinaryHandler.get_byte_str(byte=byte, str_format=str_format)
-                print(byte_char, end=spacing_char)
-            print()
+                byte_data_str = byte_data_str + byte_char + spacing_char
+
+        
+        return byte_data_str
 
 def test():
     byte_tape = b'\x00\x00\x01\x02\x03\x04\x01\x02\x03\x04\x01\x02\x03\x04\x01\x02\x03\x04\x01\x02\x03'
+    byte_tape_str = '00 01 02 03 00 01 02 03 00 01 02 03 00 01 02 03 \n00 01 02 03 '
     
-    BinaryHandler.print_byte_data(data=byte_tape, str_format='hex')
+    ggg = BinaryHandler.get_bytes_from_str(byte_tape_str)
     
-    for byte in byte_tape:
-        real_byte = BinaryHandler.get_byte(byte)
-        bits = BinaryHandler.get_bits(byte)
-        bits = bits[4:8]
-        int_value = BinaryHandler.get_int_from_bits(bits)
-        print(f'{bits} {int_value}')
+    # BinaryHandler.print_byte_data(data=byte_tape, str_format='hex')
     
     return
 
