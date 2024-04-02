@@ -16,6 +16,12 @@ class BinaryHandler():
         return int_value
     
     
+    def cast_bool(bit: int) -> bool:
+        bool_value = True if bit == 1 else False
+        
+        return bool_value
+    
+    
     def get_int_from_bits(bits: List[int]):
         binary_str = ''.join(map(str, bits))
         number = int(binary_str, 2)
@@ -34,15 +40,14 @@ class BinaryHandler():
             byte_hex = '{:02x}'.format(byte_int)
             byte_str = byte_hex
         elif str_format == 'bin':
-            reversed_bits = BinaryHandler.get_bits(byte_int)
-            bits = reversed(reversed_bits)
+            bits = BinaryHandler.get_bits(byte_int)
             byte_str = ''.join(map(str, bits))
             
         return byte_str
     
     
     def get_bits(byte: bytes | int) -> List[int]:
-        bits = []
+        bits = [0] * 8
         
         byte_int = byte
         
@@ -52,7 +57,7 @@ class BinaryHandler():
                   
         for i in range(8):
             bit = BinaryHandler.get_bit(byte=byte_int, index=i)
-            bits.append(bit)
+            bits[7-i] = bit
             
         return bits
 
@@ -95,21 +100,25 @@ class BinaryHandler():
             print()
         
         # imprimir cauda
-        for j in range(tail_size):
-            index = lines*bytes_per_line + j
-            byte = data[index]
-            byte_char = BinaryHandler.get_byte_str(byte=byte, str_format=str_format)
-            print(byte_char, end=spacing_char)
-        print()
+        if tail_size != 0:
+            for j in range(tail_size):
+                index = lines*bytes_per_line + j
+                byte = data[index]
+                byte_char = BinaryHandler.get_byte_str(byte=byte, str_format=str_format)
+                print(byte_char, end=spacing_char)
+            print()
 
 def test():
     byte_tape = b'\x00\x00\x01\x02\x03\x04\x01\x02\x03\x04\x01\x02\x03\x04\x01\x02\x03\x04\x01\x02\x03'
     
     BinaryHandler.print_byte_data(data=byte_tape, str_format='hex')
     
-    # for byte in byte_tape:
-    #     real_byte = BinaryHandler.get_byte(byte)
-    #     BinaryHandler.print_byte(real_byte, str_format='bin')
+    for byte in byte_tape:
+        real_byte = BinaryHandler.get_byte(byte)
+        bits = BinaryHandler.get_bits(byte)
+        bits = bits[4:8]
+        int_value = BinaryHandler.get_int_from_bits(bits)
+        print(f'{bits} {int_value}')
     
     return
 

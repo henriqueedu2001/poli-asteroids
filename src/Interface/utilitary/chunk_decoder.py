@@ -15,30 +15,31 @@ class ChunkDecoder():
         player_direction = ChunkDecoder.get_player_direction(G1)
         lifes_quantity = ChunkDecoder.get_lifes_quantity(G1)
         game_difficulty = ChunkDecoder.get_game_difficulty(G1)
-        # asteroids_positions = ChunkDecoder.get_asteroids_positions(AS)
-        # asteroids_directions = ChunkDecoder.get_asteroids_directions(DA)
-        # shots_positions = ChunkDecoder.get_shots_positions(TI)
-        # shots_directions = ChunkDecoder.get_shots_directions(DT)
-        # played_special_shooting = ChunkDecoder.get_played_special_shooting(G2)
-        # available_special_shooting = ChunkDecoder.get_available_special_shooting(G2)
-        # played_shooting = ChunkDecoder.get_played_shooting(G2)
-        # end_of_lifes = ChunkDecoder.get_end_of_lifes(G2)
+        asteroids_positions = ChunkDecoder.get_asteroids_positions(AS)
+        asteroids_directions = ChunkDecoder.get_asteroids_directions(DA)
+        shots_positions = ChunkDecoder.get_shots_positions(TI)
+        shots_directions = ChunkDecoder.get_shots_directions(DT)
+        played_special_shooting = ChunkDecoder.get_played_special_shooting(G2)
+        available_special_shooting = ChunkDecoder.get_available_special_shooting(G2)
+        played_shooting = ChunkDecoder.get_played_shooting(G2)
+        end_of_lifes = ChunkDecoder.get_end_of_lifes(G2)
         
-        data = None
-        # data = {
-        #     'score': score,
-        #     'player_direction': player_direction,
-        #     'lifes_quantity': lifes_quantity,
-        #     'game_difficulty': game_difficulty,
-        #     'asteroids_positions': asteroids_positions,
-        #     'asteroids_directions': asteroids_directions,
-        #     'shots_positions': shots_positions,
-        #     'shots_directions': shots_directions,
-        #     'played_special_shooting': played_special_shooting, 
-        #     'available_special_shooting': available_special_shooting,
-        #     'played_shooting': played_shooting,
-        #     'end_of_lifes': end_of_lifes
-        # }
+        data = {
+            'score': score,
+            'player_direction': player_direction,
+            'lifes_quantity': lifes_quantity,
+            'game_difficulty': game_difficulty,
+            'asteroids_positions': asteroids_positions,
+            'asteroids_directions': asteroids_directions,
+            'shots_positions': shots_positions,
+            'shots_directions': shots_directions,
+            'played_special_shooting': played_special_shooting, 
+            'available_special_shooting': available_special_shooting,
+            'played_shooting': played_shooting,
+            'end_of_lifes': end_of_lifes
+        }
+        
+        print(data)
         
         return data
         
@@ -57,16 +58,16 @@ class ChunkDecoder():
         return direction
 
 
-    def get_lifes_quantity(G1_slice: str):
+    def get_lifes_quantity(G1_slice: bytes):
         bits = BinaryHandler.get_bits(G1_slice)
         bits = bits[2:5]
         
         lifes_quantity = BinaryHandler.get_int_from_bits(bits)
-
+        
         return lifes_quantity
 
 
-    def get_game_difficulty(G1_slice: str):
+    def get_game_difficulty(G1_slice: bytes):
         bits = BinaryHandler.get_bits(G1_slice)
         bits = bits[5:8]
         
@@ -75,32 +76,33 @@ class ChunkDecoder():
         return game_difficulty
 
 
-    def get_asteroids_positions(AS_slice: str):
+    def get_asteroids_positions(AS_slice: bytes):
         asteroids_positions = []
         
+        # converte cada byte de cada asteroide
         for byte in AS_slice:
-            bin_code = get_binary_code(byte)
-            x = bin_code[0:4]
-            y = bin_code[4:8]
+            bits = BinaryHandler.get_bits(byte)
+            x = bits[0:4]
+            y = bits[4:8]
             
-            x = get_number(x)
-            y = get_number(y)
+            x = BinaryHandler.get_int_from_bits(x)
+            y = BinaryHandler.get_int_from_bits(y)
             
             asteroids_positions.append((x,y))
 
         return asteroids_positions
 
 
-    def get_asteroids_directions(DA_slice: str):
+    def get_asteroids_directions(DA_slice: bytes):
         asteroids_directions = []
         asteroids_directions_codes = []
         
         for byte in DA_slice:
-            bin_code = get_binary_code(byte)
-            asteroid_direction_1 = bin_code[0:2]
-            asteroid_direction_2 = bin_code[2:4]
-            asteroid_direction_3 = bin_code[4:6]
-            asteroid_direction_4 = bin_code[6:8]
+            bits = BinaryHandler.get_bits(byte)
+            asteroid_direction_1 = bits[0:2]
+            asteroid_direction_2 = bits[2:4]
+            asteroid_direction_3 = bits[4:6]
+            asteroid_direction_4 = bits[6:8]
             
             asteroids_directions_codes.append(asteroid_direction_1)
             asteroids_directions_codes.append(asteroid_direction_2)
@@ -110,38 +112,38 @@ class ChunkDecoder():
         for asteroid_code in asteroids_directions_codes:
             direction = ChunkDecoder.decode_direction(asteroid_code)
             asteroids_directions.append(direction)
-            
+        
         return asteroids_directions
 
 
-    def get_shots_positions(TI_slice: str):
+    def get_shots_positions(TI_slice: List[bytes]) -> List[str]:
         shooting_positions = []
         
         for byte in TI_slice:
-            bin_code = get_binary_code(byte)
-            x = bin_code[0:4]
-            y = bin_code[4:8]
+            bits = BinaryHandler.get_bits(byte)
+            x = bits[0:4]
+            y = bits[4:8]
             
-            x = get_number(x)
-            y = get_number(y)
+            x = BinaryHandler.get_int_from_bits(x)
+            y = BinaryHandler.get_int_from_bits(y)
             
             shooting_positions.append((x,y))
 
         return shooting_positions
 
 
-    def get_shots_directions(DT_slice: str):
+    def get_shots_directions(DT_slice: List[bytes]) -> List[str]:
         shooting_directions = 0
         
         shooting_directions = []
         shooting_directions_codes = []
         
         for byte in DT_slice:
-            bin_code = get_binary_code(byte)
-            shooting_code_1 = bin_code[0:2]
-            shooting_code_2 = bin_code[2:4]
-            shooting_code_3 = bin_code[4:6]
-            shooting_code_4 = bin_code[6:8]
+            bits = BinaryHandler.get_bits(byte)
+            shooting_code_1 = bits[0:2]
+            shooting_code_2 = bits[2:4]
+            shooting_code_3 = bits[4:6]
+            shooting_code_4 = bits[6:8]
             
             shooting_directions_codes.append(shooting_code_1)
             shooting_directions_codes.append(shooting_code_2)
@@ -151,42 +153,42 @@ class ChunkDecoder():
         for shooting_code in shooting_directions_codes:
             direction = ChunkDecoder.decode_direction(shooting_code)
             shooting_directions.append(direction)
-
+        
         return shooting_directions
 
 
-    def get_played_special_shooting(G2_slice: str):      
-        bin_code = get_binary_code(G2_slice)
-        bits = bin_code[0]
+    def get_played_special_shooting(G2_slice: bytes) -> bool:
+        bits = BinaryHandler.get_bits(G2_slice)
+        bit = bits[0]
         
-        played_special_shooting = get_number(bits)
-
+        played_special_shooting = BinaryHandler.cast_bool(bit)
+        
         return played_special_shooting
 
 
-    def get_available_special_shooting(G2_slice: str):
-        bin_code = get_binary_code(G2_slice)
-        bits = bin_code[1]
+    def get_available_special_shooting(G2_slice: bytes) -> bool:
+        bits = BinaryHandler.get_bits(G2_slice)
+        bit = bits[1]
         
-        available_special_shooting = get_number(bits)
+        available_special_shooting = BinaryHandler.cast_bool(bit)
 
         return available_special_shooting
 
 
-    def get_played_shooting(G2_slice: str):
-        bin_code = get_binary_code(G2_slice)
-        bits = bin_code[2]
+    def get_played_shooting(G2_slice: bytes) -> bool:
+        bits = BinaryHandler.get_bits(G2_slice)
+        bit = bits[2]
         
-        played_shooting = get_number(bits)
+        played_shooting = BinaryHandler.cast_bool(bit)
 
         return played_shooting
 
 
-    def get_end_of_lifes(G2_slice: str):
-        bin_code = get_binary_code(G2_slice)
-        bits = bin_code[3]
+    def get_end_of_lifes(G2_slice: bytes) -> bool:
+        bits = BinaryHandler.get_bits(G2_slice)
+        bit = bits[3]
         
-        end_of_lifes = get_number(bits)
+        end_of_lifes = BinaryHandler.cast_bool(bit)
 
         return end_of_lifes
     
@@ -210,39 +212,7 @@ class ChunkDecoder():
             direct = 'DOWN'
         elif bit_0 == 1 and bit_1 == 0:
             direct = 'LEFT'
-        elif bit_0 == 1 and bit_1 == 0:
+        elif bit_0 == 1 and bit_1 == 1:
             direct = 'RIGHT'
             
         return direct
-
-
-def get_binary_code(ascii_char: str):
-    """Obtém o código binário correspondente a um certo caracter ascii
-
-    Args:
-        ascii_char (str): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    ascii_code = ord(ascii_char)
-    binary_code = bin(ascii_code)
-    
-    # formata para 8bits
-    binary_code = format(ascii_code, '0{}b'.format(8))
-    
-    return binary_code
-
-
-def get_number(binary_str: str):
-    """Obtém variável tipo int a partir de uma string binária
-
-    Args:
-        binary_str (str): string binária a ser convertida
-
-    Returns:
-        int: valor correspondente
-    """
-    number = int(binary_str, 2)
-    
-    return number
