@@ -2,6 +2,7 @@ import pygame
 import random
 import time # for debbuging
 import utilitary.uart as uart
+from utilitary.byte_tape import ByteTape
 from utilitary.buffer import Buffer as Buffer
 from utilitary.chunk import Chunk
 from utilitary.binary_handler import BinaryHandler
@@ -26,10 +27,11 @@ class Game():
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
-    self.log_messages = True
-    self.db_index = 0
+    self.log_messages = False
     self.port = None
     self.port_opened = False
+    self.debug_byte_tape = ByteTape()
+    self.debug_mode = True
     
 
   def start_game(self):
@@ -41,15 +43,23 @@ class Game():
     
     # abre a porta serial
     uart.show_ports()
-
-    while self.port_opened == False:
-      try:
-        self.port = uart.open_port(port_name=DEFAULT_PORT_NAME)
-        self.port_opened = True
-        self.log_message('uart port started with sucess!')
-      except Exception as exeption:
-        self.log_message(f'failed to start the uart.\n{exeption}')
-        time.sleep(2)
+    
+    if self.debug_mode:
+      self.log_messages = True
+      self.log_message('loading byte tape')
+      
+      self.debug_byte_tape.load_tape()
+      self.log_message('byte tape loaded')
+    
+    else:
+      while self.port_opened == False:
+        try:
+          self.port = uart.open_port(port_name=DEFAULT_PORT_NAME)
+          self.port_opened = True
+          self.log_message('uart port started with sucess!')
+        except Exception as exeption:
+          self.log_message(f'failed to start the uart.\n{exeption}')
+          time.sleep(2)
 
     try:
       pygame.init()
@@ -94,7 +104,7 @@ class Game():
     # chunk = self.chunk
 
     # receber o byte da comunicação serial com a uart
-    received_byte = self.receive_uart_byte(self.port)
+    received_byte = self.receive_byte_tape() if self.debug_mode else self.receive_uart_byte(self.port)
 
     if received_byte != None:
       buffer.write_buffer(received_byte)
@@ -110,6 +120,14 @@ class Game():
     
     return
   
+  
+  def receive_byte_tape(self):
+    try:
+      byte = self.debug_byte_tape.read_byte()
+      return byte
+    except:
+      return None
+    
 
   def receive_uart_byte(self, port):
     try:
