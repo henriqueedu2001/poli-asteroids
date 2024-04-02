@@ -1,11 +1,12 @@
-import utilitary.chunk_decoder as chunk_decoder
+from binary_handler import BinaryHandler
+from chunk_decoder import ChunkDecoder
 
-EMPTY_DATA_BYTE = '0'
+EMPTY_DATA_BYTE = b'\x00'
 
 class Chunk():
     def __init__(self, chunk_size) -> None:
         self.chunk_size = chunk_size
-        self.chunk = [EMPTY_DATA_BYTE] * self.chunk_size
+        self.content = [EMPTY_DATA_BYTE] * self.chunk_size
         self.loaded = False
         self.encoded_data = None
         self.decoded_data = None
@@ -17,7 +18,8 @@ class Chunk():
         Args:
             chunk (str): string do chunk de dados
         """
-        self.chunk = chunk
+        
+        self.content = chunk
         self.loaded = True
         
         return
@@ -26,17 +28,17 @@ class Chunk():
     def slice_chunk(self):
         """Divide o chunk de dados em segmentos de informação
         """
-        chunk = self.chunk
+        chunk = self.content
         
         # pedaços de informação
-        PT = str(chunk[0])
-        G1 = str(chunk[1])
-        AS = ''.join(chunk[2:18])
-        DA = ''.join(chunk[18:22])
-        TI = ''.join(chunk[22:38])
-        DT = ''.join(chunk[38:42])
-        G2 = str(chunk[42])
-        BP = ''.join(chunk[43:45])
+        PT = chunk[0]
+        G1 = chunk[1]
+        AS = chunk[2:18]
+        DA = chunk[18:22]
+        TI = chunk[22:38]
+        DT = chunk[38:42]
+        G2 = chunk[42]
+        BP = chunk[43:45]
         
         sliced_chunk = {
             'PT': PT, 'G1': G1, 'AS': AS, 'DA': DA, 'TI': TI, 'DT': DT, 'G2': G2, 'BP': BP
@@ -59,14 +61,19 @@ class Chunk():
             
             # decodificando dados
             encoded_data = self.encoded_data
-            data = chunk_decoder.ChunkDecoder.decode_data(encoded_data)
+            data = ChunkDecoder.decode_data(encoded_data)
             self.decoded_data = data
         
-        return data
+        return
     
+        
+    def print_chunk(self, bytes_per_line: int = 16, str_format: str = 'hex'):
+        """Exibe o conteúdo do chunk
+        """
+        data = self.content
+        
+        BinaryHandler.print_byte_data(data=data, bytes_per_line=bytes_per_line, str_format=str_format)
     
-    def print_chunk(self):
-        print(self.chunk)
     
     
     def print_decoded_data(self):

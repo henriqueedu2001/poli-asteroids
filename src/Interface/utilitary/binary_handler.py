@@ -16,6 +16,13 @@ class BinaryHandler():
         return int_value
     
     
+    def get_int_from_bits(bits: List[int]):
+        binary_str = ''.join(map(str, bits))
+        number = int(binary_str, 2)
+        
+        return number
+    
+    
     def get_byte_str(byte: bytes | int, str_format='hex') -> str:
         byte_str = 'XX'
         byte_int = byte

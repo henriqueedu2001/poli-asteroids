@@ -1,6 +1,8 @@
+from binary_handler import BinaryHandler
+from typing import List
+
 class ChunkDecoder():
     def decode_data(encoded_data):
-        
         PT = encoded_data['PT'] 
         G1 = encoded_data['G1'] 
         AS = encoded_data['AS'] 
@@ -13,64 +15,62 @@ class ChunkDecoder():
         player_direction = ChunkDecoder.get_player_direction(G1)
         lifes_quantity = ChunkDecoder.get_lifes_quantity(G1)
         game_difficulty = ChunkDecoder.get_game_difficulty(G1)
-        asteroids_positions = ChunkDecoder.get_asteroids_positions(AS)
-        asteroids_directions = ChunkDecoder.get_asteroids_directions(DA)
-        shots_positions = ChunkDecoder.get_shots_positions(TI)
-        shots_directions = ChunkDecoder.get_shots_directions(DT)
-        played_special_shooting = ChunkDecoder.get_played_special_shooting(G2)
-        available_special_shooting = ChunkDecoder.get_available_special_shooting(G2)
-        played_shooting = ChunkDecoder.get_played_shooting(G2)
-        end_of_lifes = ChunkDecoder.get_end_of_lifes(G2)
+        # asteroids_positions = ChunkDecoder.get_asteroids_positions(AS)
+        # asteroids_directions = ChunkDecoder.get_asteroids_directions(DA)
+        # shots_positions = ChunkDecoder.get_shots_positions(TI)
+        # shots_directions = ChunkDecoder.get_shots_directions(DT)
+        # played_special_shooting = ChunkDecoder.get_played_special_shooting(G2)
+        # available_special_shooting = ChunkDecoder.get_available_special_shooting(G2)
+        # played_shooting = ChunkDecoder.get_played_shooting(G2)
+        # end_of_lifes = ChunkDecoder.get_end_of_lifes(G2)
         
-        data = {
-            'score': score,
-            'player_direction': player_direction,
-            'lifes_quantity': lifes_quantity,
-            'game_difficulty': game_difficulty,
-            'asteroids_positions': asteroids_positions,
-            'asteroids_directions': asteroids_directions,
-            'shots_positions': shots_positions,
-            'shots_directions': shots_directions,
-            'played_special_shooting': played_special_shooting, 
-            'available_special_shooting': available_special_shooting,
-            'played_shooting': played_shooting,
-            'end_of_lifes': end_of_lifes
-        }
+        data = None
+        # data = {
+        #     'score': score,
+        #     'player_direction': player_direction,
+        #     'lifes_quantity': lifes_quantity,
+        #     'game_difficulty': game_difficulty,
+        #     'asteroids_positions': asteroids_positions,
+        #     'asteroids_directions': asteroids_directions,
+        #     'shots_positions': shots_positions,
+        #     'shots_directions': shots_directions,
+        #     'played_special_shooting': played_special_shooting, 
+        #     'available_special_shooting': available_special_shooting,
+        #     'played_shooting': played_shooting,
+        #     'end_of_lifes': end_of_lifes
+        # }
         
         return data
         
         
-    def get_score(PT_slice: str):
-        score = 0
-
-        bin_code = get_binary_code(PT_slice)
-        score = get_number(bin_code)
+    def get_score(PT_slice: bytes):
+        score = BinaryHandler.get_int(PT_slice)
 
         return score
 
 
-    def get_player_direction(G1_slice: str):
-        bin_code = get_binary_code(G1_slice)
-        bits = bin_code[0:2]
-        player_direction = ChunkDecoder.decode_direction(bits)
-
-        return player_direction
+    def get_player_direction(G1_slice: bytes):
+        bits = BinaryHandler.get_bits(G1_slice)
+        bits = bits[0:2]
+        direction = ChunkDecoder.decode_direction(bits)
+        
+        return direction
 
 
     def get_lifes_quantity(G1_slice: str):
-        bin_code = get_binary_code(G1_slice)
-        bits = bin_code[2:5]
+        bits = BinaryHandler.get_bits(G1_slice)
+        bits = bits[2:5]
         
-        lifes_quantity = get_number(bits)
+        lifes_quantity = BinaryHandler.get_int_from_bits(bits)
 
         return lifes_quantity
 
 
     def get_game_difficulty(G1_slice: str):
-        bin_code = get_binary_code(G1_slice)
-        bits = bin_code[5:8]
+        bits = BinaryHandler.get_bits(G1_slice)
+        bits = bits[5:8]
         
-        game_difficulty = get_number(bits)
+        game_difficulty = BinaryHandler.get_int_from_bits(bits)
 
         return game_difficulty
 
@@ -191,7 +191,7 @@ class ChunkDecoder():
         return end_of_lifes
     
     
-    def decode_direction(direction: str):
+    def decode_direction(direction: List[int]):
         """Obtém a direção a partir de dois bits, decodificando 
         em UP, DOWN, LEFT e RIGHT.
 
@@ -204,13 +204,13 @@ class ChunkDecoder():
         bit_0, bit_1 = direction[0], direction[1]
         direct = None
         
-        if bit_0 == '0' and bit_1 == '0':
+        if bit_0 == 0 and bit_1 == 0:
             direct = 'UP'
-        elif bit_0 == '0' and bit_1 == '1':
+        elif bit_0 == 0 and bit_1 == 1:
             direct = 'DOWN'
-        elif bit_0 == '1' and bit_1 == '0':
+        elif bit_0 == 1 and bit_1 == 0:
             direct = 'LEFT'
-        elif bit_0 == '1' and bit_1 == '1':
+        elif bit_0 == 1 and bit_1 == 0:
             direct = 'RIGHT'
             
         return direct

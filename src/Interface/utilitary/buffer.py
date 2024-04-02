@@ -1,4 +1,7 @@
-EMPTY_DATA_BYTE = 0
+from binary_handler import BinaryHandler
+from chunk import Chunk as Chunk
+
+EMPTY_DATA_BYTE = b'\x00'
 
 class Buffer():
     def __init__(self, buffer_size, chunk_size, break_point_str) -> None:
@@ -8,31 +11,30 @@ class Buffer():
         self.chunk_size = chunk_size
         self.break_point_str = break_point_str
         self.last_break_point = -1
-        self.chunk = [EMPTY_DATA_BYTE] * self.chunk_size
+        self.chunk:Chunk = Chunk(chunk_size)
         self.chunk_loaded = False
         self.chunk_loading = False
     
     
-    def write_buffer(self, byte: str):
+    def write_buffer(self, byte: bytes):
         """Escreve um byte no buffer
 
         Args:
             byte (str): byte a ser escrito
         """
         # índice módulo n = buffer_size que retorna para o início, depois de atingir o limite
+        real_byte = BinaryHandler.get_byte(byte)
         index = self.index % self.buffer_size
-        self.buffer[index] = byte
-        # print(index)
-        if self.is_break_point(byte):
+        self.buffer[index] = real_byte
+        
+        if self.is_break_point(real_byte):
             if self.complete_chunk():
                 self.load_chunk()
-                # print('chunk completo recebido')
             else:
                 self.chunk_loading = False
                 pass
             
             self.last_break_point = index
-            # print(f'breakpoint em {index}')
         
         # atualiza índice
         self.index = index + 1
@@ -45,13 +47,16 @@ class Buffer():
         """
         self.chunk_loading = True
         
+        chunk = []
+        
         # percorre o buffer, coletando os bytes do chunk
         for i in range(self.chunk_size):
             buffer_index = self.index
             buffer_index = self.get_absolute_index(buffer_index, i - self.chunk_size + 1)
-            byte = self.buffer[buffer_index]
-            
-            self.chunk[i] = byte
+            byte = BinaryHandler.get_byte(self.buffer[buffer_index])
+            chunk.append(byte)
+        
+        self.chunk.load_chunk(chunk)
         
         self.chunk_loaded = True
         
@@ -64,48 +69,46 @@ class Buffer():
         Returns:
             bool: verdadeiro, se houve recepção de um chunk completo e falso caso contrário
         """
-        first_chunk_byte_index = self.get_absolute_index(pivot_index=self.index,relative_index=1 - self.chunk_size)
+        first_chunk_byte_index = self.get_absolute_index(pivot_index=self.index,relative_index=1-self.chunk_size)
         first_chunk_byte = self.buffer[first_chunk_byte_index]
         
-        actual_byte = self.buffer[self.get_absolute_index(self.index, 0)]
-        
-        if actual_byte != first_chunk_byte:
+        if first_chunk_byte != self.break_point_str[-1]:
             return True
         
         return False
     
     
-    def is_break_point(self, last_byte):
+    def is_break_point(self, last_byte: bytes):
         """Verifica se o buffer acabou de receber um break_point
 
         Args:
-            last_byte (str): último byte recebido
+            last_byte (bytes): último byte recebido
 
         Returns:
             bool: verdadeiro se o buffer recebeu um break point
         """
-        last_break_point_str_byte = self.break_point_str[-1]
+        last_break_point_str_byte = BinaryHandler.get_byte(self.break_point_str[-1])
         # print("last_break_point_str_byte: ", last_break_point_str_byte)
         break_point_str_size = len(self.break_point_str)
-        
+              
         # detecção de byte final de parada
         if last_byte == last_break_point_str_byte:
             # caso o último byte do buffer seja o último byte da str do breakpoint
             # percorra o buffer para trás e verifique se a string é de fato de um breakpoint
+
             for i in range(break_point_str_size):
                 # cálculo dos índices
                 break_point_str_index = break_point_str_size - i - 1
                 buffer_index = self.get_absolute_index(self.index, -i) 
-                # print(f'buffer_index = {self.index}\trel_index={-i}\tcalc_index = {buffer_index}')
                 
                 # obtenção dos caracteres
-                break_point_char = self.break_point_str[break_point_str_index]
+                break_point_char = BinaryHandler.get_byte(self.break_point_str[break_point_str_index])
                 buffer_char = self.buffer[buffer_index]
                 
                 if buffer_char != break_point_char:
                     return False
                 
-                return True
+            return True
         
         return False
     
@@ -154,40 +157,28 @@ class Buffer():
         return abs_index
     
     
-    def print_buffer(self):
-        """Exibe o buffer em linhas do tamanho dos chunks
+    def print_buffer(self, bytes_per_line: int = 16, str_format: str = 'hex'):
+        """Exibe o conteúdo do buffer
         """
-        n = int(self.buffer_size/self.chunk_size)
-        m = int(self.chunk_size)
+        data = self.buffer
         
-        for i in range(n):
-            for j in range(m):
-                byte = self.buffer[i * m + j]
-                hex = get_hex(byte)
-                print(hex, end=' ')
-            print('')
+        BinaryHandler.print_byte_data(data=data, bytes_per_line=bytes_per_line, str_format=str_format)
     
     
-def get_hex(byte):
-    try:
-        codigo_ascii = ord(str(byte))
-        codigo_hex = hex(codigo_ascii)[2:4]
-        return codigo_hex
-    except:
-        pass
-
-    return 'null'
-
 def test():
-    buffer = Buffer(buffer_size = 32, chunk_size = 8, break_point_str='ab')
-    data = list('nk1abchunk2abchunk3abchunk4abchunk5abch')
+    buffer = Buffer(buffer_size = 180, chunk_size = 45, break_point_str=b'\x41\x41')
+    
+    data = b'\x02\xd8\x17\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x18\xd0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x41\x41'
+    data = data + data + data
     
     for byte in data:
-        print(f'chunk = {buffer.chunk}')
         buffer.write_buffer(byte)
     
-    buffer.print_buffer()
-    
-    pass
+    # buffer.print_buffer()
+    chunk = buffer.chunk
+    chunk.print_chunk()
+    chunk.slice_chunk()
+    chunk.decode_data()
+    # chunk.print_chunk()
 
-# test()
+test()
