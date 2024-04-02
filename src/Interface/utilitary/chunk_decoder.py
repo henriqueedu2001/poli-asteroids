@@ -39,8 +39,6 @@ class ChunkDecoder():
             'end_of_lifes': end_of_lifes
         }
         
-        print(data)
-        
         return data
         
         
