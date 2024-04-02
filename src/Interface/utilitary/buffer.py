@@ -1,5 +1,5 @@
-from binary_handler import BinaryHandler
-from chunk import Chunk as Chunk
+from . binary_handler import BinaryHandler
+from . chunk import Chunk as Chunk
 
 EMPTY_DATA_BYTE = b'\x00'
 
@@ -181,4 +181,4 @@ def test():
     chunk.decode_data()
     # chunk.print_chunk()
 
-test()
+# test()

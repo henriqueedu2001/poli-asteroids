@@ -1,4 +1,4 @@
-from binary_handler import BinaryHandler
+from . binary_handler import BinaryHandler
 from typing import List
 
 class ChunkDecoder():

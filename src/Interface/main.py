@@ -4,6 +4,7 @@ import time # for debbuging
 import utilitary.uart as uart
 from utilitary.buffer import Buffer as Buffer
 from utilitary.chunk import Chunk
+from utilitary.binary_handler import BinaryHandler
 from render.render import RenderEngine
 from testing.read_byte_tape import get_byte_tape
 
@@ -13,16 +14,15 @@ SCREEN_HEIGHT = 600
 
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45
-BREAK_POINT_STR = 'AA'
+BREAK_POINT_STR = b'\x41\x41'
 
-DEFAULT_PORT_NAME = 'COM15'
+DEFAULT_PORT_NAME = 'COM6'
 
 class Game():
   def __init__(self) -> None:
     self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     self.clock = pygame.time.Clock()
     self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str=BREAK_POINT_STR)
-    self.chunk = Chunk(chunk_size=CHUNK_SIZE)
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
@@ -91,7 +91,7 @@ class Game():
     """Recebe os dados da placa FPGA via transmissão serial
     """
     buffer = self.buffer
-    chunk = self.chunk
+    # chunk = self.chunk
 
     # receber o byte da comunicação serial com a uart
     received_byte = self.receive_uart_byte(self.port)
@@ -100,14 +100,13 @@ class Game():
       buffer.write_buffer(received_byte)
 
     if buffer.chunk_loading:
-      chunk.load_chunk(buffer.chunk)
-
       try:
-        chunk.decode_data()
+        self.buffer.chunk.slice_chunk()
+        self.buffer.chunk.decode_data()
       except Exception as exeption:
         self.log_message(f'error while loading chunk\n{exeption}')
-      
-      self.received_game_data = chunk.decoded_data
+
+      self.received_game_data = self.buffer.chunk.decoded_data
     
     return
   
@@ -115,11 +114,7 @@ class Game():
   def receive_uart_byte(self, port):
     try:
       byte = uart.receive_data(port)
-      byte = byte[0]
-      byte_char = chr(byte)
-
-      return byte_char
-    
+      return byte
     except:
       return None
   

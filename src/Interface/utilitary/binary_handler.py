@@ -1,7 +1,8 @@
 from typing import List
+from typing import Union
 
 class BinaryHandler():
-    def get_byte(byte: bytes | int) -> bytes:
+    def get_byte(byte: Union[bytes, int]) -> bytes:
         real_byte = byte
         
         if type(byte) == int:
@@ -29,7 +30,7 @@ class BinaryHandler():
         return number
     
     
-    def get_byte_str(byte: bytes | int, str_format='hex') -> str:
+    def get_byte_str(byte: Union[bytes, int], str_format='hex') -> str:
         byte_str = 'XX'
         byte_int = byte
         
@@ -46,7 +47,7 @@ class BinaryHandler():
         return byte_str
     
     
-    def get_bits(byte: bytes | int) -> List[int]:
+    def get_bits(byte: Union[bytes, int]) -> List[int]:
         bits = [0] * 8
         
         byte_int = byte
@@ -62,7 +63,7 @@ class BinaryHandler():
         return bits
 
 
-    def get_bit(byte: bytes | int, index: int) -> int:
+    def get_bit(byte: Union[bytes, int], index: int) -> int:
         """Retorna o valor do bit na posição index do byte"""
         byte_int = byte
         bit = 0
@@ -76,7 +77,7 @@ class BinaryHandler():
         return bit
     
     
-    def print_byte(byte: bytes | int, str_format: str = 'hex') -> None:
+    def print_byte(byte: Union[bytes, int], str_format: str = 'hex') -> None:
         byte_str = BinaryHandler.get_byte_str(byte, str_format=str_format)
         
         print(byte_str)
@@ -84,7 +85,7 @@ class BinaryHandler():
         return
     
     
-    def print_byte_data(data: bytes | List[int], bytes_per_line: int = 16, str_format: str = 'hex') -> None:
+    def print_byte_data(data: Union[bytes, List[int]] , bytes_per_line: int = 16, str_format: str = 'hex') -> None:
         block_size = len(data)
         lines = (block_size // bytes_per_line)
         tail_size = block_size % bytes_per_line

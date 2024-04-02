@@ -1,5 +1,5 @@
-from binary_handler import BinaryHandler
-from chunk_decoder import ChunkDecoder
+from . binary_handler import BinaryHandler
+from . chunk_decoder import ChunkDecoder
 
 EMPTY_DATA_BYTE = b'\x00'
 
