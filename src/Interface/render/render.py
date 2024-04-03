@@ -9,14 +9,41 @@ NOT_LOADED_SHOOT_POSITION = (0, 0)
 
 GRID_SIZE = 15 # em unidades relativas
 
+def pretty_data(data):
+    data_str = ''
+    
+    if data == None:
+        return 'not loaded'
+    
+    score = data['score']
+    player_direction = data['player_direction']
+    lifes_quantity = data['lifes_quantity']
+    game_difficulty = data['game_difficulty']
+    asteroids_positions = data['asteroids_positions']
+    asteroids_directions = data['asteroids_directions']
+    shots_positions = data['shots_positions'] # TODO fix typo
+    shots_directions = data['shots_directions'] # TODO fix typo
+    played_special_shooting = data['played_special_shooting']
+    available_special_shooting = data['available_special_shooting']
+    played_shooting = data['played_shooting']
+    end_of_lifes = data['end_of_lifes']
+    
+    data_str = f'score = {score} player_direction = {player_direction} lifes={lifes_quantity} diff={game_difficulty}\n'
+    data_str = data_str + f'\n{asteroids_positions}'
+    
+    return data_str
+
 class RenderEngine():
     def __init__(self, screen) -> None:
         self.data = None
         self.loaded_data = False
         self.screen = screen
         self.screen_width, self.screen_height = screen.get_size()
+        self.min_size = self.screen_width
         self.default_text_font = pygame.font.SysFont(None, 24)
         self.log_messages = False
+        
+        self.debug_mode = True
         
         # state variables
         self.score = None
@@ -208,6 +235,9 @@ class RenderEngine():
         
         render_engines[actual_screen]()
         
+        if self.debug_mode:
+            self.render_debug()
+        
         return
     
     
@@ -216,7 +246,7 @@ class RenderEngine():
         self.render_lifes()
         self.render_player()
         self.render_asteroids()
-        self.render_shots()
+        # self.render_shots()
         
         return
     
@@ -326,9 +356,9 @@ class RenderEngine():
         x_base = self.relative_units_x(3)
         y_base = self.relative_units_x(6)    
         x_spacing = self.relative_units_x(6)
-
-        size_x = self.relative_units_x(GRID_SIZE)
-        size_y = self.relative_units_y(GRID_SIZE)
+        
+        life_size = self.relative_units_x(8)
+        size_x, size_y = life_size, life_size
         
         try:
             n = self.lifes_quantity
@@ -340,6 +370,7 @@ class RenderEngine():
                 y_i = y_base
                 
                 self.draw_image(life_img, x_i, y_i, size_x, size_y, 'topleft')
+                
         except Exception as exeption:
             self.draw_text('LIFES NOT LOADED', self.default_text_font, self.colors['white'], x_base, y_base, 'topleft')
             pass
@@ -350,11 +381,11 @@ class RenderEngine():
     def render_player(self):
         player_direction = self.player_direction
         space_ship_img = self.images['space_ship']
+        
+        space_ship_size = self.relative_units_x(10)
         x_center = self.relative_units_x(50)
         y_center = self.relative_units_y(50)
-
-        size_x = self.relative_units_x(GRID_SIZE)
-        size_y = self.relative_units_y(GRID_SIZE)
+        size_x, size_y = space_ship_size, space_ship_size
         
         # definição do ângulo, em função da direção
         angle = 0
@@ -377,15 +408,19 @@ class RenderEngine():
         return
     
     
-    def render_asteroids(self):
-        asteroids = self.asteroids
+    def render_asteroids(self, asteroids=None):
+        asteroids_to_render = asteroids   
         
-        if asteroids != None:
-            # renderiza cada asteroide
-            for i, asteroid in enumerate(asteroids):
-                x, y = asteroid['x'], asteroid['y']
-                x, y = self.transform_coordinates(x, y)
-                self.render_asteroid(x, y, i)
+        if asteroids_to_render is None:
+            asteroids_to_render = self.asteroids
+        
+        if asteroids_to_render is None:
+            return
+
+        for i, asteroid in enumerate(asteroids_to_render):
+            x, y = asteroid['x'], asteroid['y']
+                
+            self.render_asteroid(x, y, i)
 
         return
     
@@ -414,13 +449,18 @@ class RenderEngine():
         return
     
     
-    def render_asteroid(self, x, y, asset_index=0):
+    def render_asteroid(self, x, y, asset_index=0, grid_position=True):
         asteroid_img = self.get_asteroid_asset(asset_index)
-        size_x = self.relative_units_x(GRID_SIZE)
-        size_y = self.relative_units_y(GRID_SIZE)
-
-        self.draw_image(asteroid_img, size_x, size_y, 120, 120, 'center')
         
+        asteroid_size = self.relative_units_x(5)
+        size_x, size_y = asteroid_size, asteroid_size
+        
+        if grid_position:
+            new_x, new_y = self.transform_coordinates(x, y)
+            self.draw_image(asteroid_img, new_x, new_y, size_x, size_y, 'center')
+        else:
+            self.draw_image(asteroid_img, x, y, size_x, size_y, 'center')
+                
         return
     
     
@@ -434,8 +474,8 @@ class RenderEngine():
     def transform_coordinates(self, x, y):
         new_x, new_y = 0, 0
         width, height = self.screen_width, self.screen_height
-        horizontal_margin = self.relative_units_x(15)
-        vertical_margin = self.relative_units_y(15)
+        horizontal_margin = self.relative_units_x(20)
+        vertical_margin = self.relative_units_y(20)
         
         w, h, hm, vm = width, height, horizontal_margin, vertical_margin
         
@@ -456,43 +496,27 @@ class RenderEngine():
     def draw_text(self, text, font, color, x, y, alignment='center'):
         screen = self.screen
         text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect()
-        
-        # alignment logic
-        if alignment == 'center':
-            text_rect.center = (x, y)
-        elif alignment == 'topleft':
-            text_rect.topleft = (x, y)
-        elif alignment == 'bottomleft':
-            text_rect.bottomleft = (x, y)
-        elif alignment == 'topright':
-            text_rect.topright = (x, y)
-        elif alignment == 'bottomright':
-            text_rect.bottomright = (x, y)
-        else:
-            text_rect.center = (x, y)
+        text_pos = (x, y)
             
-        screen.blit(text_surface, text_rect)
+        screen.blit(text_surface, text_pos)
 
         return
     
     
     def draw_image(self, image, x, y, width, height, alignment='center'):
         resized_img = pygame.transform.scale(image, (width, height))
+        position = self.shift(x, y, width, height, alignment)
+
+        self.screen.blit(resized_img, position)
         
-        rect = resized_img.get_rect()
-        if alignment == "center":
-            rect.center = (x, y)
-        elif alignment == "topleft":
-            rect.topleft = (x, y)
-        elif alignment == "topright":
-            rect.topright = (x, y)
-        elif alignment == "bottomleft":
-            rect.bottomleft = (x, y)
-        elif alignment == "bottomright":
-            rect.bottomright = (x, y)
-            
-        self.screen.blit(resized_img, rect)
+        return
+    
+    
+    def draw_line(self, start_point, end_point):
+        screen = self.screen
+        brush_size = 3
+        
+        pygame.draw.line(screen, WHITE, start_point, end_point, brush_size)
         
         return
     
@@ -527,6 +551,48 @@ class RenderEngine():
         ru_y = int(y*self.screen_height/100)
         
         return ru_y
+    
+    
+    def shift(self, x: int, y: int, width, height, alignment):
+        new_x = x
+        new_y = y
+    
+        if alignment == 'center':
+            new_x -= width / 2
+            new_y -= height / 2
+        elif alignment == 'right':
+            new_x -= width
+        
+        new_x, new_y = int(new_x), int(new_y)
+        
+        return new_x, new_y
+    
+    
+    def draw_grid(self):
+        start = (self.relative_units_x(50), self.relative_units_y(0))
+        end = (self.relative_units_x(50), self.relative_units_y(100))
+        self.draw_line(start, end)
+        
+        start = (self.relative_units_x(0), self.relative_units_y(50))
+        end = (self.relative_units_x(100), self.relative_units_y(50))
+        self.draw_line(start, end)
+        
+        return
+    
+    
+    def render_debug(self):
+        data = pretty_data(self.data)
+        
+        x, y = self.relative_units_x(10), self.relative_units_y(80)
+        self.draw_text(data, self.default_text_font, self.colors['white'], x, y, 'topleft')
+        
+        self.draw_grid()
+        
+        # for i in range(16):
+        #     for j in range(16):
+        #         self.render_asteroid(i, j, asset_index=(i+j)%8)
+        
+        return
     
     
     def log_message(self, log_message):
