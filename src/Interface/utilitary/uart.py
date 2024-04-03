@@ -6,13 +6,17 @@ import serial.tools.list_ports
 
 DEFAULT_PORT_NAME = 'COM15'
 
-
-
 def show_ports():
     """Imprime as portas disponíveis
     """
     
-    available_ports = serial.tools.list_ports.comports()
+    available_ports = []
+    
+    try:
+        available_ports = serial.tools.list_ports.comports()
+    except Exception as exception:
+        pass
+    
     print(f'available serial ports\n{available_ports}')
 
 
@@ -46,6 +50,7 @@ def receive_data(serial_port: serial.Serial):
             # print(received_byte.hex())
             return received_byte
     except:
+        return None
         pass
 
     return None
