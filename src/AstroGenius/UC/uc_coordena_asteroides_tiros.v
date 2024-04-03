@@ -9,6 +9,9 @@ module uc_coordena_asteroides_tiros (
     /*input*/
     input clock,
     input reset,
+
+    input rco_contador_envia_dados,
+
     input move_tiro_e_asteroides, 
     input rco_contador_movimenta_asteroides,
     input rco_contador_movimenta_tiros,
@@ -89,7 +92,7 @@ module uc_coordena_asteroides_tiros (
             move_asteroides:                             proximo_estado = espera_move_asteroides;
             espera_move_asteroides:                      proximo_estado = fim_move_asteroides ? compara_asteroides_com_a_nave_e_tiro : espera_move_asteroides;
             inicia_gera_frame:                           proximo_estado = espera_gera_frame; 
-            espera_gera_frame:                           proximo_estado = fim_gera_frame ? inicia_transmissao_de_dados : espera_gera_frame; 
+            espera_gera_frame:                           proximo_estado = ~fim_gera_frame ? espera_gera_frame : rco_contador_envia_dados ? inicia_transmissao_de_dados : fim_movimentacao; 
             inicia_transmissao_de_dados:                 proximo_estado = espera_transmissao_de_dados;
             espera_transmissao_de_dados:                 proximo_estado = fim_transmissao_de_dados ? fim_movimentacao : espera_transmissao_de_dados;
             fim_movimentacao:                            proximo_estado = espera;

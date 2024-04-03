@@ -53,6 +53,8 @@ module uc_menu (
         parameter aux_registra_jogada_registra_pontuacao = 5'b11001; // 25
         parameter aux_registra_jogada_ver_pontuacao      = 5'b11010; // 26
         parameter reinicia_jogo_base                     = 5'b11011; // 27
+        parameter envia_dados_fim_jogo                   = 5'b11100; // 28
+        parameter espera_envia_fim_jogo                  = 5'b11101; // 29
         parameter erro                                   = 5'b11111; // F
 
         // Variáveis de estado
@@ -77,8 +79,12 @@ module uc_menu (
                 espera_envia_menu_principal_tiro:       proximo_estado = fim_envia_dados ? reinicia_jogo_base : espera_envia_menu_principal_tiro;
                 reinicia_jogo_base:                     proximo_estado = iniciar_jogo;
                 iniciar_jogo:                           proximo_estado = espera_jogo;
-                espera_jogo:                            proximo_estado = pronto ? tela_final : espera_jogo;
+
+                espera_jogo:                            proximo_estado = pronto ? envia_dados_fim_jogo : espera_jogo;
+                envia_dados_fim_jogo:                   proximo_estado = espera_envia_fim_jogo;
+                espera_envia_fim_jogo:                  proximo_estado = fim_envia_dados ? tela_final : espera_envia_fim_jogo;
                 tela_final:                             proximo_estado = ocorreu_jogada ? registra_jogada_tela_final : tela_final;
+
                 registra_jogada_tela_final:             proximo_estado = aux_registra_jogada_tela_final;
                 aux_registra_jogada_tela_final:         proximo_estado = tiro ? envia_dados_tela_final_tiro : envia_dados_tela_final_especial;
                 envia_dados_tela_final_tiro:            proximo_estado = espera_envia_tela_final_tiro;                
@@ -116,33 +122,32 @@ module uc_menu (
                              estado_atual == envia_dados_tela_final_especial     ||
                              estado_atual == envia_dados_tela_final_tiro         ||
                              estado_atual == envia_dados_registra_pontuacao      ||
-                             estado_atual == envia_dados_ver_pontuacao           ) ? 1'b1 : 1'b0;
+                             estado_atual == envia_dados_ver_pontuacao           ||
+                             estado_atual == envia_dados_fim_jogo                ) ? 1'b1 : 1'b0;
 
         reset_jogo_base = (estado_atual == reinicia_jogo_base) ? 1'b1 : 1'b0;
-        tela_renderizada = (estado_atual == menu_principal                       ||
-                            estado_atual == registra_jogada_menu_principal       ||
-                            estado_atual == aux_registra_jogada_menu_principal   )? 8'b11110000  : // menu principal
-                           (estado_atual == envia_dados_menu_principal_tiro      ||
-                            estado_atual == espera_envia_menu_principal_tiro     )? 8'b11110100  : //  tela do jogo em andamento (com os asteroides, tiros e a nave)
+
+        tela_renderizada = (estado_atual == envia_dados_menu_principal_tiro      ||
+                            estado_atual == espera_envia_menu_principal_tiro     )? 8'hf4  : //  tela do jogo em andamento (com os asteroides, tiros e a nave)
+
                            (estado_atual == envia_dados_menu_principal_especial  ||
-                            estado_atual == espera_envia_menu_principal_especial) ? 8'b11110001  : // ver scores de outros jogadores
+                            estado_atual == espera_envia_menu_principal_especial) ? 8'hf1  : // ver scores de outros jogadores
 
-                           (estado_atual == ver_pontuacao                     ||
-                            estado_atual == registra_jogada_ver_pontuacao     ||
-                            estado_atual == aux_registra_jogada_ver_pontuacao ||
-                            estado_atual == envia_dados_ver_pontuacao         ||
-                            estado_atual == espera_envia_dados_ver_pontuacao ) ? 8'b11110000  : // menu principal
+                           (estado_atual == envia_dados_ver_pontuacao         ||
+                            estado_atual == espera_envia_dados_ver_pontuacao ) ? 8'hf0  : // menu principal
 
-                           (estado_atual == tela_final                       || 
-                            estado_atual == registra_jogada_tela_final       || 
-                            estado_atual == aux_registra_jogada_tela_final   )? 8'b11110010  : // tela de game over
                            (estado_atual == envia_dados_tela_final_tiro      || 
-                            estado_atual == espera_envia_tela_final_tiro     )? 8'b11110011 : // tela de registrar a pontuação
+                            estado_atual == espera_envia_tela_final_tiro     )? 8'hf3 : // tela de registrar a pontuação
+
                            (estado_atual == envia_dados_tela_final_especial  ||
-                            estado_atual == espera_envia_dados_tela_final_especial) ? 8'b11110000 : // menu principal
+                            estado_atual == espera_envia_dados_tela_final_especial) ? 8'hf0 : // menu principal
 
                            (estado_atual == envia_dados_registra_pontuacao         ||
-                            estado_atual == espera_envia_pontuacao                 ) ? 8'b11110000   /*menu principal*/ : 8'b11110000 ;
+                            estado_atual == espera_envia_pontuacao                 ) ? 8'hf0   /*menu principal*/ :
+                            
+                           (estado_atual == envia_dados_fim_jogo   ||
+                            estado_atual == espera_envia_fim_jogo) ? 8'hf2 : 8'hf0; /* sinal fim de jogo */
+                             
                    
 
         // Saída de depuração (estado)
@@ -175,6 +180,8 @@ module uc_menu (
                 aux_registra_jogada_registra_pontuacao: db_estado_uc_menu = 5'b11001; // 25
                 aux_registra_jogada_ver_pontuacao:      db_estado_uc_menu = 5'b11010; // 26
                 reinicia_jogo_base:                     db_estado_uc_menu = 5'b11011; // 27
+                envia_dados_fim_jogo:                   db_estado_uc_menu = 5'b11100; // 28
+                espera_envia_fim_jogo:                  db_estado_uc_menu = 5'b11101; // 29
                 default:                                db_estado_uc_menu = 5'b11111; // erro
         endcase
     end

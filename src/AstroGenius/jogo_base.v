@@ -350,14 +350,12 @@ wire wire_reset_contador_movimenta_asteroide;
 
 
 
-parameter tempo_especial = 64'd20000;
-
 wire [63:0] tempo_gera_aste;
 wire [63:0] tempo_move_aste;
 wire [63:0] tempo_move_tiro;
 
 
-contador_163_dificuldades #(64, 10000) contador_163_dificuldades( 
+contador_163_dificuldades #(64, 180000000) contador_163_dificuldades( 
     .clock(clock), 
     .clr(iniciar || wire_reset_maquinas), 
     .ld(1'b0), 
@@ -424,7 +422,7 @@ contador_163 #(64) contador_especial_163  (
     .ent(1'b1), 
     .enp(1'b1), 
     .D(),
-    .Max(tempo_especial),
+    .Max(64'd750000000),
     /*outputs*/
     .Q(),
     .rco(wire_rco_intervalo_especial)
@@ -437,11 +435,29 @@ assign db_especial = wire_rco_intervalo_especial;
 /********************************************************************************************************************/
 /*********************************************UC_COORDENA_ASTEROIDES*************************************************/
 /********************************************************************************************************************/
+wire wire_rco_contador_envia_dados;
+
+
+contador_163 #(64) contador_intervalo_envia_dados  ( 
+    /* inputs */
+    .clock(clock),
+    .clr(wire_enviar_dados_uc_coordena_asteroides_tiros | wire_reset_maquinas),
+    .ld(1'b0),
+    .ent(1'b1),
+    .enp(1'b1), 
+    .D(),
+    .Max(64'd2000000),
+    /*outputs*/
+    .Q(),
+    .rco(wire_rco_contador_envia_dados)
+);
+
 wire wire_enviar_dados_uc_coordena_asteroides_tiros;
 uc_coordena_asteroides_tiros uc_coordena_asteroides_tiros(
     /* inputs */
     .clock(clock),
     .reset(wire_reset_maquinas),
+    .rco_contador_envia_dados(wire_rco_contador_envia_dados),
     .move_tiro_e_asteroides(wire_inicia_movimentacao_asteroides_e_tiros),
     .rco_contador_movimenta_tiros(wire_rco_contador_movimenta_tiro),
     .rco_contador_movimenta_asteroides(wire_rco_contador_movimenta_asteroide),
