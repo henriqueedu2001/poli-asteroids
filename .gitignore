@@ -15,6 +15,7 @@
 !*.md
 !.svg
 !.jpeg
+!*.bin
 
 # Exceto os seguintes diretórios e arquivos
 work/*
