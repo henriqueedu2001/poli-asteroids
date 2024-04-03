@@ -1,13 +1,20 @@
 import serial
 import time
 
+import serial.tools
+import serial.tools.list_ports
+
 DEFAULT_PORT_NAME = 'COM15'
+
+
 
 def show_ports():
     """Imprime as portas disponíveis
     """
-    # print(serial.tools.list_ports.comports())
     
+    available_ports = serial.tools.list_ports.comports()
+    print(f'available serial ports\n{available_ports}')
+
 
 def open_port(port_name: str):
     """_summary_
