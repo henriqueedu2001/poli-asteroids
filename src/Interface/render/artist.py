@@ -31,3 +31,23 @@ class Artist():
     
     def rotate_image(image, angle):
         return pygame.transform.rotate(image, angle)
+    
+    
+    def draw_button(screen: Screen, text, x, y, width, height, pressed='false'):
+        pressed_border_size = 6
+        unpressed_border_size = 2
+        
+        x_min = x - (width//2)
+        y_max = y - (height//2)
+        
+        rect = pygame.Rect(x_min, y_max, width, height)
+                
+        if pressed == True:
+            Artist.draw_text(screen, text, x, y)
+            pygame.draw.rect(screen.pygame_screen, (255, 255, 255), rect, pressed_border_size)
+        
+        else:
+            Artist.draw_text(screen, text, x, y)
+            pygame.draw.rect(screen.pygame_screen, (255, 255, 255), rect, unpressed_border_size)
+        
+        return

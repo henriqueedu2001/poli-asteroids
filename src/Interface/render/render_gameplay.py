@@ -65,7 +65,18 @@ class RenderGameplay():
         x = screen.ru_x(50)
         y = screen.ru_x(50)
         size = RenderGameplay.player_img_size
-        angle = 0 # TODO
+        angle = 0
+        
+        if direction == 'UP':
+            angle = 0
+        elif direction == 'DOWN':
+            angle = 180
+        elif direction == 'LEFT':
+            angle = 90
+        elif direction == 'RIGHT':
+            angle = -90
+        else:
+            angle = 0
         
         img = Artist.rotate_image(img, angle)
         

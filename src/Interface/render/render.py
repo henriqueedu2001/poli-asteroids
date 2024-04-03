@@ -235,16 +235,6 @@ class RenderEngine():
         
         return
     
-        # self.render_score()
-        # self.render_lifes()
-        # self.render_player()
-        # self.render_asteroids()
-        # self.render_shots()
-            
-        RenderPlayersScores.render(self.screen, self.data)
-        
-        return
-    
     
     def render_gameover(self, selected_option='enter_score'):
         RenderGameOver.render(self.screen_class, self.data)
@@ -275,37 +265,9 @@ class RenderEngine():
     
     def render_initial_menu(self):
         RenderInitialMenu.render(self.screen_class, self.data)
-        return
-    
-        self.render_brand()
         
         return
     
-    
-    def render_brand(self):
-        x = self.ru_x(50)
-        y = self.ru_y(20)
-        self.draw_text('A S T R O G E N I U S', pygame.font.SysFont(None, 52), self.colors['white'], x, y, 'center')
-        self.render_initial_menu_buttons(selected_option='start')
-        
-        return
-    
-    
-    def render_initial_menu_buttons(self, selected_option='start'):
-        x = self.ru_x(50)
-        y = self.ru_y(50)
-        
-        width = self.ru_x(60)
-        height = self.ru_x(12)
-        vertical_spacing = self.ru_x(15)
-        
-        # destacar botão selecionado pelo jogador
-        start_selected = True if selected_option == 'start' else False
-        scores_selected = True if selected_option == 'scores' else False
-        
-        self.draw_button('start', x, y, width, height, start_selected, 'center')
-        self.draw_button('scores', x, y + vertical_spacing, width, height, scores_selected, 'center')
-        
     
     def render_players_scores(self):
         RenderPlayersScores.render(self.screen_class, self.data)
@@ -340,111 +302,7 @@ class RenderEngine():
             self.draw_text(score, pygame.font.SysFont(None, 36), self.colors['white'], player_score_x, player_score_y, 'center')
         
         return
-    
-    
-    def render_score(self):
-        score = self.score
-        
-        x = self.ru_x(3)
-        y = self.ru_y(3)
-        
-        font = pygame.font.SysFont(None, 24)
-        
-        if score != None:
-            self.draw_text(f'SCORE: {score}', font, self.colors['white'], x, y, 'topleft')
-        else:
-            self.draw_text('SCORE: NOT LOADED', font, self.colors['white'], x, y, 'topleft')
-    
-    
-    def render_lifes(self):      
-        x_base = self.ru_x(3)
-        y_base = self.ru_x(6)    
-        x_spacing = self.ru_x(6)
-        
-        life_size = self.ru_x(8)
-        size_x, size_y = life_size, life_size
-        
-        try:
-            n = self.lifes_quantity
-            
-            life_img = self.images['life']
-            
-            for i in range(n):
-                x_i = x_base + i*x_spacing
-                y_i = y_base
-                
-                self.draw_image(life_img, x_i, y_i, size_x, size_y, 'topleft')
-                
-        except Exception as exeption:
-            self.draw_text('LIFES NOT LOADED', self.default_text_font, self.colors['white'], x_base, y_base, 'topleft')
-            pass
-        
-        return
-    
-    
-    def render_player(self):
-        player_direction = self.player_direction
-        space_ship_img = self.images['space_ship']
-        
-        space_ship_size = self.ru_x(10)*size_factor
-        x_center = self.ru_x(50)
-        y_center = self.ru_y(50)
-        size_x, size_y = space_ship_size, space_ship_size
-        
-        # definição do ângulo, em função da direção
-        angle = 0
-        if player_direction == 'UP':
-            angle = 0
-        elif player_direction == 'DOWN':
-            angle = 180
-        elif player_direction == 'LEFT':
-            angle = 90
-        elif player_direction == 'RIGHT':
-            angle = -90
-        else:
-            angle = 0
-        
-        # rotação da imagem
-        space_ship_img = pygame.transform.rotate(space_ship_img, angle)
-        
-        self.draw_image(space_ship_img, x_center, y_center, size_x, size_y, 'center')
-        
-        return
-    
-    
-    def render_asteroids(self, asteroids=None):
-        asteroids_to_render = asteroids   
-        
-        if asteroids_to_render is None:
-            asteroids_to_render = self.asteroids
-        
-        if asteroids_to_render is None:
-            return
 
-        for i, asteroid in enumerate(asteroids_to_render):
-            x, y = asteroid['x'], asteroid['y']
-                
-            self.render_asteroid(x, y, i)
-
-        return
-    
-    
-    def render_shots(self, shots=None):
-        shots_to_render = shots
-        
-        if shots_to_render is None:
-            shots_to_render = self.shots
-            
-        if shots_to_render is None:
-            return
-        
-        for shot in shots_to_render:
-            x, y = shot['x'], shot['y']
-            
-            self.render_shot(x, y)
-
-        return
-    
     
     def render_shot(self, x, y, grid_position=True):
         shot_img = self.images['shot']
