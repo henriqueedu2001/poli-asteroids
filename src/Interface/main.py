@@ -1,13 +1,13 @@
 import pygame
 import random
 import time # for debbuging
-import utilitary.uart as uart
-from utilitary.byte_tape import ByteTape
-from utilitary.buffer import Buffer as Buffer
-from utilitary.chunk import Chunk
-from utilitary.binary_handler import BinaryHandler
-from render.render import RenderEngine
-from testing.read_byte_tape import get_byte_tape
+from . utilitary import uart as uart
+from . utilitary.byte_tape import ByteTape
+from . utilitary.buffer import Buffer as Buffer
+from . utilitary.chunk import Chunk
+from . utilitary.binary_handler import BinaryHandler
+from . render.render import RenderEngine
+from . testing.read_byte_tape import get_byte_tape
 
 # tamanho da tela
 SCREEN_WIDTH = 600
@@ -154,5 +154,6 @@ class Game():
     return
 
 
-game = Game()
-game.start_game()
+if __name__ == '__main__':
+  game = Game()
+  game.start_game()
