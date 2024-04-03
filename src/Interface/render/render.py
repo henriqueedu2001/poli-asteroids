@@ -8,7 +8,7 @@ NOT_LOADED_ASTEROID_POSITION = (0, 0)
 NOT_LOADED_SHOOT_POSITION = (0, 0)
 
 GRID_SIZE = 15 # em unidades relativas
-size_factor = 3
+size_factor = 1
 
 def pretty_data(data):
     data_str = ''
@@ -44,7 +44,7 @@ class RenderEngine():
         self.default_text_font = pygame.font.SysFont(None, 24)
         self.log_messages = False
         
-        self.debug_mode = True
+        self.debug_mode = False
         
         # state variables
         self.score = None
@@ -247,7 +247,7 @@ class RenderEngine():
         self.render_lifes()
         self.render_player()
         self.render_asteroids()
-        # self.render_shots()
+        self.render_shots()
         
         return
     
@@ -426,26 +426,34 @@ class RenderEngine():
         return
     
     
-    def render_shots(self):
-        shots = self.shots
+    def render_shots(self, shots=None):
+        shots_to_render = shots
         
-        if shots != None:
-            # renderiza cada asteroide
-            for shot in shots:
-                x, y = shot['x'], shot['y']
-                x, y = self.transform_coordinates(x, y)
-                self.render_shot(x, y)
+        if shots_to_render is None:
+            shots_to_render = self.shots
+            
+        if shots_to_render is None:
+            return
+        
+        for shot in shots_to_render:
+            x, y = shot['x'], shot['y']
+            
+            self.render_shot(x, y)
 
         return
     
     
-    def render_shot(self, x, y):
+    def render_shot(self, x, y, grid_position=True):
         shot_img = self.images['shot']
-
-        size_x = self.relative_units_x(15)
-        size_y = self.relative_units_y(15)
         
-        self.draw_image(shot_img, size_x, size_y, 10, 10, 'center')
+        shot_size = self.relative_units_x(2)*size_factor
+        size_x, size_y = shot_size, shot_size
+        
+        if grid_position:
+            new_x, new_y = self.transform_coordinates(x, y)
+            self.draw_image(shot_img, new_x, new_y, size_x, size_y, 'center')
+        else:
+            self.draw_image(shot_img, x, y, size_x, size_y, 'center')
         
         return
     
@@ -506,6 +514,7 @@ class RenderEngine():
     
     def draw_image(self, image, x, y, width, height, alignment='center'):
         resized_img = pygame.transform.scale(image, (width, height))
+        width, height = resized_img.get_width(), resized_img.get_height()
         position = self.shift(x, y, width, height, alignment)
 
         self.screen.blit(resized_img, position)
@@ -554,7 +563,7 @@ class RenderEngine():
         return ru_y
     
     
-    def shift(self, x: int, y: int, width, height, alignment):
+    def shift(self, x: int, y: int, width, height, alignment='center'):
         new_x = x
         new_y = y
     
