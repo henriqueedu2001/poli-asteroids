@@ -22,15 +22,24 @@ class Artist():
     def draw_image(screen: Screen, image, x, y, width, height, alignment='center'):
         resized_img = pygame.transform.scale(image, (width, height))
         width, height = resized_img.get_width(), resized_img.get_height()
-        # position = self.shift(x, y, width, height, alignment)
+        position = Artist.shift(x, y, width, height, alignment)
 
-        screen.pygame_screen.blit(resized_img, (x, y))
+        screen.pygame_screen.blit(resized_img, position)
         
         return
     
     
     def rotate_image(image, angle):
         return pygame.transform.rotate(image, angle)
+    
+    
+    def shift(x, y, width, height, alignment='center'):
+        new_x, new_y = x, y
+        
+        if alignment == 'center':
+            new_x, new_y = x -(width/2), y - (height/2)
+        
+        return new_x, new_y
     
     
     def draw_button(screen: Screen, text, x, y, width, height, pressed='false'):
