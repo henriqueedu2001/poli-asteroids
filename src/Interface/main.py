@@ -21,17 +21,17 @@ DEFAULT_PORT_NAME = 'COM6'
 
 class Game():
   def __init__(self) -> None:
-    self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    self.clock = pygame.time.Clock()
+    self.screen = None
+    self.clock = None
     self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str=BREAK_POINT_STR)
     self.received_game_data = None
     self.text_font = None
     self.render_engine = None
-    self.log_messages = False
     self.port = None
     self.port_opened = False
+    self.debug_mode = False
     self.debug_byte_tape = ByteTape()
-    self.debug_mode = True
+    self.log_messages = True
     
 
   def start_game(self):
@@ -58,11 +58,13 @@ class Game():
           self.port_opened = True
           self.log_message('uart port started with sucess!')
         except Exception as exeption:
-          self.log_message(f'failed to start the uart.\n{exeption}')
+          self.log_message(f'failed to start the uart.\ndetails: {exeption}')
           time.sleep(2)
 
     try:
       pygame.init()
+      self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+      self.clock = pygame.time.Clock()
       self.log_message('game started with sucess!')
     except Exception as exeption:
       self.log_message('failed to start the game')
