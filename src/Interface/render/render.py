@@ -1,6 +1,14 @@
 import pygame
 import os
 
+from .screen import Screen
+from .artist import Artist
+from .render_gameplay import RenderGameplay
+from .render_initial_menu import RenderInitialMenu
+from .render_game_over import RenderGameOver
+from .render_player_scores import RenderPlayersScores
+
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
@@ -8,41 +16,19 @@ NOT_LOADED_ASTEROID_POSITION = (0, 0)
 NOT_LOADED_SHOOT_POSITION = (0, 0)
 
 GRID_SIZE = 15 # em unidades relativas
-size_factor = 1
-
-def pretty_data(data):
-    data_str = ''
+size_factor = 1 
     
-    if data == None:
-        return 'not loaded'
-    
-    score = data['score']
-    player_direction = data['player_direction']
-    lifes_quantity = data['lifes_quantity']
-    game_difficulty = data['game_difficulty']
-    asteroids_positions = data['asteroids_positions']
-    asteroids_directions = data['asteroids_directions']
-    shots_positions = data['shots_positions'] # TODO fix typo
-    shots_directions = data['shots_directions'] # TODO fix typo
-    played_special_shooting = data['played_special_shooting']
-    available_special_shooting = data['available_special_shooting']
-    played_shooting = data['played_shooting']
-    end_of_lifes = data['end_of_lifes']
-    
-    data_str = f'score = {score} player_direction = {player_direction} lifes={lifes_quantity} diff={game_difficulty}\n'
-    data_str = data_str + f'\n{asteroids_positions}'
-    
-    return data_str
-
 class RenderEngine():
-    def __init__(self, screen) -> None:
+    def __init__(self, pygame_screen) -> None:
         self.data = None
         self.loaded_data = False
-        self.screen = screen
-        self.screen_width, self.screen_height = screen.get_size()
+        self.screen = pygame_screen
+        self.screen_width, self.screen_height = pygame_screen.get_size()
         self.min_size = self.screen_width
         self.default_text_font = pygame.font.SysFont(None, 24)
         self.log_messages = False
+        
+        self.screen_class = Screen(pygame_screen, None)
         
         self.debug_mode = False
         
@@ -122,6 +108,8 @@ class RenderEngine():
                 # loading image
                 path = os.path.join(script_dir, "imgs", img_path)
                 self.images[img_key] = pygame.image.load(path)
+                
+                self.screen_class.images = self.images
                 
                 self.log_message(f'sucess in loading image {img_key}!')
                 pass
@@ -243,16 +231,24 @@ class RenderEngine():
     
     
     def render_gameplay(self):
-        self.render_score()
-        self.render_lifes()
-        self.render_player()
-        self.render_asteroids()
-        self.render_shots()
+        RenderGameplay.render(self.screen_class, self.data)
+        
+        return
+    
+        # self.render_score()
+        # self.render_lifes()
+        # self.render_player()
+        # self.render_asteroids()
+        # self.render_shots()
+            
+        RenderPlayersScores.render(self.screen, self.data)
         
         return
     
     
     def render_gameover(self, selected_option='enter_score'):
+        RenderGameOver.render(self.screen_class, self.data)
+        return
         gameover_x = self.ru_x(50)
         gameover_y = self.ru_x(20)
         
@@ -278,6 +274,9 @@ class RenderEngine():
     
     
     def render_initial_menu(self):
+        RenderInitialMenu.render(self.screen_class, self.data)
+        return
+    
         self.render_brand()
         
         return
@@ -309,6 +308,10 @@ class RenderEngine():
         
     
     def render_players_scores(self):
+        RenderPlayersScores.render(self.screen_class, self.data)
+        
+        return
+    
         center_x, center_y = self.ru_x(50), self.ru_y(50)
         scores_text_x = center_x
         scores_text_y = self.ru_y(20)
@@ -549,26 +552,6 @@ class RenderEngine():
             pygame.draw.rect(self.screen, self.colors['white'], rect, unpressed_border_size)
         
         return
-    
-    
-    def ru_x(self, x):
-        ru_x = int(x*self.screen_width/100)
-        
-        return ru_x
-    
-    
-    def ru_y(self, y):
-        ru_y = int(y*self.screen_height/100)
-        
-        return ru_y
-    
-    
-    def relative_units_x(self, x):
-        return self.ru_x(x)
-    
-    
-    def relative_units_y(self, y):
-        return self.ru_x(y)
     
     
     
