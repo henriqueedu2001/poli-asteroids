@@ -16,7 +16,7 @@ class Buffer():
         self.chunk_loading = False
     
     
-    def write_buffer(self, byte: bytes):
+    def write_buffer(self, byte: bytes, detect_break_point=True, load=True):
         """Escreve um byte no buffer
 
         Args:
@@ -27,14 +27,15 @@ class Buffer():
         index = self.index % self.buffer_size
         self.buffer[index] = real_byte
         
-        if self.is_break_point(real_byte):
-            if self.complete_chunk():
-                self.load_chunk()
-            else:
-                self.chunk_loading = False
-                pass
-            
-            self.last_break_point = index
+        if detect_break_point:
+            if self.is_break_point(real_byte):
+                if self.complete_chunk():
+                    if load: self.load_chunk()
+                else:
+                    self.chunk_loading = False
+                    pass
+                
+                self.last_break_point = index
         
         # atualiza índice
         self.index = index + 1
