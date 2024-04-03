@@ -137,7 +137,7 @@ class RenderEngine():
         self.clear_screen()
 
         # telas possíveis: initial_menu, gameplay, gameover e players_scores
-        actual_screen = 'debug'
+        actual_screen = 'gameplay'
         
         render_engines = {
             'initial_menu': self.render_initial_menu,  

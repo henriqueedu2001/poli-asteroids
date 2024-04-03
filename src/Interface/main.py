@@ -32,7 +32,8 @@ class Game():
     self.debug_mode = False
     self.debug_byte_tape = ByteTape()
     self.log_messages = True
-    
+    self.degug_count = 0
+    self.degug_count_max = 0
 
   def start_game(self):
     """Inicia o jogo poli-asteroids
@@ -42,7 +43,7 @@ class Game():
     self.log_message('starting game...')
     
     # abre a porta serial
-    uart.show_ports()
+    # uart.show_ports()
     
     if self.debug_mode:
       self.log_messages = True
@@ -92,7 +93,7 @@ class Game():
         if event.type == pygame.QUIT:
           self.log_message('player left the game')
           run = False
-
+      
       pygame.display.flip()
       
     # sair do jogo
@@ -106,15 +107,23 @@ class Game():
     # chunk = self.chunk
 
     # receber o byte da comunicação serial com a uart
-    received_byte = self.receive_byte_tape() if self.debug_mode else self.receive_uart_byte(self.port)
-
-    if received_byte != None:
-      buffer.write_buffer(received_byte)
+    # received_byte = self.receive_byte_tape() if self.debug_mode else self.receive_uart_byte(self.port)
+    
+    n_bytes = self.buffer.buffer_size
+    received_bytes = self.receive_byte_tape() if self.debug_mode else self.receive_uart_bytes(self.port, n=n_bytes)
+    
+    if received_bytes!= None:
+      for received_byte in received_bytes:
+        buffer.write_buffer(received_byte)
+      
+    # if received_byte != None:
+      # buffer.write_buffer(received_byte)
 
     if buffer.chunk_loading:
       try:
         self.buffer.chunk.slice_chunk()
         self.buffer.chunk.decode_data()
+        # self.buffer.print_buffer()
       except Exception as exeption:
         self.log_message(f'error while loading chunk\n{exeption}')
 
@@ -129,11 +138,11 @@ class Game():
       return byte
     except:
       return None
-    
-
-  def receive_uart_byte(self, port):
+  
+  
+  def receive_uart_bytes(self, port, n=256):
     try:
-      byte = uart.receive_data(port)
+      byte = uart.receive_data(port, n=n)
       return byte
     except:
       return None

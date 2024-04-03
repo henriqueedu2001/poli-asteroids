@@ -6,27 +6,34 @@ class RenderGameplay():
     shot_img_size = 20
     player_img_size = 70
     
+    def get_asteroids_pos(data):
+        if data == None:
+            return []
+        
+        positions = data['asteroids_positions'] if data is not None else None
+        
+        return positions
+    
+    
+    def get_shots_pos(data):
+        if data == None:
+            return []
+        
+        positions = data['shots_positions'] if data is not None else None
+        
+        return positions
+    
+    
     def render(screen: Screen, data):
         score = data['score'] if data is not None else 0
         player = {
             'direction': data['player_direction'] if data is not None else 'NULL'
         }
         lifes_quantity = data['lifes_quantity'] if data is not None else 3
-        asteroids = [
-            (7, 7),
-            (0, 0),
-            (15, 15),
-            (0, 15),
-            (15, 0)
-        ]
+        asteroids = RenderGameplay.get_asteroids_pos(data)
+        shots = RenderGameplay.get_shots_pos(data)
         
-        shots = [
-            (2, 4),
-            (14, 12),
-            (15, 13),
-            (2, 4),
-            (15, 0)
-        ]
+        # print(asteroids, shots)
         
         RenderGameplay.render_score(screen, score)
         RenderGameplay.render_player(screen, player)

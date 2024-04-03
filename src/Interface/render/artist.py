@@ -1,6 +1,15 @@
 import pygame
 from .screen import Screen
 
+def print_rect(rect):
+    print("center:", rect.center, end='\t')
+    print("topleft:", rect.topleft, end='\t')
+    print("rect width:", rect.width, end='\t')
+    print("rect height:", rect.height, end='\t')
+    
+    print()
+    
+
 class Artist():
     def draw_line(screen: Screen, start_point, end_point, brush_size=3):
         pygame.draw.line(screen.pygame_screen, (255, 255, 255), start_point, end_point, brush_size)
@@ -19,12 +28,15 @@ class Artist():
         return
     
     
-    def draw_image(screen: Screen, image, x, y, width, height, alignment='center'):
-        resized_img = pygame.transform.scale(image, (width, height))
-        width, height = resized_img.get_width(), resized_img.get_height()
-        position = Artist.shift(x, y, width, height, alignment)
-
-        screen.pygame_screen.blit(resized_img, position)
+    def draw_image(screen: Screen, image: pygame.Surface, x, y, width, height, alignment='center'):
+        img = image
+        img = pygame.transform.scale(image, (width, height))
+        
+        rect = pygame.Rect(x, y, width, height)
+        # pygame.draw.rect(screen.pygame_screen, (255, 0, 0), rect)
+        
+        
+        screen.pygame_screen.blit(img, rect)
         
         return
     

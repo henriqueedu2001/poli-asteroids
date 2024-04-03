@@ -35,7 +35,7 @@ def open_port(port_name: str):
     return serial_port
 
 
-def receive_data(serial_port: serial.Serial):
+def receive_data(serial_port: serial.Serial, n=1):
     """recebe um byte de dados
 
     Args:
@@ -45,7 +45,7 @@ def receive_data(serial_port: serial.Serial):
         _type_: _description_
     """
     try:
-        received_byte = serial_port.read(1)
+        received_byte = serial_port.read(n)
         if received_byte:
             # print(received_byte.hex())
             return received_byte
