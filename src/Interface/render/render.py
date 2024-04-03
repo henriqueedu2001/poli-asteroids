@@ -253,20 +253,20 @@ class RenderEngine():
     
     
     def render_gameover(self, selected_option='enter_score'):
-        gameover_x = self.relative_units_x(50)
-        gameover_y = self.relative_units_x(20)
+        gameover_x = self.ru_x(50)
+        gameover_y = self.ru_x(20)
         
         self.draw_text('G A M E O V E R', pygame.font.SysFont(None, 52), self.colors['white'], gameover_x, gameover_y, 'center')
         
-        vertical_spacing = self.relative_units_x(15)
-        button_width = self.relative_units_x(60)
-        button_height = self.relative_units_x(12)
+        vertical_spacing = self.ru_x(15)
+        button_width = self.ru_x(60)
+        button_height = self.ru_x(12)
         
-        enter_score_x = self.relative_units_x(50)
-        enter_score_y = self.relative_units_y(50)
+        enter_score_x = self.ru_x(50)
+        enter_score_y = self.ru_y(50)
         
-        back_to_menu_x = self.relative_units_x(50)
-        back_to_menu_y = self.relative_units_y(50) + vertical_spacing
+        back_to_menu_x = self.ru_x(50)
+        back_to_menu_y = self.ru_y(50) + vertical_spacing
         
         
         enter_score_selected = True if selected_option == 'enter_score' else False
@@ -284,8 +284,8 @@ class RenderEngine():
     
     
     def render_brand(self):
-        x = self.relative_units_x(50)
-        y = self.relative_units_y(20)
+        x = self.ru_x(50)
+        y = self.ru_y(20)
         self.draw_text('A S T R O G E N I U S', pygame.font.SysFont(None, 52), self.colors['white'], x, y, 'center')
         self.render_initial_menu_buttons(selected_option='start')
         
@@ -293,12 +293,12 @@ class RenderEngine():
     
     
     def render_initial_menu_buttons(self, selected_option='start'):
-        x = self.relative_units_x(50)
-        y = self.relative_units_y(50)
+        x = self.ru_x(50)
+        y = self.ru_y(50)
         
-        width = self.relative_units_x(60)
-        height = self.relative_units_x(12)
-        vertical_spacing = self.relative_units_x(15)
+        width = self.ru_x(60)
+        height = self.ru_x(12)
+        vertical_spacing = self.ru_x(15)
         
         # destacar botão selecionado pelo jogador
         start_selected = True if selected_option == 'start' else False
@@ -309,14 +309,14 @@ class RenderEngine():
         
     
     def render_players_scores(self):
-        center_x, center_y = self.relative_units_x(50), self.relative_units_y(50)
+        center_x, center_y = self.ru_x(50), self.ru_y(50)
         scores_text_x = center_x
-        scores_text_y = self.relative_units_y(20)
+        scores_text_y = self.ru_y(20)
         
         column_start_y = center_y
-        column_margin_y = self.relative_units_y(5)
-        column_spacing_x = self.relative_units_x(20)
-        column_spacing_y = self.relative_units_y(5)
+        column_margin_y = self.ru_y(5)
+        column_spacing_x = self.ru_x(20)
+        column_spacing_y = self.ru_y(5)
         left_column_x = center_x - column_spacing_x
         right_column_x = center_x + column_spacing_x
         
@@ -342,8 +342,8 @@ class RenderEngine():
     def render_score(self):
         score = self.score
         
-        x = self.relative_units_x(3)
-        y = self.relative_units_y(3)
+        x = self.ru_x(3)
+        y = self.ru_y(3)
         
         font = pygame.font.SysFont(None, 24)
         
@@ -354,11 +354,11 @@ class RenderEngine():
     
     
     def render_lifes(self):      
-        x_base = self.relative_units_x(3)
-        y_base = self.relative_units_x(6)    
-        x_spacing = self.relative_units_x(6)
+        x_base = self.ru_x(3)
+        y_base = self.ru_x(6)    
+        x_spacing = self.ru_x(6)
         
-        life_size = self.relative_units_x(8)
+        life_size = self.ru_x(8)
         size_x, size_y = life_size, life_size
         
         try:
@@ -383,9 +383,9 @@ class RenderEngine():
         player_direction = self.player_direction
         space_ship_img = self.images['space_ship']
         
-        space_ship_size = self.relative_units_x(10)*size_factor
-        x_center = self.relative_units_x(50)
-        y_center = self.relative_units_y(50)
+        space_ship_size = self.ru_x(10)*size_factor
+        x_center = self.ru_x(50)
+        y_center = self.ru_y(50)
         size_x, size_y = space_ship_size, space_ship_size
         
         # definição do ângulo, em função da direção
@@ -446,7 +446,7 @@ class RenderEngine():
     def render_shot(self, x, y, grid_position=True):
         shot_img = self.images['shot']
         
-        shot_size = self.relative_units_x(2)*size_factor
+        shot_size = self.ru_x(2)*size_factor
         size_x, size_y = shot_size, shot_size
         
         if grid_position:
@@ -458,13 +458,13 @@ class RenderEngine():
         return
     
     
-    def render_asteroid(self, x, y, asset_index=0, grid_position=True):
+    def render_asteroid(self, x, y, asset_index=0, in_grid=True):
         asteroid_img = self.get_asteroid_asset(asset_index)
         
-        asteroid_size = self.relative_units_x(5)*size_factor
+        asteroid_size = self.ru_x(5)*size_factor
         size_x, size_y = asteroid_size, asteroid_size
         
-        if grid_position:
+        if in_grid:
             new_x, new_y = self.transform_coordinates(x, y)
             self.draw_image(asteroid_img, new_x, new_y, size_x, size_y, 'center')
         else:
@@ -483,8 +483,8 @@ class RenderEngine():
     def transform_coordinates(self, x, y):
         new_x, new_y = 0, 0
         width, height = self.screen_width, self.screen_height
-        horizontal_margin = self.relative_units_x(20)
-        vertical_margin = self.relative_units_y(20)
+        horizontal_margin = self.ru_x(20)
+        vertical_margin = self.ru_y(20)
         
         w, h, hm, vm = width, height, horizontal_margin, vertical_margin
         
@@ -551,16 +551,25 @@ class RenderEngine():
         return
     
     
-    def relative_units_x(self, x):
+    def ru_x(self, x):
         ru_x = int(x*self.screen_width/100)
         
         return ru_x
     
     
-    def relative_units_y(self, y):
+    def ru_y(self, y):
         ru_y = int(y*self.screen_height/100)
         
         return ru_y
+    
+    
+    def relative_units_x(self, x):
+        return self.ru_x(x)
+    
+    
+    def relative_units_y(self, y):
+        return self.ru_x(y)
+    
     
     
     def shift(self, x: int, y: int, width, height, alignment='center'):
@@ -578,29 +587,58 @@ class RenderEngine():
         return new_x, new_y
     
     
-    def draw_grid(self):
-        start = (self.relative_units_x(50), self.relative_units_y(0))
-        end = (self.relative_units_x(50), self.relative_units_y(100))
+    def draw_debug_axis(self):
+        start = (self.ru_x(50), self.ru_y(0))
+        end = (self.ru_x(50), self.ru_y(100))
         self.draw_line(start, end)
         
-        start = (self.relative_units_x(0), self.relative_units_y(50))
-        end = (self.relative_units_x(100), self.relative_units_y(50))
+        start = (self.ru_x(0), self.ru_y(50))
+        end = (self.ru_x(100), self.ru_y(50))
         self.draw_line(start, end)
+        
+        return
+
+
+    def draw_debug_grid(self, grid=True, axis=True, debug_image=False):
+        n = 16
+        delta_x = 100/n
+        delta_y = 100/n
+        
+        if grid:
+            # desenha linhas verticais
+            for i in range(n + 1):
+                start = self.ru_x(delta_x*i), self.ru_y(0)
+                end = self.ru_x(delta_x*i), self.ru_y(100)
+                
+                self.draw_line(start, end)
+            
+            # desenha linhas horizontais
+            for i in range(n + 1):
+                start = self.ru_x(0), self.ru_y(delta_y*i)
+                end = self.ru_x(100), self.ru_y(delta_y*i)
+                
+                self.draw_line(start, end)
+        
+        if axis and not grid:
+            self.draw_debug_axis()
+            
+        if debug_image:
+            for i in range(16):
+                for j in range(16):
+                    x = self.ru_x(i*delta_x)
+                    y = self.ru_y(j*delta_y)
+                    
+                    self.render_asteroid(x, y, asset_index=(i+j)%8, in_grid=False)
+                    self.render_shot(x, y, grid_position=True)
+            pass
         
         return
     
     
     def render_debug(self):
-        data = pretty_data(self.data)
+        game_data = self.data
         
-        x, y = self.relative_units_x(10), self.relative_units_y(80)
-        self.draw_text(data, self.default_text_font, self.colors['white'], x, y, 'topleft')
-        
-        self.draw_grid()
-        
-        # for i in range(16):
-        #     for j in range(16):
-        #         self.render_asteroid(i, j, asset_index=(i+j)%8)
+        self.draw_debug_grid(grid=True, axis=False, debug_image=True)
         
         return
     
