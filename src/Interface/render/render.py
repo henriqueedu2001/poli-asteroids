@@ -8,6 +8,7 @@ NOT_LOADED_ASTEROID_POSITION = (0, 0)
 NOT_LOADED_SHOOT_POSITION = (0, 0)
 
 GRID_SIZE = 15 # em unidades relativas
+size_factor = 3
 
 def pretty_data(data):
     data_str = ''
@@ -382,7 +383,7 @@ class RenderEngine():
         player_direction = self.player_direction
         space_ship_img = self.images['space_ship']
         
-        space_ship_size = self.relative_units_x(10)
+        space_ship_size = self.relative_units_x(10)*size_factor
         x_center = self.relative_units_x(50)
         y_center = self.relative_units_y(50)
         size_x, size_y = space_ship_size, space_ship_size
@@ -452,7 +453,7 @@ class RenderEngine():
     def render_asteroid(self, x, y, asset_index=0, grid_position=True):
         asteroid_img = self.get_asteroid_asset(asset_index)
         
-        asteroid_size = self.relative_units_x(5)
+        asteroid_size = self.relative_units_x(5)*size_factor
         size_x, size_y = asteroid_size, asteroid_size
         
         if grid_position:
