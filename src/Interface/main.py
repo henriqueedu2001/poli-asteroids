@@ -69,6 +69,7 @@ class Game():
     # uart
     self.port = None
     self.port_opened = False
+    self.port_name = game_config['serial_port']
     
 
   def start_game(self):
@@ -99,7 +100,7 @@ class Game():
     else:
       while self.port_opened == False:
         try:
-          self.port = uart.open_port(port_name=DEFAULT_PORT_NAME)
+          self.port = uart.open_port(port_name=self.port_name)
           self.port_opened = True
           self.log_message('uart port started with sucess!')
         except Exception as exeption:
