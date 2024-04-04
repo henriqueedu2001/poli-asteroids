@@ -13,9 +13,9 @@ from . testing.read_byte_tape import get_byte_tape
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 600
 
-BUFFER_SIZE = 256
-CHUNK_SIZE = 45
-BREAK_POINT_STR = b'\x41\x41'
+BUFFER_SIZE = 204
+CHUNK_SIZE = 51
+BREAK_POINT_STR = b'\x41\x41\x41\x41\x41\x41\x41\x41'
 DEFAULT_PORT_NAME = 'COM6'
 DEBUG_BYTE_TAPE = 'in_default'
 
@@ -25,7 +25,9 @@ DEFAULT_GAME_CONFIG = {
   'serial_port': 'COM6',
   'mode': 'gameplay',
   'byte_tape': 'in_default',
-  'delay': 0
+  'delay': 0,
+  'print_buffer': False,
+  'print_chunk': False
 }
 
 DEFAULT_RENDER_CONFIG = {
@@ -46,6 +48,8 @@ class Game():
     self.log_messages = True
     self.degug_count = 0
     self.degug_count_max = 0
+    self.print_buffer = self.game_config['print_buffer']
+    self.print_chunk = self.game_config['print_chunk']
     
     # pygame parameters
     self.screen = None
@@ -109,7 +113,10 @@ class Game():
 
     try:
       pygame.init()
-      self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+      width = self.game_config['screen_widht']
+      heigth = self.game_config['screen_heigth']
+      
+      self.screen = pygame.display.set_mode((width, heigth))
       self.clock = pygame.time.Clock()
       self.log_message('game started with sucess!')
     except Exception as exeption:
@@ -167,7 +174,16 @@ class Game():
       try:
         self.buffer.chunk.slice_chunk()
         self.buffer.chunk.decode_data()
-        # self.buffer.print_buffer()
+        
+        if self.print_chunk:
+          self.buffer.chunk.print_chunk()
+          print()
+        
+        if self.print_buffer:
+          self.buffer.chunk.print_chunk()
+          print()
+        
+        
       except Exception as exeption:
         self.log_message(f'error while loading chunk\n{exeption}')
 

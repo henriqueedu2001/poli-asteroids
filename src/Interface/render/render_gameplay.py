@@ -73,8 +73,8 @@ class RenderGameplay():
         direction = player['direction']
         img = screen.images['space_ship']
         
-        x = screen.ru_x(50)
-        y = screen.ru_x(50)
+        x = screen.grid_x(7)
+        y = screen.grid_y(7)
         size = screen.ru_size(RenderGameplay.player_img_size)
         angle = 0
         

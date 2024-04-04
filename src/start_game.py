@@ -13,13 +13,15 @@ from Interface.main import Game
 #   depuração: 'debug'
 
 GAME_CONFIG = {
-  'screen_widht': 800,
+  'screen_widht': 1200,
   'screen_heigth': 800,
-  'serial_port': 'COM6',
-  'mode': 'debug',
+  'serial_port': 'COM3',
+  'mode': 'gameplay',
   'debug_screen': 'gameplay',
   'byte_tape': 'in_default',
-  'delay': 0.01
+  'delay': 0.00,
+  'print_buffer': False,
+  'print_chunk': True
 }
 
 
