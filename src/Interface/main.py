@@ -16,28 +16,56 @@ SCREEN_HEIGHT = 600
 BUFFER_SIZE = 256
 CHUNK_SIZE = 45
 BREAK_POINT_STR = b'\x41\x41'
-
 DEFAULT_PORT_NAME = 'COM6'
-
 DEBUG_BYTE_TAPE = 'in_default'
 
+DEFAULT_GAME_CONFIG = {
+  'screen_widht': 800,
+  'screen_heigth': 800,
+  'serial_port': 'COM6',
+  'mode': 'gameplay',
+  'byte_tape': 'in_default',
+}
+
+DEFAULT_RENDER_CONFIG = {
+    'render_mode': 'gameplay'
+}
+
 class Game():
-  def __init__(self) -> None:
-    self.screen = None
-    self.clock = None
-    self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str=BREAK_POINT_STR)
-    self.received_game_data = None
-    self.menu_byte = None
-    self.text_font = None
-    self.render_engine = None
-    self.port = None
-    self.port_opened = False
-    self.debug_mode = True
-    self.debug_byte_tape_name = DEBUG_BYTE_TAPE
+  def __init__(self, game_config=DEFAULT_GAME_CONFIG, render_config=DEFAULT_RENDER_CONFIG) -> None:
+    self.game_config = game_config
+    
+    # debugging
+    self.debug_mode = True if self.game_config['mode'] == 'debug' else False
+    self.debug_byte_tape_name = self.game_config['byte_tape'] if self.game_config['byte_tape'] else DEBUG_BYTE_TAPE
     self.debug_byte_tape = ByteTape()
     self.log_messages = True
     self.degug_count = 0
     self.degug_count_max = 0
+    
+    # pygame parameters
+    self.screen = None
+    self.clock = None
+    
+    # buffer
+    self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str=BREAK_POINT_STR)
+    self.received_game_data = None
+    self.menu_byte = None
+    
+    # render
+    self.render_config = render_config
+    self.render_engine = None
+    self.text_font = None
+    
+    self.actual_screen = 'gameplay'
+    
+    if self.debug_mode:
+      self.actual_screen = self.game_config['debug_screen']
+    
+    # uart
+    self.port = None
+    self.port_opened = False
+    
 
   def start_game(self):
     """Inicia o jogo poli-asteroids
@@ -46,15 +74,23 @@ class Game():
     # inicia o jogo
     self.log_message('starting game...')
     
+    # configuração do jogo
+    self.log_message(f'game config: {self.game_config}')
+    self.log_message(f'render config: {self.render_config}')
+    
     # abre a porta serial
     # uart.show_ports()
     
     if self.debug_mode:
+      self.log_message('debug mode activated')
       self.log_messages = True
-      self.log_message('loading byte tape')
       
-      self.debug_byte_tape.load_tape(self.debug_byte_tape_name)
-      self.log_message('byte tape loaded')
+      try:
+        self.log_message('loading byte tape...')
+        self.debug_byte_tape.load_tape(self.debug_byte_tape_name)
+        self.log_message('byte tape loaded')
+      except Exception as execption:
+        self.log_message(f'failed to load byte tape\n error: {execption}')
     
     else:
       while self.port_opened == False:
@@ -75,7 +111,7 @@ class Game():
       self.log_message('failed to start the game')
     
     
-    self.render_engine = RenderEngine(self.screen)
+    self.render_engine = RenderEngine(self.screen, actual_screen=self.actual_screen, config=self.render_config)
     
     # roda o jogo
     self.run_game()

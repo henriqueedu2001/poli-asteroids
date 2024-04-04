@@ -18,12 +18,19 @@ NOT_LOADED_SHOOT_POSITION = (0, 0)
 
 GRID_SIZE = 15 # em unidades relativas
 size_factor = 1 
+
+DEFAULT_CONFIG = {
+    'render_mode': 'gameplay'
+}
     
 class RenderEngine():
-    def __init__(self, pygame_screen) -> None:
+    def __init__(self, pygame_screen, actual_screen='gameplay', config=DEFAULT_CONFIG) -> None:
+        self.config = config
+        self.render_mode = config['render_mode']
         self.data = None
         self.loaded_data = False
         self.screen = pygame_screen
+        self.actual_screen = actual_screen
         self.screen_width, self.screen_height = pygame_screen.get_size()
         self.min_size = self.screen_width
         self.default_text_font = pygame.font.SysFont(None, 24)
@@ -137,7 +144,10 @@ class RenderEngine():
         self.clear_screen()
 
         # telas possíveis: initial_menu, gameplay, gameover e players_scores
-        actual_screen = 'debug'
+        if self.render_mode == 'debug':
+            self.actual_screen = 'debug'
+        
+        actual_screen = self.actual_screen
         
         render_engines = {
             'initial_menu': self.render_initial_menu,  
