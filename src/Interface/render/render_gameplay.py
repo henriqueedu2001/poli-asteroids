@@ -2,9 +2,10 @@ from .screen import Screen
 from .artist import Artist
 
 class RenderGameplay():
-    asteroid_img_size = 70
-    shot_img_size = 20
-    player_img_size = 70
+    asteroid_img_size = 7
+    shot_img_size = 2
+    player_img_size = 12
+    life_img_size = 8
     
     def get_asteroids_pos(data):
         if data == None:
@@ -56,11 +57,14 @@ class RenderGameplay():
     def render_lifes(screen: Screen, lifes_quantity):
         img = screen.images['life']
         
+        offset_x, offset_y = screen.ru_size(5), screen.ru_size(10)
+        life_size = screen.ru_size(RenderGameplay.life_img_size)
+        x_spacing = screen.ru_x(7)
+        
         for i in range(lifes_quantity):
-            x_spacing = screen.ru_x(i*4.5)
-            x = screen.ru_x(3) + x_spacing
-            y = screen.ru_y(6)
-            Artist.draw_image(screen, img, x, y, 40, 40)
+            x = offset_x + x_spacing*i
+            y = offset_y
+            Artist.draw_image(screen, img, x, y, life_size, life_size)
         
         return
 
@@ -71,7 +75,7 @@ class RenderGameplay():
         
         x = screen.ru_x(50)
         y = screen.ru_x(50)
-        size = RenderGameplay.player_img_size
+        size = screen.ru_size(RenderGameplay.player_img_size)
         angle = 0
         
         if direction == 'UP':
@@ -107,7 +111,7 @@ class RenderGameplay():
     
     def render_asteroid(screen: Screen, x, y, asset_index=0):
         img = RenderGameplay.get_asteroid_asset(asset_index, screen.images)
-        size = RenderGameplay.asteroid_img_size
+        size = screen.ru_size(RenderGameplay.asteroid_img_size)
         
         Artist.draw_image(screen, img, x, y, size, size)
         
@@ -136,7 +140,7 @@ class RenderGameplay():
     
     def render_shot(screen: Screen, x, y):
         img = screen.images['shot']
-        size = RenderGameplay.shot_img_size
+        size = screen.ru_size(RenderGameplay.shot_img_size)
         
         Artist.draw_image(screen, img, x, y, size, size)
         

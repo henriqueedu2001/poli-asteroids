@@ -11,8 +11,8 @@ def print_rect(rect):
     
 
 class Artist():
-    def draw_line(screen: Screen, start_point, end_point, brush_size=3):
-        pygame.draw.line(screen.pygame_screen, (255, 255, 255), start_point, end_point, brush_size)
+    def draw_line(screen: Screen, start_point, end_point, color=(255, 255, 255), brush_size=1):
+        pygame.draw.line(screen.pygame_screen, color, start_point, end_point, brush_size)
         
         return
     

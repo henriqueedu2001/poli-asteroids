@@ -25,6 +25,7 @@ DEFAULT_GAME_CONFIG = {
   'serial_port': 'COM6',
   'mode': 'gameplay',
   'byte_tape': 'in_default',
+  'delay': 0
 }
 
 DEFAULT_RENDER_CONFIG = {
@@ -34,6 +35,9 @@ DEFAULT_RENDER_CONFIG = {
 class Game():
   def __init__(self, game_config=DEFAULT_GAME_CONFIG, render_config=DEFAULT_RENDER_CONFIG) -> None:
     self.game_config = game_config
+    
+    # delay
+    self.delay = self.game_config['delay']
     
     # debugging
     self.debug_mode = True if self.game_config['mode'] == 'debug' else False
@@ -125,7 +129,7 @@ class Game():
     run = True
     
     while run:
-      self.receive_data(delay=0.0)
+      self.receive_data(delay=self.delay)
       self.render()
 
       for event in pygame.event.get():

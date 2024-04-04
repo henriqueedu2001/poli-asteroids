@@ -2,6 +2,11 @@ from .screen import Screen
 from .artist import Artist
 
 class RenderDebug():
+    asteroid_img_size = 7
+    shot_img_size = 3
+    player_img_size = 12
+    life_img_size = 8
+    
     def render(screen: Screen, data):
         RenderDebug.draw_title(screen)
         RenderDebug.draw_axis(screen)
@@ -9,7 +14,7 @@ class RenderDebug():
         RenderDebug.draw_inner_grid_lines(screen)
         # RenderDebug.draw_img(screen, 'space_ship', 300, 300, 200, 200)
         RenderDebug.draw_player(screen)
-        # RenderDebug.draw_img_grid(screen, inner_grid=True)
+        RenderDebug.draw_img_grid(screen, img_name='asteroid_01', n=16, img_size=7, inner_grid=True)
         
         return
     
@@ -52,8 +57,8 @@ class RenderDebug():
         delta_x = 100/n
         delta_y = 100/n
         
-        for i in range(n+1):
-            for j in range(n+1):
+        for i in range(n):
+            for j in range(n):
                 if inner_grid:                    
                     x = screen.grid_x(i)
                     y = screen.grid_y(j)
@@ -66,29 +71,24 @@ class RenderDebug():
         return positions
                 
                 
-    def draw_img_grid(screen: Screen, img_size=10, n: int = 8, inner_grid=False):
-        grid = RenderDebug.grid_positions(screen, n=n-1, inner_grid=inner_grid)
+    def draw_img_grid(screen: Screen, img_name='space_ship', img_size=10, n: int = 8, inner_grid=False):
+        size = screen.ru_y(img_size)
+        size_x, size_y = size, size
         
-        size = screen.ru_x(img_size)
-        # print('-------------------------------------')
-        
-        for pos in grid:
-            x, y = pos
-            
-            width, height = size, size
-            
-            # print(f'{x} {y} {width} {height}')
-            RenderDebug.draw_img(screen, 'space_ship', x, y, width, height)
+        for i in range(n-1):
+            for j in range(n-1):
+                x, y = screen.grid_x(i), screen.grid_y(j)
+                RenderDebug.draw_img(screen, img_name, x, y, size_x, size_y)
         
         return
     
     
-    def draw_inner_grid_lines(screen: Screen, n=15):
+    def draw_inner_grid_lines(screen: Screen, n=16):
         
         # linhas horizontais
-        for i in range(n):
+        for i in range(n-1):
             x_left = screen.grid_x(0)
-            x_right = screen.grid_x(15)
+            x_right = screen.grid_x(14)
             y_i = screen.grid_y(i)
             
             start = (x_left, y_i)
@@ -97,9 +97,9 @@ class RenderDebug():
             Artist.draw_line(screen, start, end)
         
         # linhas verticais
-        for i in range(n):
+        for i in range(n-1):
             x_i = screen.grid_x(i)
-            y_top = screen.grid_y(15)
+            y_top = screen.grid_y(14)
             y_botom = screen.grid_y(0)
             
             start = (x_i, y_top)
