@@ -19,6 +19,8 @@ BREAK_POINT_STR = b'\x41\x41'
 
 DEFAULT_PORT_NAME = 'COM6'
 
+DEBUG_BYTE_TAPE = 'in_default'
+
 class Game():
   def __init__(self) -> None:
     self.screen = None
@@ -30,7 +32,8 @@ class Game():
     self.render_engine = None
     self.port = None
     self.port_opened = False
-    self.debug_mode = False
+    self.debug_mode = True
+    self.debug_byte_tape_name = DEBUG_BYTE_TAPE
     self.debug_byte_tape = ByteTape()
     self.log_messages = True
     self.degug_count = 0
@@ -50,7 +53,7 @@ class Game():
       self.log_messages = True
       self.log_message('loading byte tape')
       
-      self.debug_byte_tape.load_tape()
+      self.debug_byte_tape.load_tape(self.debug_byte_tape_name)
       self.log_message('byte tape loaded')
     
     else:
@@ -116,34 +119,6 @@ class Game():
     received_bytes = self.receive_byte_tape() if self.debug_mode else self.receive_uart_bytes(self.port, n=n_bytes)
     
     if received_bytes!= None:
-      if len(received_bytes) == 1:
-        self.menu_byte = BinaryHandler.get_byte(received_bytes[0])
-        
-        byte_initial_menu = BinaryHandler.get_byte(b'\xf0')
-        byte_gameplay = BinaryHandler.get_byte(b'\xf4')
-        byte_gameover = BinaryHandler.get_byte(b'\xf5')
-        byte_players_scores = BinaryHandler.get_byte(b'\xf1')
-        
-        print(f'menu byte encoding:')
-        print(f'\t byte_initial_menu={byte_initial_menu}')
-        print(f'\t byte_gameplay={byte_gameplay}')
-        print(f'\t byte_gameover={byte_gameover}')
-        print(f'\t byte_players_scores={byte_players_scores}')
-        print(f'menu_byte = {self.menu_byte}\tscreen = ', end=' ')
-        
-        if self.menu_byte == byte_initial_menu:
-          print('início')
-        elif self.menu_byte == byte_gameplay:
-          print('gameplay')
-        elif self.menu_byte == byte_gameover:
-          print('gameover')
-        elif self.menu_byte == byte_players_scores:
-          print('gameover')
-        else:
-          print('not valid menu byte')
-
-        
-        pass
       for received_byte in received_bytes:
         buffer.write_buffer(received_byte)
 

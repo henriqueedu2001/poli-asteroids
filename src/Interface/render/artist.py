@@ -28,15 +28,25 @@ class Artist():
         return
     
     
-    def draw_image(screen: Screen, image: pygame.Surface, x, y, width, height, alignment='center'):
+    def draw_rect(screen: Screen, x, y, width, height):
+        border_radius = 3
+        rect = pygame.Rect(x, y, width, height)
+        pygame.draw.rect(screen.pygame_screen, (255, 0, 0), rect, border_radius=border_radius)
+        
+    
+    def draw_image(screen: Screen, image: pygame.Surface, x, y, width, height, border=True, alignment='center'):
         img = image
         img = pygame.transform.scale(image, (width, height))
         
-        rect = pygame.Rect(x, y, width, height)
-        # pygame.draw.rect(screen.pygame_screen, (255, 0, 0), rect)
+        offset_x = -width//2
+        offset_y = -height//2
         
+        abs_x, abs_y = x + offset_x, y + offset_y
         
-        screen.pygame_screen.blit(img, rect)
+        if border:
+            Artist.draw_rect(screen, abs_x, abs_y, width, height)
+        
+        screen.pygame_screen.blit(img, (abs_x, abs_y))
         
         return
     
