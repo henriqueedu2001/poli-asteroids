@@ -42,11 +42,12 @@ class Artist():
         offset_y = -height//2
         
         abs_x, abs_y = x + offset_x, y + offset_y
+        img_pos = (abs_x, abs_y)
         
         if border:
             Artist.draw_rect(screen, abs_x, abs_y, width, height)
         
-        screen.pygame_screen.blit(img, (abs_x, abs_y))
+        screen.pygame_screen.blit(img, img_pos)
         
         return
     
