@@ -72,17 +72,17 @@ class RenderEngine():
         }
         
         self.images_paths = {
-            'life': 'heart.svg',
-            'space_ship': 'space_ship.svg',
-            'shot': 'shot.svg',
-            'asteroid_01': 'asteroid_01.svg',
-            'asteroid_02': 'asteroid_02.svg',
-            'asteroid_03': 'asteroid_03.svg',
-            'asteroid_04': 'asteroid_04.svg',
-            'asteroid_05': 'asteroid_05.svg',
-            'asteroid_06': 'asteroid_06.svg',
-            'asteroid_07': 'asteroid_07.svg',
-            'asteroid_08': 'asteroid_08.svg'
+            'life': 'heart.png',
+            'space_ship': 'space_ship.png',
+            'shot': 'shot.png',
+            'asteroid_01': 'asteroid_01.png',
+            'asteroid_02': 'asteroid_02.png',
+            'asteroid_03': 'asteroid_03.png',
+            'asteroid_04': 'asteroid_04.png',
+            'asteroid_05': 'asteroid_05.png',
+            'asteroid_06': 'asteroid_06.png',
+            'asteroid_07': 'asteroid_07.png',
+            'asteroid_08': 'asteroid_08.png'
         }
         
         self.db_index = 0
@@ -137,7 +137,7 @@ class RenderEngine():
         self.clear_screen()
 
         # telas possíveis: initial_menu, gameplay, gameover e players_scores
-        actual_screen = 'gameplay'
+        actual_screen = 'debug'
         
         render_engines = {
             'initial_menu': self.render_initial_menu,  
