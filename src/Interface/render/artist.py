@@ -34,7 +34,7 @@ class Artist():
         pygame.draw.rect(screen.pygame_screen, (255, 0, 0), rect, border_radius=border_radius)
         
     
-    def draw_image(screen: Screen, image: pygame.Surface, x, y, width, height, border=True, alignment='center'):
+    def draw_image(screen: Screen, image: pygame.Surface, x, y, width, height, border=False, alignment='center'):
         img = image
         img = pygame.transform.scale(image, (width, height))
         

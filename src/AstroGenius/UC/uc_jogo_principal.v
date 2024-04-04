@@ -71,7 +71,7 @@ module uc_jogo_principal (
                 espera_enviar_dados:  proximo_estado = fim_movimentacao_asteroides_e_tiros ? fim_jogo : espera_enviar_dados;
                 registra_jogada:      proximo_estado = espera_salvamento;
                 espera_salvamento:    proximo_estado = espera_salvamento2; 
-                espera_salvamento2: proximo_estado   = ~vidas ? fim_jogo : 
+                espera_salvamento2:   proximo_estado = ~vidas ? fim_jogo : 
                                                         ((ocorreu_tiro && rco_intervalo_tiro) || (ocorreu_especial  && rco_intervalo_especial))  ? termina_movimentacao_asteroides_e_tiros : espera_jogada;
                 termina_movimentacao_asteroides_e_tiros: proximo_estado = (fim_movimentacao_asteroides_e_tiros && ~vidas            )? fim_jogo :
                                                                           (fim_movimentacao_asteroides_e_tiros && vidas && especial && rco_intervalo_especial)? inicia_state_registra_especial :
