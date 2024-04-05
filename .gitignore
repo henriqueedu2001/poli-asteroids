@@ -25,5 +25,5 @@ transcript
 db/*
 !*.dig
 
-# ignorar main
-src/Interface/main.py
+# ignorar start_game
+src/start_game.py
