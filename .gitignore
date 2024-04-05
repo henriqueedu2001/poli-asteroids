@@ -24,3 +24,6 @@ _vmake
 transcript
 db/*
 !*.dig
+
+# ignorar main
+src/Interface/main.py
