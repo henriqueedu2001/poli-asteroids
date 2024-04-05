@@ -4,6 +4,8 @@ import time
 import serial.tools
 import serial.tools.list_ports
 
+from . binary_handler import BinaryHandler
+
 DEFAULT_PORT_NAME = 'COM15'
 
 def show_ports():
@@ -35,7 +37,7 @@ def open_port(port_name: str):
     return serial_port
 
 
-def receive_data(serial_port: serial.Serial, n=1):
+def receive_data(serial_port: serial.Serial, n=1, print_data=True):
     """recebe um byte de dados
 
     Args:
@@ -45,13 +47,13 @@ def receive_data(serial_port: serial.Serial, n=1):
         _type_: _description_
     """
     try:
-        received_byte = serial_port.read(n)
-        if received_byte:
-            # print(received_byte.hex())
-            return received_byte
+        received_bytes = serial_port.read(n)
+        if received_bytes:
+            BinaryHandler.print_byte_data(received_bytes)
+            return received_bytes
+        
     except:
         return None
-        pass
 
     return None
 

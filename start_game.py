@@ -15,13 +15,14 @@ from src.Interface.main import Game
 GAME_CONFIG = {
   'screen_widht': 700,
   'screen_heigth': 700,
-  'serial_port': 'COM6',
+  'serial_port': 'COM24',
   'mode': 'gameplay',
   'debug_screen': 'gameplay',
   'byte_tape': 'in_default',
   'delay': 0.00,
   'print_buffer': False,
-  'print_chunk': False
+  'print_chunk': False,
+  'print_uart': False
 }
 
 

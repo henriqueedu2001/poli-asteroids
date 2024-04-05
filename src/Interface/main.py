@@ -27,7 +27,8 @@ DEFAULT_GAME_CONFIG = {
   'byte_tape': 'in_default',
   'delay': 0,
   'print_buffer': False,
-  'print_chunk': False
+  'print_chunk': False,
+  'print_uart': False
 }
 
 DEFAULT_RENDER_CONFIG = {
@@ -50,6 +51,7 @@ class Game():
     self.degug_count_max = 0
     self.print_buffer = self.game_config['print_buffer']
     self.print_chunk = self.game_config['print_chunk']
+    self.print_uart = self.game_config['print_uart']
     
     # pygame parameters
     self.screen = None
@@ -164,7 +166,7 @@ class Game():
     # received_byte = self.receive_byte_tape() if self.debug_mode else self.receive_uart_byte(self.port)
     
     n_bytes = self.buffer.buffer_size
-    received_bytes = self.receive_byte_tape() if self.debug_mode else self.receive_uart_bytes(self.port, n=n_bytes)
+    received_bytes = self.receive_byte_tape() if self.debug_mode else self.receive_uart_bytes(self.port, n=n_bytes, print_data=self.print_uart)
     
     if received_bytes!= None:
       for received_byte in received_bytes:
@@ -200,9 +202,9 @@ class Game():
       return None
   
   
-  def receive_uart_bytes(self, port, n=256):
+  def receive_uart_bytes(self, port, n=256, print_data=False):
     try:
-      byte = uart.receive_data(port, n=n)
+      byte = uart.receive_data(port, n=n, print_data=print_data)
       return byte
     except:
       return None
