@@ -16,7 +16,7 @@ GAME_CONFIG = {
   'screen_widht': 700,
   'screen_heigth': 700,
   'serial_port': 'COM6',
-  'mode': 'debug',
+  'mode': 'gameplay',
   'debug_screen': 'gameplay',
   'byte_tape': 'in_default',
   'delay': 0.00,
