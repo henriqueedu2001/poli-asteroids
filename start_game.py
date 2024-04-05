@@ -1,4 +1,4 @@
-from Interface.main import Game
+from src.Interface.main import Game
 
 # modos: 
 # depuração: 'debug'
