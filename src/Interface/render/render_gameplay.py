@@ -133,7 +133,10 @@ class RenderGameplay():
                 x = screen.grid_x(x_index)
                 y = screen.grid_y(y_index)
                 
-                RenderGameplay.render_shot(screen, x, y)
+                if x_index == 7 and y_index == 7:
+                    pass
+                else:
+                    RenderGameplay.render_shot(screen, x, y)
                 
         return
     

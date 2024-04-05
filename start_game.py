@@ -13,9 +13,9 @@ from src.Interface.main import Game
 #   depuração: 'debug'
 
 GAME_CONFIG = {
-  'screen_widht': 700,
-  'screen_heigth': 700,
-  'serial_port': 'COM24',
+  'screen_widht': 1550, #tamanho bom para pc do Felipe : 1550
+  'screen_heigth': 900, #tamanho bom para pc do Felipe : 900
+  'serial_port': 'COM4',
   'mode': 'gameplay',
   'debug_screen': 'gameplay',
   'byte_tape': 'in_default',

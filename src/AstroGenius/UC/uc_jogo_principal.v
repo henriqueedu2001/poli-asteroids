@@ -48,6 +48,7 @@ module uc_jogo_principal (
         parameter inicia_state_registra_especial          = 5'b01010; // 10 
         parameter espera_registra_especial                = 5'b01011; // 11 
         parameter espera_enviar_dados                     = 5'b01100; // 12
+        parameter reseta_jogada                           = 5'b01101; // 13
         parameter erro                                    = 5'b11111; // F
 
         /* Variáveis de estado */
@@ -67,7 +68,8 @@ module uc_jogo_principal (
                 inicial:              proximo_estado = iniciar ? inicializa_elementos : inicial;                                 
                 inicializa_elementos: proximo_estado = espera_jogada;
                 espera_jogada:        proximo_estado = ~vidas ? espera_enviar_dados :  
-                                                        (ocorreu_jogada)  ? registra_jogada : espera_jogada;
+                                                        (ocorreu_jogada)  ? reseta_jogada : espera_jogada;
+                reseta_jogada:        proximo_estado = registra_jogada;
                 espera_enviar_dados:  proximo_estado = fim_movimentacao_asteroides_e_tiros ? fim_jogo : espera_enviar_dados;
                 registra_jogada:      proximo_estado = espera_salvamento;
                 espera_salvamento:    proximo_estado = espera_salvamento2; 
@@ -88,24 +90,17 @@ module uc_jogo_principal (
     /* Lógica de saída (maquina Moore) */
     always @* begin
         reset_reg_jogada          = (estado_atual == inicializa_elementos ||
-                                     estado_atual == espera_jogada        ||
+                                     estado_atual == reseta_jogada        ||
                                      estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
-        // reset_contador_asteroides = (estado_atual == inicializa_elementos ||
-        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
+ 
         reset_contador_asteroides = (estado_atual == inicializa_elementos )? 1'b1 : 1'b0;
 
-        // reset_contador_tiro       = (estado_atual == inicializa_elementos ||
-        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_contador_tiro       = (estado_atual == inicializa_elementos )? 1'b1 : 1'b0;
 
-        // reset_maquinas            = (estado_atual == inicializa_elementos  ||
-        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_maquinas            = (estado_atual == inicializa_elementos  )? 1'b1 : 1'b0;
 
         reset_pontuacao           = (estado_atual == inicializa_elementos) ? 1'b1 : 1'b0;
 
-        // reset_contador_vidas      = (estado_atual == inicializa_elementos  ||
-        //                              estado_atual == fim_jogo)             ? 1'b1 : 1'b0;
         reset_contador_vidas      = (estado_atual == inicializa_elementos) ? 1'b1 : 1'b0;
 
         enable_reg_jogada         = (estado_atual == registra_jogada)      ? 1'b1 : 1'b0;

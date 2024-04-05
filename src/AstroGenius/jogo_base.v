@@ -348,7 +348,7 @@ contador_m #(8, 4) contador_byte_enviar
 
 
 /*contador utilizado para mandar o rodapé*/
-contador_m #(2, 2) contador_rodape
+contador_m #(8, 3) contador_rodape
   (
    .clock(clock),
    .zera_as(wire_reset_contador_rodape),
@@ -415,7 +415,7 @@ contador_163 #(64) contador_intervalo_tiro  (
     .ent(1'b1),
     .enp(1'b1), 
     .D(),
-    .Max(64'd12500000),
+    .Max(64'd20000000),
     /*outputs*/
     .Q(),
     .rco(wire_rco_intervalo_tiro)

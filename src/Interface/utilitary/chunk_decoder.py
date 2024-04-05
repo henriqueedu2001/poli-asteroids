@@ -205,12 +205,12 @@ class ChunkDecoder():
         direct = None
         
         if bit_0 == 0 and bit_1 == 0:
-            direct = 'UP'
-        elif bit_0 == 0 and bit_1 == 1:
-            direct = 'DOWN'
-        elif bit_0 == 1 and bit_1 == 0:
-            direct = 'LEFT'
-        elif bit_0 == 1 and bit_1 == 1:
             direct = 'RIGHT'
+        elif bit_0 == 0 and bit_1 == 1:
+            direct = 'LEFT'
+        elif bit_0 == 1 and bit_1 == 0:
+            direct = 'UP'
+        elif bit_0 == 1 and bit_1 == 1:
+            direct = 'DOWN'
             
         return direct
