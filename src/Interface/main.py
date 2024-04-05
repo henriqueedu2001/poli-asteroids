@@ -88,7 +88,7 @@ class Game():
     self.log_message(f'render config: {self.render_config}')
     
     # abre a porta serial
-    # uart.show_ports()
+    uart.show_ports()
     
     if self.debug_mode:
       self.log_message('debug mode activated')

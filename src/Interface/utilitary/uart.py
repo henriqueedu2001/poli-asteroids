@@ -10,14 +10,14 @@ def show_ports():
     """Imprime as portas disponíveis
     """
     
-    available_ports = []
+    ports = serial.tools.list_ports.comports()
     
-    try:
-        available_ports = serial.tools.list_ports.comports()
-    except Exception as exception:
-        pass
-    
-    print(f'available serial ports\n{available_ports}')
+    if ports:
+        print("Available serial ports:")
+        for port in ports:
+            print(port.device)
+    else:
+        print("No serial port founded!.")
 
 
 def open_port(port_name: str):
