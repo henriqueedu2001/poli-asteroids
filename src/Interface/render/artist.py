@@ -11,19 +11,30 @@ def print_rect(rect):
     
 
 class Artist():
+    def get_font(font_size=24, font_name='Arial', bold=False, italic=False, underline=False):
+        font = pygame.font.SysFont(font_name, font_size, bold, italic)
+        
+        return font
+    
+
     def draw_line(screen: Screen, start_point, end_point, color=(255, 255, 255), brush_size=1):
         pygame.draw.line(screen.pygame_screen, color, start_point, end_point, brush_size)
         
         return
     
     
-    def draw_text(screen: Screen, text, x, y):
+    def draw_text(screen: Screen, text, x, y, textfont=None, alignment='topleft'):
         color = (255, 255, 255)
-        font = pygame.font.SysFont(None, 24)
+        font = textfont if textfont != None else Artist.get_font()
         text_surface = font.render(text, True, color)
-        text_pos = (x, y)
-            
-        screen.pygame_screen.blit(text_surface, text_pos)
+        text_rect = text_surface.get_rect()
+        
+        if alignment == 'center':
+            text_rect.center = (x, y)
+        else:
+            text_rect.topleft = (x, y)
+        
+        screen.pygame_screen.blit(text_surface, text_rect)
 
         return
     
@@ -66,20 +77,24 @@ class Artist():
     
     
     def draw_button(screen: Screen, text, x, y, width, height, pressed='false'):
-        pressed_border_size = 6
+        pressed_border_size = 4
         unpressed_border_size = 2
         
         x_min = x - (width//2)
         y_max = y - (height//2)
         
         rect = pygame.Rect(x_min, y_max, width, height)
-                
+        
+        pressed_font = Artist.get_font(font_size=18)
+        unpressed_font = Artist.get_font(font_size=18)
+        
+        
         if pressed == True:
-            Artist.draw_text(screen, text, x, y)
+            Artist.draw_text(screen, text, x, y, textfont=pressed_font, alignment='center')
             pygame.draw.rect(screen.pygame_screen, (255, 255, 255), rect, pressed_border_size)
         
         else:
-            Artist.draw_text(screen, text, x, y)
+            Artist.draw_text(screen, text, x, y, textfont=unpressed_font, alignment='center')
             pygame.draw.rect(screen.pygame_screen, (255, 255, 255), rect, unpressed_border_size)
         
         return
