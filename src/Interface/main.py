@@ -7,7 +7,6 @@ from . utilitary.buffer import Buffer as Buffer
 from . utilitary.chunk import Chunk
 from . utilitary.binary_handler import BinaryHandler
 from . render.render import RenderEngine
-from . testing.read_byte_tape import get_byte_tape
 
 # tamanho da tela
 SCREEN_WIDTH = 600
