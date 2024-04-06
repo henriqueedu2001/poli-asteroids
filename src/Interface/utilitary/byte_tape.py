@@ -21,9 +21,24 @@ class ByteTape():
     def read_byte(self) -> bytes:
         if self.loaded_tape:
             byte = self.content[self.index]
-            self.index = (self.index + 1) % self.tape_length
+            self.index = self.next_index()     
             
             return byte
+        
+        return None
+    
+    
+    def read_bytes(self, n=64) -> bytes:
+        if self.loaded_tape:
+            bytes = []
+            
+            # ler n bytes de dados
+            for _ in range(n):
+                byte = self.content[self.index]
+                bytes.append(byte)
+                self.index = self.next_index()     
+            
+            return bytes
         
         return None
     
@@ -81,6 +96,13 @@ class ByteTape():
         else:
             print('tape not loaded')
         return
+    
+    
+    def next_index(self):
+        i = self.index
+        i = (i + 1) % self.tape_length
+        
+        return i
     
     
     def check_data_dir_exist(self):

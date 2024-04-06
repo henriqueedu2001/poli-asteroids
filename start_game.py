@@ -22,7 +22,8 @@ GAME_CONFIG = {
   'delay': 0.00,
   'print_buffer': False,
   'print_chunk': False,
-  'print_uart': False
+  'print_uart': False,
+  'print_received_data': False
 }
 
 
