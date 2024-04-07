@@ -1,7 +1,7 @@
 # Chunk de transmissão FPGA -> PC 
 A transmissão de dados da placa FPGA para a o software da interface gráfica se dá por meio de uma comunicação serial, mediada por uma UART. Como a recepção de dados ocorre byte a byte, desenvolveu-se um protocolo de comunicação próprio que permitiu a recepção de um conjunto de dados de 43 bytes de informação. Esse protocolo consistiu em criar um bloco de transmissão de 51 bytes, no qual os primeiros 43 bytes formam um bloco de dados, representativo da informação do estado do jogo, e os últimos 8 bytes representam o fim do bloco, sequência denominada do projeto de **break point**.
 
-|          | **00** | **01** | **03** | **04** | **05** | **06** | **07** | **08** | 
+|          | **00** | **01** | **02** | **03** | **04** | **05** | **06** | **07** | 
 |----------|--------|--------|--------|--------|--------|--------|--------|--------|
 | **0000** | PT     | G1     | AS[0]  | AS[1]  | AS[2]  | AS[3]  | AS[4]  | AS[5]  |
 | **0008** | AS[6]  | AS[7]  | AS[8]  | AS[9]  | AS[10] | AS[11] | AS[12] | AS[13] |
