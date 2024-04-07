@@ -185,53 +185,47 @@ class Game():
       received_bytes = self.receive_uart_bytes(self.port, n=n_bytes, print_data=self.print_uart)  
     
     if received_bytes!= None and received_bytes != []:
-      # bytes recebidos com sucesso
-      
-      # escrita dos bits no buffer
       for received_byte in received_bytes:
         buffer.write_buffer(received_byte)
         
       if len(received_bytes) == 1:
-        # byte de menu recebido
         self.menu_byte = received_bytes[0]
         self.actual_screen = self.decode_menu_byte()
         
     else:
-      # nenhum byte recebido
       self.menu_byte = None
       if self.print_received_data: self.log_message('No byte received')
-        
-    # print de depuração dos bytes recebidos
+    
+    
     if self.print_received_data:
         BinaryHandler.print_byte_data(received_bytes)
 
     if buffer.chunk_loading:
-      try:
-        self.buffer.chunk.slice_chunk()
-        self.buffer.chunk.decode_data()
-        
-        if self.print_chunk:
-          self.buffer.chunk.print_chunk()
-          print()
-        
-        if self.print_buffer:
-          self.buffer.chunk.print_chunk()
-          print()
-        
-        
-      except Exception as exeption:
-        self.log_message(f'error while loading chunk\n{exeption}')
+      self.load_chunk()
       
-      self.received_game_data = self.buffer.chunk.decoded_data
-      self.actual_screen = self.decode_menu_byte()
+    self.print_debug()
     
     return
   
+  
+  def load_chunk(self):
+    try:
+      self.buffer.chunk.slice_chunk()
+      self.buffer.chunk.decode_data()
+      
+    except Exception as exception:
+      self.log_message(f'error while loading chunk\n details:{exception}')
+      
+    self.received_game_data = self.buffer.chunk.decoded_data
+    self.actual_screen = self.decode_menu_byte()
+    
+    return
   
   def receive_byte_tape(self):
     try:
       bytes = self.debug_byte_tape.read_bytes()
       return bytes
+    
     except:
       return None
   
@@ -255,6 +249,7 @@ class Game():
     try:
       byte = uart.receive_data(port, n=n, print_data=print_data)
       return byte
+    
     except:
       return None
   
@@ -262,6 +257,7 @@ class Game():
   def render(self):
     if self.print_actual_screen:
       print(self.actual_screen)
+      
     data = self.received_game_data
     self.render_engine.load_data(data)
     self.render_engine.render(screen=self.actual_screen)
@@ -273,6 +269,26 @@ class Game():
     if self.log_messages:
         print(f'[ LOG ] {log_message}')
     
+    return
+  
+  
+  def print_debug(self):
+    if self.buffer.chunk_loading:
+      try:
+        self.buffer.chunk.slice_chunk()
+        self.buffer.chunk.decode_data()
+        
+        if self.print_chunk:
+          self.buffer.chunk.print_chunk()
+          print()
+        
+        if self.print_buffer:
+          self.buffer.print_buffer()
+          print()
+        
+      except Exception as exeption:
+        self.log_message(f'error while loading chunk\n{exeption}')
+        
     return
 
 
