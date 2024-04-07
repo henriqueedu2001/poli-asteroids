@@ -8,6 +8,7 @@ from .render_initial_menu import RenderInitialMenu
 from .render_game_over import RenderGameOver
 from .render_player_scores import RenderPlayersScores
 from .render_debug import RenderDebug
+from .render_loading import RenderLoading
 
 
 WHITE = (255, 255, 255)
@@ -155,7 +156,8 @@ class RenderEngine():
             'gameover': self.render_gameover,  
             'players_scores': self.render_players_scores,
             'register_score': self.render_players_scores,
-            'debug': self.render_debug
+            'debug': self.render_debug,
+            'loading': self.render_loading
         }
         
         render_engines[actual_screen]()
@@ -183,6 +185,12 @@ class RenderEngine():
     
     def render_players_scores(self):
         RenderPlayersScores.render(self.screen_class, self.data)
+        
+        return
+    
+    
+    def render_loading(self):
+        RenderLoading.render(self.screen_class, self.data)
         
         return
     
