@@ -4,7 +4,7 @@ from typing import Union
 import re
 from . binary_handler import BinaryHandler
 
-DEFAULT_DATADIR_NAME = '.bytetapes'
+DEFAULT_DATADIR_NAME = '../../../bytetapes'
 
 IO_TOKENS = ['input', 'output', 'INPUT', 'OUTPUT']
 COMMENT_TOKENS = ['#', '//']
