@@ -221,7 +221,7 @@ class Game():
   
   def receive_byte_tape(self):
     try:
-      bytes = self.debug_byte_tape.read_bytes(n=self.buffer.buffer_size)
+      bytes = self.debug_byte_tape.read_bytes()
       return bytes
     except:
       return None

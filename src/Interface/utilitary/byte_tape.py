@@ -1,9 +1,13 @@
 import os
 from typing import List
 from typing import Union
+import re
 from . binary_handler import BinaryHandler
 
 DEFAULT_DATADIR_NAME = '.bytetapes'
+
+IO_TOKENS = ['input', 'output', 'INPUT', 'OUTPUT']
+COMMENT_TOKENS = ['#', '//']
 
 class ByteTape():
     def __init__(self) -> None:
@@ -28,15 +32,10 @@ class ByteTape():
         return None
     
     
-    def read_bytes(self, n=64) -> bytes:
+    def read_bytes(self) -> bytes:
         if self.loaded_tape:
-            bytes = []
-            
-            # ler n bytes de dados
-            for _ in range(n):
-                byte = self.content[self.index]
-                bytes.append(byte)
-                self.index = self.next_index()     
+            bytes = self.content[self.index]
+            self.index = self.next_index()     
             
             return bytes
         
@@ -68,11 +67,15 @@ class ByteTape():
         
         with open(abs_path, 'r') as file:
             content = file.read()
-            decoded_content = self.decode_content(content, encoding='hex')
             
-            self.content = decoded_content
+            # compilando byte tape
+            content = self.remove_comments(content)
+            io_slices = self.get_io_sclices(content)
+            io_bytes = [self.decode_content(io_slice, encoding='hex') for io_slice in io_slices]
+            
+            self.content = io_bytes
+            self.tape_length = len(io_bytes)
             self.loaded_tape = True
-            self.tape_length = len(decoded_content)
         
         return
     
@@ -96,6 +99,35 @@ class ByteTape():
         else:
             print('tape not loaded')
         return
+    
+    
+    def get_io_sclices(self, content):
+        io_tokens = IO_TOKENS
+        regex = '|'.join(map(re.escape, io_tokens))
+        io_slices = re.split(regex, content)
+        
+        return io_slices
+    
+    
+    def remove_comments(self, content: str):
+        lines = content.split('\n')
+        
+        comment_tokens = COMMENT_TOKENS
+        regex = '|'.join(map(re.escape, comment_tokens))
+        
+        codelines = []
+        
+        for line in lines:
+            divided_line = re.split(regex, line)
+            code = f'{divided_line[0]}'
+            if code != '':
+                formated_line = f'{code}\n'
+                codelines.append(formated_line)
+        
+        
+        filtered_code = ''.join(codelines)
+        
+        return filtered_code
     
     
     def next_index(self):
@@ -157,3 +189,13 @@ def get_filename(name, extension):
     filename = f'{name}.{ext}'
     
     return filename
+
+
+def test():
+    byte_tape = ByteTape()
+    byte_tape.load_tape()
+    # byte_tape.print_tape()
+    pass
+
+
+test()
