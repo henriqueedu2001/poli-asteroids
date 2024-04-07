@@ -8,15 +8,10 @@ from . utilitary.chunk import Chunk
 from . utilitary.binary_handler import BinaryHandler
 from . render.render import RenderEngine
 
-# tamanho da tela
-SCREEN_WIDTH = 600
-SCREEN_HEIGHT = 600
-
 BUFFER_SIZE = 204
 CHUNK_SIZE = 51
 BREAK_POINT_STR = b'\x41\x41\x41\x41\x41\x41\x41\x41'
 DEFAULT_PORT_NAME = 'COM6'
-DEBUG_BYTE_TAPE = 'in_default'
 
 DEFAULT_GAME_CONFIG = {
   'screen_widht': 800,
@@ -45,7 +40,7 @@ class Game():
     
     # debugging
     self.debug_mode = True if self.game_config['mode'] == 'debug' else False
-    self.debug_byte_tape_name = self.game_config['byte_tape'] if self.game_config['byte_tape'] else DEBUG_BYTE_TAPE
+    self.debug_byte_tape_name = self.game_config['byte_tape']
     self.debug_byte_tape = ByteTape()
     self.log_messages = True
     self.degug_count = 0
@@ -83,53 +78,71 @@ class Game():
     """Inicia o jogo poli-asteroids
     """
     
-    # inicia o jogo
+    # Mensagens de log
     self.log_message('starting game...')
-    
-    # configuração do jogo
     self.log_message(f'game config: {self.game_config}')
     self.log_message(f'render config: {self.render_config}')
     
-    # abre a porta serial
-    uart.show_ports()
-    
+    # abertura do canal de recepção de dados (UART ou FITA BINÁRIA)
     if self.debug_mode:
-      self.log_message('debug mode activated')
       self.log_messages = True
-      
-      try:
-        self.log_message('loading byte tape...')
-        self.debug_byte_tape.load_tape(self.debug_byte_tape_name)
-        self.log_message('byte tape loaded')
-      except Exception as execption:
-        self.log_message(f'failed to load byte tape\n error: {execption}')
-    
+      self.log_message('debug mode activated')
+      self.load_byte_tape()
     else:
-      while self.port_opened == False:
-        try:
-          self.port = uart.open_port(port_name=self.port_name)
-          self.port_opened = True
-          self.log_message('uart port started with sucess!')
-        except Exception as exeption:
-          self.log_message(f'failed to start the uart.\ndetails: {exeption}')
-          time.sleep(2)
+      self.log_message('gameplay mode activated')
+      self.open_uart_port()
 
-    try:
-      pygame.init()
-      width = self.game_config['screen_widht']
-      heigth = self.game_config['screen_heigth']
-      
-      self.screen = pygame.display.set_mode((width, heigth))
-      self.clock = pygame.time.Clock()
-      self.log_message('game started with sucess!')
-    except Exception as exeption:
-      self.log_message('failed to start the game')
-    
+    self.init_pygame()
     
     self.render_engine = RenderEngine(self.screen, actual_screen=self.actual_screen, config=self.render_config)
     
     # roda o jogo
     self.run_game()
+    
+
+  def init_pygame(self):
+    try:
+      pygame.init()
+      self.log_message('starting pygame...')
+      
+      width = self.game_config['screen_widht']
+      heigth = self.game_config['screen_heigth']
+      self.screen = pygame.display.set_mode((width, heigth))
+      self.clock = pygame.time.Clock()
+      
+      self.log_message('pygame started with sucess!')
+    
+    except Exception as exeption:
+      self.log_message('failed to start the pygame')
+      
+    return
+  
+
+  def load_byte_tape(self):
+    try:
+      self.log_message('loading byte tape...')
+      self.debug_byte_tape.load_tape(self.debug_byte_tape_name)
+      self.log_message('byte tape loaded')
+    
+    except Exception as execption:
+      self.log_message(f'failed to load byte tape\n error: {execption}')
+    
+    return
+  
+  
+  def open_uart_port(self):
+    self.log_message('opening uart')
+    while self.port_opened == False:
+        try:
+          self.port = uart.open_port(port_name=self.port_name)
+          self.port_opened = True
+          self.log_message('uart port started with sucess!')
+        
+        except Exception as exeption:
+          self.log_message(f'failed to start the uart.\ndetails: {exeption}')
+          time.sleep(2)
+          
+    return
 
 
   def run_game(self):
@@ -161,15 +174,11 @@ class Game():
     time.sleep(delay)
     
     buffer = self.buffer
-    # chunk = self.chunk
-
-    # receber o byte da comunicação serial com a uart
-    # received_byte = self.receive_byte_tape() if self.debug_mode else self.receive_uart_byte(self.port)
     
     n_bytes = self.buffer.buffer_size
     received_bytes = None
     
-    # alterna entre as fontes de bytes
+    # escolhe entre a UART e a fita binária
     if self.debug_mode:
       received_bytes = self.receive_byte_tape()
     else:
@@ -262,7 +271,7 @@ class Game():
   
   def log_message(self, log_message):
     if self.log_messages:
-        print(log_message)
+        print(f'[ LOG ] {log_message}')
     
     return
 
