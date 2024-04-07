@@ -50,10 +50,13 @@ class Game():
     self.log_messages = True
     self.degug_count = 0
     self.degug_count_max = 0
+    
+    # prints de depuração
     self.print_buffer = self.game_config['print_buffer']
     self.print_chunk = self.game_config['print_chunk']
     self.print_uart = self.game_config['print_uart']
     self.print_received_data = self.game_config['print_received_data']
+    self.print_actual_screen = self.game_config['print_actual_screen']
     
     # pygame parameters
     self.screen = None
@@ -68,11 +71,7 @@ class Game():
     self.render_config = render_config
     self.render_engine = None
     self.text_font = None
-    
-    self.actual_screen = 'gameplay'
-    
-    if self.debug_mode:
-      self.actual_screen = self.game_config['debug_screen']
+    self.actual_screen = 'loading'
     
     # uart
     self.port = None
@@ -141,8 +140,8 @@ class Game():
     run = True
     
     while run:
-      self.receive_data(delay=self.delay)
       self.render()
+      self.receive_data(delay=self.delay)
 
       for event in pygame.event.get():
         # lógica de fim do jogo
@@ -190,7 +189,8 @@ class Game():
         
     else:
       # nenhum byte recebido
-      if self.print_received_data: self.log_message('No byte received. Assuming gameover')
+      self.menu_byte = None
+      if self.print_received_data: self.log_message('No byte received')
         
     # print de depuração dos bytes recebidos
     if self.print_received_data:
@@ -234,7 +234,7 @@ class Game():
       b'\xf2': 'gameover',
       b'\xf3': 'register_score',
       b'\xf4': 'gameplay',
-      None: 'gameplay',
+      None: 'loading',
     }
     
     screen = encoding[self.menu_byte]
@@ -251,6 +251,8 @@ class Game():
   
   
   def render(self):
+    if self.print_actual_screen:
+      print(self.actual_screen)
     data = self.received_game_data
     self.render_engine.load_data(data)
     self.render_engine.render(screen=self.actual_screen)
