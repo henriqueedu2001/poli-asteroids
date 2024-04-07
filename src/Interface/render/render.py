@@ -140,20 +140,21 @@ class RenderEngine():
         return
     
     
-    def render(self):
+    def render(self, screen):
         self.clear_screen()
-
+        
         # telas possíveis: initial_menu, gameplay, gameover e players_scores
         if self.render_mode == 'debug':
             self.actual_screen = 'debug'
         
-        actual_screen = self.actual_screen
+        actual_screen = screen
         
         render_engines = {
             'initial_menu': self.render_initial_menu,  
             'gameplay': self.render_gameplay,  
             'gameover': self.render_gameover,  
             'players_scores': self.render_players_scores,
+            'register_score': self.render_players_scores,
             'debug': self.render_debug
         }
         

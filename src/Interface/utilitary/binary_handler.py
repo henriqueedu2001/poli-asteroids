@@ -120,6 +120,9 @@ class BinaryHandler():
     
     
     def get_byte_data_str(data: Union[bytes, List[int]] , bytes_per_line: int = 16, str_format: str = 'hex') -> str:
+        if data == None:
+            return 'empty'
+        
         block_size = len(data)
         lines = (block_size // bytes_per_line)
         tail_size = block_size % bytes_per_line

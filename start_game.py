@@ -23,7 +23,8 @@ GAME_CONFIG = {
   'print_buffer': False,
   'print_chunk': False,
   'print_uart': False,
-  'print_received_data': False
+  'print_received_data': False,
+  'print_actual_screen': False
 }
 
 

@@ -28,7 +28,8 @@ DEFAULT_GAME_CONFIG = {
   'print_buffer': False,
   'print_chunk': False,
   'print_uart': False,
-  'print_received_data': False
+  'print_received_data': False,
+  'print_actual_screen': False
 }
 
 DEFAULT_RENDER_CONFIG = {
@@ -173,15 +174,27 @@ class Game():
     if self.debug_mode:
       received_bytes = self.receive_byte_tape()
     else:
-      received_bytes = self.receive_uart_bytes(self.port, n=n_bytes, print_data=self.print_uart)
+      received_bytes = self.receive_uart_bytes(self.port, n=n_bytes, print_data=self.print_uart)  
     
-    if received_bytes!= None:
-      if self.print_received_data:
-        BinaryHandler.print_byte_data(received_bytes)
-        print()
-        
+    if received_bytes!= None and received_bytes != []:
+      # bytes recebidos com sucesso
+      
+      # escrita dos bits no buffer
       for received_byte in received_bytes:
         buffer.write_buffer(received_byte)
+        
+      if len(received_bytes) == 1:
+        # byte de menu recebido
+        self.menu_byte = received_bytes[0]
+        self.actual_screen = self.decode_menu_byte()
+        
+    else:
+      # nenhum byte recebido
+      if self.print_received_data: self.log_message('No byte received. Assuming gameover')
+        
+    # print de depuração dos bytes recebidos
+    if self.print_received_data:
+        BinaryHandler.print_byte_data(received_bytes)
 
     if buffer.chunk_loading:
       try:
@@ -199,18 +212,34 @@ class Game():
         
       except Exception as exeption:
         self.log_message(f'error while loading chunk\n{exeption}')
-
+      
       self.received_game_data = self.buffer.chunk.decoded_data
+      self.actual_screen = self.decode_menu_byte()
     
     return
   
   
   def receive_byte_tape(self):
     try:
-      byte = self.debug_byte_tape.read_bytes(n=self.buffer.buffer_size)
-      return byte
+      bytes = self.debug_byte_tape.read_bytes(n=self.buffer.buffer_size)
+      return bytes
     except:
       return None
+  
+  
+  def decode_menu_byte(self):
+    encoding = {
+      b'\xf0': 'initial_menu',
+      b'\xf1': 'players_scores',
+      b'\xf2': 'gameover',
+      b'\xf3': 'register_score',
+      b'\xf4': 'gameplay',
+      None: 'gameplay',
+    }
+    
+    screen = encoding[self.menu_byte]
+    
+    return screen
   
   
   def receive_uart_bytes(self, port, n=256, print_data=False):
@@ -224,7 +253,7 @@ class Game():
   def render(self):
     data = self.received_game_data
     self.render_engine.load_data(data)
-    self.render_engine.render()
+    self.render_engine.render(screen=self.actual_screen)
     
     return
   
