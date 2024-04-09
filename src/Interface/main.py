@@ -185,19 +185,22 @@ class Game():
     else:
       received_bytes = self.receive_uart_bytes(self.port, n=n_bytes, print_data=self.print_uart)  
 
-    if received_bytes!= None and received_bytes != []:
+    if received_bytes!= None and received_bytes != []:   
+      self.last_byte = received_bytes[-1] 
       for received_byte in received_bytes:
         buffer.write_buffer(received_byte)
-        
-      if len(received_bytes) == 1:
-        self.menu_byte = received_bytes[0]
-        self.actual_screen = self.decode_menu_byte()
-        
     else:
-      self.menu_byte = None
+      self.last_byte = None
       if self.print_received_data: self.log_message('No byte received')
     
+    if len(received_bytes) == 1:
+      self.menu_byte = received_bytes[-1]
+      self.actual_screen = self.decode_menu_byte()
     
+    if self.last_byte == b'\xf2' or self.last_byte == 242:
+      if self.actual_screen == 'gameplay':
+        self.actual_screen = 'gameover'
+      
     if self.print_received_data:
         BinaryHandler.print_byte_data(received_bytes)
 
@@ -218,7 +221,6 @@ class Game():
       self.log_message(f'error while loading chunk\n details:{exception}')
       
     self.received_game_data = self.buffer.chunk.decoded_data
-    self.actual_screen = self.decode_menu_byte()
     
     return
   
@@ -233,11 +235,11 @@ class Game():
   
   def decode_menu_byte(self):
     encoding = {
-      # b'\xf0': 'initial_menu',
-      # b'\xf1': 'players_scores',
-      # b'\xf2': 'gameover',
-      # b'\xf3': 'register_score',
-      # b'\xf4': 'gameplay',
+      b'\xf0': 'initial_menu',
+      b'\xf1': 'players_scores',
+      b'\xf2': 'gameover',
+      b'\xf3': 'register_score',
+      b'\xf4': 'gameplay',
       240: 'initial_menu',
       241: 'players_scores',
       242: 'gameover',
@@ -245,9 +247,10 @@ class Game():
       244: 'gameplay',
       None: 'gameplay',
     }
-
+    
     
     screen = encoding[self.menu_byte]
+    
     return screen
   
   
