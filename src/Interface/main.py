@@ -193,9 +193,10 @@ class Game():
       self.last_byte = None
       if self.print_received_data: self.log_message('No byte received')
     
-    if len(received_bytes) == 1:
-      self.menu_byte = received_bytes[-1]
-      self.actual_screen = self.decode_menu_byte()
+    if received_bytes != None:
+      if len(received_bytes) == 1:
+        self.menu_byte = received_bytes[-1]
+        self.actual_screen = self.decode_menu_byte()
     
     if self.last_byte == b'\xf2' or self.last_byte == 242:
       if self.actual_screen == 'gameplay':
