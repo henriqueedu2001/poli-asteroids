@@ -61,6 +61,7 @@ class Game():
     self.buffer = Buffer(buffer_size=BUFFER_SIZE, chunk_size=CHUNK_SIZE, break_point_str=BREAK_POINT_STR)
     self.received_game_data = None
     self.menu_byte = None
+    self.last_byte = None
     
     # render
     self.render_config = render_config
@@ -183,7 +184,7 @@ class Game():
       received_bytes = self.receive_byte_tape()
     else:
       received_bytes = self.receive_uart_bytes(self.port, n=n_bytes, print_data=self.print_uart)  
-    
+
     if received_bytes!= None and received_bytes != []:
       for received_byte in received_bytes:
         buffer.write_buffer(received_byte)
@@ -232,16 +233,21 @@ class Game():
   
   def decode_menu_byte(self):
     encoding = {
-      b'\xf0': 'initial_menu',
-      b'\xf1': 'players_scores',
-      b'\xf2': 'gameover',
-      b'\xf3': 'register_score',
-      b'\xf4': 'gameplay',
-      None: 'loading',
+      # b'\xf0': 'initial_menu',
+      # b'\xf1': 'players_scores',
+      # b'\xf2': 'gameover',
+      # b'\xf3': 'register_score',
+      # b'\xf4': 'gameplay',
+      240: 'initial_menu',
+      241: 'players_scores',
+      242: 'gameover',
+      243: 'register_score',
+      244: 'gameplay',
+      None: 'gameplay',
     }
+
     
     screen = encoding[self.menu_byte]
-    
     return screen
   
   
